@@ -1,6 +1,12 @@
 <?php
 declare(strict_types=1);
 
+// Alle Fehler melden und vorerst anzeigen – nach dem Laden der Config entscheidet 'debug' über die Anzeige.
+error_reporting(E_ALL);
+ini_set('display_errors', '1');
+ini_set('display_startup_errors', '1');
+ini_set('log_errors', '1');
+
 define('BASE_PATH', dirname(__DIR__));
 define('PUBLIC_PATH', BASE_PATH . '/public');
 
@@ -23,6 +29,12 @@ if (!is_file($configFile)) {
     exit('config/config.php fehlt – bitte config/config.example.php kopieren und anpassen.');
 }
 $GLOBALS['havoc_config'] = require $configFile;
+
+// Produktion: Fehler nur ins Server-Log, nicht in die Seite.
+if (!config('debug', false)) {
+    ini_set('display_errors', '0');
+    ini_set('display_startup_errors', '0');
+}
 
 date_default_timezone_set(config('timezone', 'Europe/Berlin'));
 

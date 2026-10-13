@@ -6,6 +6,9 @@ return [
 
     'timezone' => 'Europe/Berlin',
 
+    // true = alle PHP-Fehler (E_ALL) im Browser anzeigen. Nur zur Fehlersuche, in Produktion false!
+    'debug' => false,
+
     'admin' => [
         'username' => 'admin',
         // Neuen Hash erzeugen: php bin/hash-password.php "dein-passwort"

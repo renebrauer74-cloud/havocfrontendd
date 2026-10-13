@@ -42,6 +42,13 @@ final class Database
         if (!$this->usesPdo()) {
             throw new RuntimeException("database.driver ist nicht 'mysql'.");
         }
+        if (!extension_loaded('pdo_mysql')) {
+            throw new RuntimeException('PHP-Erweiterung pdo_mysql ist auf diesem Server nicht aktiv.');
+        }
+        // Ab PHP 8.5 ist PDO::MYSQL_ATTR_FOUND_ROWS deprecated, Pdo\Mysql gibt es erst ab 8.4.
+        $foundRows = defined('Pdo\Mysql::ATTR_FOUND_ROWS')
+            ? constant('Pdo\Mysql::ATTR_FOUND_ROWS')
+            : constant('PDO::MYSQL_ATTR_FOUND_ROWS');
 
         $dsn = sprintf(
             'mysql:host=%s;port=%d;dbname=%s;charset=utf8mb4',
@@ -55,7 +62,7 @@ final class Database
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
             // Echte Prepared Statements: Integer-Spalten kommen als int zurück (strikte Vergleiche bleiben gültig).
             PDO::ATTR_EMULATE_PREPARES   => false,
-            PDO::MYSQL_ATTR_FOUND_ROWS   => true,
+            $foundRows                   => true,
             PDO::ATTR_TIMEOUT            => 5,
         ]);
     }
