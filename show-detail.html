@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HAVOC AGENCY | SHOW DETAIL</title>
+    <style>
+        /* ==========================================================================
+           1:1 DESIGN SYSTEM NACH BRAND-VORGABE (FULL-WIDTH HEADER)
+           ========================================================================== */
+        :root {
+            --black: #000000;
+            --white: #ffffff;
+            --gray: #757575;
+            --font-main: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--white);
+            color: var(--black);
+            font-family: var(--font-main);
+            padding: 40px;
+            letter-spacing: -0.02em;
+        }
+
+        /* --- HEADER ÜBER DIE KOMPLETTE BREITE --- */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center; 
+            border-bottom: 1px solid #e0e0e0; 
+            padding-bottom: 20px;
+            margin-bottom: 60px;
+            width: 100%;
+        }
+/* --- BRAND LOGO IMG REPLACEMENT --- */
+.logo-link {
+    display: inline-block;
+    text-decoration: none;
+    line-height: 0;
+    transition: opacity 0.2s ease;
+}
+
+.logo-link:hover {
+    opacity: 0.8;
+}
+
+.logo-link img {
+    height: 90px; /* Perfekte, edle Magazin-Höhe für die Navigationszeile */
+    width: auto;
+    display: block;
+}
+
+        .brand-sub {
+            font-size: 0.55rem;
+            font-weight: 400;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            margin-top: 5px;
+            color: var(--black);
+            text-align: center;
+            width: 100%;
+        }
+
+        nav {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+        }
+
+        nav a {
+            color: var(--black);
+            text-decoration: none;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+        }
+
+        /* ==========================================================================
+           ZENTRIERTER CONTENT WRAPPER
+           ========================================================================== */
+        .content-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        
+        /* Zweigeteiltes Editorial-Grid für Plakat und Infos */
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 430px 1fr;
+            gap: 60px;
+            margin-top: 40px;
+            border-top: 1px solid var(--black);
+            padding-top: 40px;
+        }
+
+        .poster-frame {
+            width: 100%;
+            aspect-ratio: 3 / 4;
+            background-color: #f0f0f0;
+            overflow: hidden;
+        }
+
+        .poster-frame img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: grayscale(100%);
+        }
+        
+        .info-pane h1 {
+            font-size: 3.5rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            line-height: 0.95;
+            margin-bottom: 25px;
+        }
+
+        .meta-pane {
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+            line-height: 1.9;
+            border-bottom: 1px solid #e0e0e0;
+            padding-bottom: 20px;
+        }
+
+        .meta-pane strong {
+            text-transform: uppercase;
+            display: inline-block;
+            width: 100px;
+        }
+
+        .long-text {
+            font-size: 1.05rem;
+            line-height: 1.6;
+            text-align: justify;
+            color: #111;
+        }
+
+        .ticket-action {
+            margin-top: 40px;
+        }
+
+        .ticket-btn-large {
+            display: inline-block;
+            background-color: var(--black);
+            color: var(--white);
+            text-decoration: none;
+            padding: 16px 32px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-size: 0.9rem;
+            transition: opacity 0.2s ease;
+        }
+
+        .ticket-btn-large:hover {
+            opacity: 0.8;
+        }
+        
+        footer {
+            margin-top: 100px;
+            border-top: 1px solid var(--black);
+            padding-top: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--gray);
+            width: 100%;
+        }
+
+        @media (max-width: 768px) {
+            body { padding: 20px; }
+            header { flex-direction: column; align-items: flex-start; gap: 20px; }
+            .logo-container { align-items: flex-start; }
+            .brand-sub { text-align: left; }
+            .detail-grid { grid-template-columns: 1fr; gap: 30px; }
+            .info-pane h1 { font-size: 2.2rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- REINER HEAD-BLOCK ÜBER DIE VOLLE STRUKTURBREITE -->
+<header style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e0e0e0; padding-bottom: 20px; margin-bottom: 60px; width: 100%;">
+    <a href="index.html" class="logo-link">
+        <img src="uploads/havoc-logo.jpeg" alt="HAVOC AGENCY">
+    </a>
+        <nav>
+            <a href="shows.html">← ZURÜCK ZUR ÜBERSICHT</a>
+        </nav>
+    </header>
+
+    <!-- NUR HIER DRIN VERFÄHRT DER INHALT GEZENTRIERT -->
+    <div class="content-container">
+        <main id="detailTarget">
+            <p style="text-transform: uppercase; font-weight: 700;">Lade Show-Details...</p>
+        </main>
+
+<footer style="margin-top: 100px; border-top: 1px solid #000000; padding-top: 20px; width: 100%; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">
+    <!-- Der Link ist jetzt elegant geschrumpft (0.7rem) und im gleichen Grau wie das Copyright -->
+    <div style="margin-bottom: 8px;">
+        <a href="impressum.html" target="_blank" class="footer-legal-link" style="font-size: 0.7rem; font-weight: 500; text-transform: uppercase; color: #757575; text-decoration: none; letter-spacing: 0.05em; transition: color 0.2s ease;" onmouseover="this.style.color='#000000'" onmouseout="this.style.color='#757575'">IMPRESSUM //</a>
+    </div>
+    <div style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: #757575; letter-spacing: -0.01em;">
+        © 2026 HAVOC AGENCY. ALL RIGHTS RESERVED.
+    </div>
+</footer>
+    </div>
+
+    <script>
+        async function loadShowDetails() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const showId = urlParams.get('id');
+            if(!showId) return;
+
+            try {
+                const response = await fetch(`https://havoc-backend-063h.onrender.com/api/agency-shows/${showId}`);
+                if(!response.ok) throw new Error();
+                const show = await response.json();
+                
+                const cleanBio = show.info_text ? decodeURIComponent(escape(atob(show.info_text))) : 'Keine weiteren Details hinterlegt.';
+                const imgUrl = show.image_url || 'data:image/svg+xml;utf8,<svg xmlns="http://w3.org" width="300" height="400" viewBox="0 0 300 400"><rect width="300" height="400" fill="%23000"/><text x="150" y="200" font-family="Arial" font-size="16" font-weight="900" fill="%23fff" text-anchor="middle">HAVOC SHOW</text></svg>';
+
+                document.getElementById('detailTarget').innerHTML = `
+                    <div class="detail-grid">
+                        <div class="poster-frame">
+                            <img src="${imgUrl}" alt="${show.title}">
+                        </div>
+                        <div class="info-pane">
+                            <h1>${show.title}</h1>
+                            <div class="meta-pane">
+                                <div><strong>WANN //</strong> ${show.date}</div>
+                                <div><strong>WO //</strong> ${show.venue} — ${show.city}</div>
+                            </div>
+                            <p class="long-text">${cleanBio}</p>
+                            ${show.ticket_url ? `
+                                <div class="ticket-action">
+                                    <a href="\${show.ticket_url}" target="_blank" class="ticket-btn-large">DIREKT TICKETS SICHERN //</a>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            } catch (e) {
+                document.getElementById('detailTarget').innerHTML = '<p style="text-transform: uppercase; font-weight: 700; color: red;">Show konnte nicht geladen werden.</p>';
+            }
+        }
+        document.addEventListener('DOMContentLoaded', loadShowDetails);
+    </script>
+</body>
+</html>

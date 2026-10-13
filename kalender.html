@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HAVOC AGENCY | Live Calendar</title>
+    <style>
+        @import url('https://googleapis.com');
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #ffffff;
+            color: #000000;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        ::selection {
+            background-color: #000000;
+            color: #ffffff;
+        }
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center; 
+    border-bottom: 1px solid #e0e0e0; 
+    padding-bottom: 20px;
+    margin-bottom: 60px;
+    width: 100%; 
+}
+
+.logo-link {
+    display: inline-block;
+    text-decoration: none;
+    line-height: 0;
+    transition: opacity 0.2s ease;
+}
+
+.logo-link:hover {
+    opacity: 0.8;
+}
+
+.logo-link img {
+    height: 98px; /* Exakt 50% vergrößert für den brachialen Look */
+    width: auto;
+    display: block;
+}
+
+nav {
+    display: flex;
+    align-items: center;
+    gap: 25px;
+}
+
+nav a {
+    color: #000000;
+    text-decoration: none;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.05em;
+    transition: opacity 0.2s ease;
+}
+
+nav a:hover {
+    opacity: 0.5;
+}
+
+nav a.active {
+    opacity: 0.4; /* Kennzeichnet die aktuell aktive Seite */
+}
+
+nav a.admin-btn {
+    border: 1px solid #000000;
+    padding: 6px 12px;
+    margin-left: 5px;
+}
+
+        main {
+            flex-grow: 1;
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 80px 24px;
+        }
+
+        .calendar-title {
+            font-weight: 900;
+            font-size: clamp(36px, 6vw, 64px);
+            text-transform: uppercase;
+            letter-spacing: -0.04em;
+            line-height: 0.9;
+            margin-bottom: 60px;
+        }
+
+        .calendar-title span {
+            color: #a1a1aa;
+        }
+
+        /* ALPHABETISCHE BAND-SEKTIONEN */
+        .artist-block {
+            margin-bottom: 60px;
+        }
+
+        .artist-block-header {
+            font-weight: 900;
+            font-size: 28px;
+            text-transform: uppercase;
+            letter-spacing: -0.02em;
+            border-bottom: 2px solid #000000;
+            padding-bottom: 12px;
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .artist-block-genre {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: #71717a;
+            font-weight: 300;
+        }
+
+        .calendar-table {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .calendar-row {
+            display: flex;
+            flex-direction: column;
+            padding: 20px 12px;
+            border-bottom: 1px solid #e4e4e7;
+            transition: background-color 0.2s ease;
+        }
+
+        @media (min-width: 768px) {
+            .calendar-row {
+                flex-direction: row;
+                align-items: center;
+                justify-content: space-between;
+            }
+        }
+
+        .calendar-row:hover {
+            background-color: #f4f4f5;
+        }
+
+        .date-col {
+            font-family: monospace;
+            font-size: 15px;
+            color: #52525b;
+            min-width: 140px;
+        }
+
+        .show-col {
+            font-weight: 900;
+            font-size: 18px;
+            text-transform: uppercase;
+            margin: 10px 0;
+            flex-grow: 1;
+        }
+
+        @media (min-width: 768px) {
+            .show-col {
+                margin: 0;
+                padding-left: 24px;
+            }
+        }
+
+        .ticket-btn {
+            background-color: #000000;
+            color: #ffffff;
+            text-decoration: none;
+            padding: 8px 20px;
+            font-size: 11px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            text-align: center;
+            transition: all 0.2s ease;
+            border: 1px solid #000000;
+        }
+
+        .ticket-btn:hover {
+            background-color: #ffffff;
+            color: #000000;
+        }
+
+        footer {
+            border-top: 1px solid #000000;
+            padding: 40px 24px;
+            text-align: center;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            color: #71717a;
+            margin-top: auto;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <a href="index.html" class="logo-link">
+        <img src="uploads/havoc-logo.jpeg" alt="HAVOC AGENCY">
+    </a>
+    <nav>
+        <a href="index.html">START //</a>
+        <a href="roster.html">ARTISTS //</a> <!-- Springt direkt zum Künstler-Grid auf der Startseite -->
+        <a href="kalender.html">TOUR DATES //</a>
+        <a href="shows.html">SHOWS //</a>
+        <a href="team.html">TEAM //</a>
+        <a href="stu.html">STU //</a>
+        <a href="kontakt.html">CONTACT //</a>
+        <a href="admin-dashboard.html" class="admin-btn">ADMIN</a>
+    </nav>
+</header>
+
+    <main>
+        <h1 class="calendar-title">Roster Live<span> Calendar //</span></h1>
+        
+        <div id="globalCalendarContainer">
+            <div style="padding: 32px 0; color: #71717a; text-transform: uppercase; font-size: 12px; letter-spacing: 0.15em;">Ordne Tourdaten nach Künstlern...</div>
+        </div>
+    </main>
+
+<footer style="margin-top: 100px; border-top: 1px solid #000000; padding-top: 20px; width: 100%; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">
+    <!-- Der Link ist jetzt elegant geschrumpft (0.7rem) und im gleichen Grau wie das Copyright -->
+    <div style="margin-bottom: 8px;">
+        <a href="impressum.html" target="_blank" class="footer-legal-link" style="font-size: 0.7rem; font-weight: 500; text-transform: uppercase; color: #757575; text-decoration: none; letter-spacing: 0.05em; transition: color 0.2s ease;" onmouseover="this.style.color='#000000'" onmouseout="this.style.color='#757575'">IMPRESSUM //</a>
+    </div>
+    <div style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: #757575; letter-spacing: -0.01em;">
+        © 2026 HAVOC AGENCY. ALL RIGHTS RESERVED.
+    </div>
+</footer>
+
+        <script>
+        // --- ALPHABETISCHES AGENTUR-GEHIRN FÜR DIE GROUPED TOUR DATES ---
+        async function loadGroupedCalendar() {
+            const container = document.getElementById('globalCalendarContainer');
+            if (!container) return;
+
+            try {
+                // 1. Beide Endpunkte gleichzeitig abfragen
+                const [artistsRes, datesRes] = await Promise.all([
+                    fetch('https://havoc-backend-063h.onrender.com/api/artists'),
+                    fetch('https://havoc-backend-063h.onrender.com/api/dates-all')
+                ]);
+
+                const artists = await artistsRes.json();
+                const allDates = await datesRes.json();
+
+                if (!artists || artists.length === 0) {
+                    container.innerHTML = '<div style="padding: 32px 0; color: #a1a1aa; text-transform: uppercase; font-size: 12px; letter-spacing: 0.1em;">Aktuell sind keine Künstler im System hinterlegt.</div>';
+                    return;
+                }
+
+                // 2. Bands alphabetisch von A bis Z sortieren
+                artists.sort((a, b) => a.name.localeCompare(b.name, 'de', { sensitivity: 'base' }));
+
+                let finalHtml = '';
+                let hasAnyShowsTotal = false;
+
+                // 3. Für jede Band den passenden Block bauen
+                for (let i = 0; i < artists.length; i++) {
+                    const artist = artists[i];
+                    
+                    // Filtert alle Shows, die genau zu dieser Band-ID gehören
+                    const artistShows = allDates.filter(show => show.artist_id === artist.id);
+
+                    // Wir bauen den Block nur, wenn die Band auch wirklich Live-Termine hat
+                    if (artistShows && artistShows.length > 0) {
+                        hasAnyShowsTotal = true;
+                        
+                        finalHtml += `
+                            <div class="artist-block">
+                                <div class="artist-block-header">
+                                    <span>${artist.name}</span>
+                                    <span class="artist-block-genre">${artist.genre || 'Alternative'}</span>
+                                </div>
+                                <div class="calendar-table">
+                        `;
+
+                        // Die Shows dieser Band untereinander rendern
+                        finalHtml += artistShows.map(show => {
+                            const ticketLink = show.link && show.link.trim() !== '' ? show.link : '#';
+                            return `
+                                <div class="calendar-row">
+                                    <div class="date-col">${show.date}</div>
+                                    <div class="show-col">${show.city} <span style="color: #a1a1aa; font-weight: 300;">//</span> ${show.venue}</div>
+                                    <a href="${ticketLink}" target="_blank" class="ticket-btn">Tickets</a>
+                                </div>
+                            `;
+                        }).join('');
+
+                        finalHtml += `
+                                </div>
+                            </div>
+                        `;
+                    }
+                }
+
+                // Falls gar keine Band Shows eingetragen hat
+                if (!hasAnyShowsTotal) {
+                    container.innerHTML = '<div style="padding: 32px 0; color: #71717a; text-transform: uppercase; font-size: 12px; letter-spacing: 0.15em;">Aktuell sind agenturweit keine Tourdaten eingetragen.</div>';
+                } else {
+                    container.innerHTML = finalHtml;
+                }
+
+            } catch (err) {
+                container.innerHTML = '<div style="padding: 32px 0; color: #ef4444; font-family: monospace; font-size: 12px;">FEHLER BEIM GRUPPIEREN DER TOURDATEN. LÄUFT DAS BACKEND?</div>';
+                console.error("Kalender-Sortierungs-Fehler:", err);
+            }
+        }
+
+        // Automatisch beim Laden ausführen
+        window.addEventListener('DOMContentLoaded', loadGroupedCalendar);
+    </script>
+</body>
+</html>

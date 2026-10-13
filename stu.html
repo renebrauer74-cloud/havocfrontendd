@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HAVOC AGENCY | SUPPORT THE UNDERGROUND</title>
+    <style>
+        /* ==========================================================================
+           1:1 DESIGN SYSTEM NACH BRAND-VORGABE (FULL-WIDTH LAYOUT)
+           ========================================================================== */
+        :root {
+            --black: #000000;
+            --white: #ffffff;
+            --gray: #757575;
+            --font-main: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--white);
+            color: var(--black);
+            font-family: var(--font-main);
+            padding: 40px; /* Rahmen über die komplette Seite */
+            letter-spacing: -0.02em;
+        }
+
+        /* --- HEADER ÜBER DIE KOMPLETTE BREITE --- */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center; 
+            border-bottom: 1px solid #e0e0e0; 
+            padding-bottom: 20px;
+            margin-bottom: 60px;
+            width: 100%; 
+        }
+
+        .logo-link {
+            display: inline-block;
+            text-decoration: none;
+            line-height: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .logo-link:hover {
+            opacity: 0.8;
+        }
+
+        .logo-link img {
+            height: 98px; /* Exakt 50% vergrößert */
+            width: auto;
+            display: block;
+        }
+
+        nav {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+        }
+
+        nav a {
+            color: var(--black);
+            text-decoration: none;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.05em;
+            transition: opacity 0.2s ease;
+        }
+
+        nav a:hover {
+            opacity: 0.5;
+        }
+
+        nav a.active {
+            opacity: 0.4; 
+        }
+
+        nav a.admin-btn {
+            border: 1px solid var(--black);
+            padding: 6px 12px;
+            margin-left: 5px;
+        }
+
+        /* ==========================================================================
+           ZENTRIERTER CONTENT WRAPPER (NUR FÜR DIE TEXTBLÖCKE)
+           ========================================================================== */
+        .content-container {
+            max-width: 900px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        h1.page-title {
+            font-size: 4rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            line-height: 0.9;
+            width: 100%;
+        }
+
+        .section-subtitle {
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 50px;
+            line-height: 1.2;
+            color: var(--black);
+            border-bottom: 2px solid var(--black);
+            padding-bottom: 20px;
+        }
+
+        .text-block {
+            margin-bottom: 50px;
+        }
+
+        h2 {
+            font-size: 2rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            margin-top: 60px;
+            margin-bottom: 25px;
+            letter-spacing: -0.01em;
+            line-height: 1.1;
+        }
+
+        p {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            text-align: justify;
+        }
+
+        /* Punchy List-Style */
+        ul {
+            list-style: none;
+            margin-bottom: 30px;
+            margin-top: 10px;
+        }
+
+        li {
+            font-size: 1.05rem;
+            line-height: 1.5;
+            margin-bottom: 12px;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        li::before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: var(--black);
+            font-weight: bold;
+        }
+
+        li strong {
+            text-transform: uppercase;
+            font-weight: 900;
+        }
+
+        .mail-link {
+            color: var(--black);
+            text-decoration: none;
+            font-weight: 700;
+            border-bottom: 2px solid var(--black);
+            transition: opacity 0.2s ease;
+        }
+
+        .mail-link:hover {
+            opacity: 0.5;
+        }
+
+        /* --- RECHTSKONFORMER GLOBALER FOOTER (VOLLE BREITE!) --- */
+        footer {
+            margin-top: 100px;
+            border-top: 1px solid #000000;
+            padding-top: 20px;
+            width: 100%; /* Spant sich unerbittlich über den gesamten Bildschirm */
+            font-family: var(--font-main);
+        }
+
+        @media (max-width: 768px) {
+            body { padding: 20px; }
+            header { flex-direction: column; align-items: flex-start; gap: 20px; }
+            h1.page-title { font-size: 2.5rem; }
+            .section-subtitle { font-size: 1.2rem; }
+            h2 { font-size: 1.6rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- HEADER AN DEN ÄUSSEREN COUTER-RÄNDERN -->
+    <header>
+        <a href="index.html" class="logo-link">
+            <img src="https://havoc-backend-063h.onrender.com/uploads/havoc-logo.jpeg" alt="HAVOC AGENCY">
+        </a>
+        <nav>
+            <a href="index.html">START //</a>
+            <a href="roster.html">ARTISTS //</a>
+            <a href="kalender.html">TOUR DATES //</a>
+            <a href="shows.html">SHOWS //</a>
+            <a href="team.html">TEAM //</a>
+            <a href="stu.html" class="active">STU //</a>
+            <a href="kontakt.html">CONTACT //</a>
+            <a href="admin-dashboard.html" class="admin-btn">ADMIN</a>
+        </nav>
+    </header>
+    <!-- GEZENTRIERTER CONTENT-LAYER FÜR DEN TEXT -->
+    <div class="content-container">
+        <main>
+            <h1 class="page-title">STU //</h1>
+            <div class="section-subtitle">Support The Underground – Von Musikern für Musiker – Weil wir euren Weg kennen.</div>
+
+            <div class="text-block">
+                <p>Wir machen diese Arbeit nicht vom Schreibtisch aus, sondern kommen direkt aus dem Proberaum und dem Tourbus. Wir von der Havoc Agency sind selbst Musiker aus absoluter Leidenschaft. Wir wissen ganz genau, wie es sich anfühlt, für jeden einzelnen Gig zu kämpfen. Wir kennen die endlosen Absagen, die schweißtreibenden Nächte im Proberaum und den unbedingten Willen, endlich auf den Brettern zu stehen, die die Welt bedeuten. Aus genau diesem Grund schlägt unser Herz für den Underground.</p>
+                
+                <p>Wir glauben fest an die rohe Energie, die ungezähmte Kreativität und die Vielfalt der lokalen Musikszene. Ihr seid das Fundament, auf dem die Zukunft der Live-Musik steht. Deshalb wollen wir euch nicht nur eine Chance geben, sondern eine echte Rampe bauen: Wir bieten aufstrebenden Bands die Möglichkeit, sich bei uns zu bewerben, um gemeinsam mit größeren, etablierten Acts auf der Bühne zu stehen. Holt euch die Reichweite und die Shows, die ihr verdient!</p>
+            </div>
+
+            <div class="text-block">
+                <h2>So werdet ihr Teil der Havoc-Familie</h2>
+                <p>Ihr brennt für eure Musik und seid bereit für die nächste Stufe? Dann lasst uns gemeinsam laut werden. Der Bewerbungsprozess ist unkompliziert – wir wollen einfach nur eure ehrliche Musik hören.</p>
+                
+                <p>Das brauchen wir von euch:</p>
+                <ul>
+                    <li><strong>Band-Info:</strong> Erzählt uns kurz, wer ihr seid.</li>
+                    <li>Welche Message ihr transportiert und welches Genre ihr bedient.</li>
+                    <li><strong>Eure Musik:</strong> Schickt uns Links zu euren Songs.</li>
+                    <li>Verwendet Spotify, Bandcamp, YouTube oder SoundCloud.</li>
+                    <li>Bitte keine riesigen Audio-Dateien direkt in den Anhang packen!</li>
+                    <li><strong>Live-Erfahrung:</strong> Schreibt uns ein paar Zeilen zu bisherigen Auftritten.</li>
+                    <li>Egal ob Jugendzentrum oder Club-Show.</li>
+                    <li>Wir wollen wissen, wie ihr live abreißt.</li>
+                </ul>
+                
+                <p>📬 Bereit? Dann schickt eure Bewerbung einfach per E-Mail an: <a href="mailto:info@havoc-agency.com" class="mail-link">info@havoc-agency.com</a></p>
+                <p>Wir freuen uns auf eure Sounds, eure Energie und darauf, gemeinsam mit euch den Underground nach oben zu bringen!</p>
+            </div>
+        </main>
+    </div> <!-- Ende des zentrierten content-containers -->
+
+    <!-- DIESER FOOTER STEHT JETZT AUSSERHALB UND SPANNT SICH ÜBER DIE VOLLE BREITE -->
+ <footer style="margin-top: 100px; border-top: 1px solid #000000; padding-top: 20px; width: 100%; text-align: center; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">
+        <div style="margin-bottom: 8px;">
+            <a href="impressum.html" target="_blank" style="font-size: 0.7rem; font-weight: 500; text-transform: uppercase; color: #757575; text-decoration: none; letter-spacing: 0.05em; transition: color 0.2s ease;" onmouseover="this.style.color='#000000'" onmouseout="this.style.color='#757575'">IMPRESSUM //</a>
+        </div>
+        <div style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: #757575; letter-spacing: -0.01em;">
+            © 2026 HAVOC AGENCY. ALL RIGHTS RESERVED.
+        </div>
+    </footer>
+
+</body>
+</html>

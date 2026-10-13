@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HAVOC ADMIN | Master Dashboard</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: sans-serif; background-color: #000000; color: #ffffff; min-height: 100vh; display: flex; }
+        aside { width: 260px; background-color: #09090b; border-right: 1px solid #27272a; display: flex; flex-direction: column; padding: 32px 24px; position: fixed; height: 100vh; z-index: 100; }
+        .sidebar-logo { background-color: #ffffff; color: #000000; padding: 6px 16px; font-weight: 900; font-size: 24px; letter-spacing: -0.05em; text-transform: uppercase; display: inline-block; text-align: center; margin-bottom: 48px; }
+        .sidebar-menu { display: flex; flex-direction: column; gap: 12px; }
+        .menu-item { color: #a1a1aa; text-decoration: none; font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; padding: 12px; border: 1px solid transparent; transition: all 0.2s ease; cursor: pointer; }
+        .menu-item:hover, .menu-item.active { color: #ffffff; border-color: #27272a; background-color: #18181b; }
+        .sidebar-logout { margin-top: auto; background: none; border: 1px solid #3f3f46; color: #ef4444; padding: 10px; font-size: 11px; font-family: monospace; cursor: pointer; text-transform: uppercase; letter-spacing: 0.1em; }
+        .sidebar-logout:hover { background-color: #ef4444; color: #ffffff; }
+        .content-area { margin-left: 260px; flex-grow: 1; padding: 48px; max-width: 900px; width: 100%; }
+        .dashboard-section { display: none; }
+        .dashboard-section.active { display: block; }
+        .dashboard-box { border: 1px solid #27272a; background-color: #09090b; padding: 32px; margin-bottom: 40px; position: relative; }
+        .mode-badge { display: none; position: absolute; top: 32px; right: 32px; background-color: #f59e0b; color: #000000; padding: 4px 12px; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.1em; }
+        h2 { font-weight: 900; font-size: 24px; text-transform: uppercase; letter-spacing: -0.02em; margin-bottom: 8px; }
+        .subtitle { color: #52525b; font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 32px; }
+        .form-group { margin-bottom: 24px; }
+        label { display: block; font-size: 10px; letter-spacing: 0.15em; color: #a1a1aa; text-transform: uppercase; margin-bottom: 8px; }
+        input, textarea, select { width: 100%; background-color: #000000; border: 1px solid #27272a; padding: 12px; font-size: 14px; color: #ffffff; outline: none; transition: border-color 0.2s ease; }
+        input:focus, textarea:focus, select:focus { border-color: #ffffff; }
+        .drop-zone { width: 100%; border: 2px dashed #3f3f46; padding: 32px; text-align: center; background-color: #000000; cursor: pointer; color: #71717a; font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; transition: all 0.2s ease; }
+        .drop-zone.drag-over { border-color: #ffffff; background-color: #18181b; color: #ffffff; }
+        .preview-img { max-width: 100%; max-height: 120px; margin-top: 12px; display: none; border: 1px solid #27272a; object-fit: contain; }
+        .submit-btn { width: 100%; background-color: #ffffff; color: #000000; border: none; padding: 14px; font-weight: 900; font-size: 13px; letter-spacing: 0.15em; text-transform: uppercase; cursor: pointer; transition: background-color 0.2s ease; }
+        .submit-btn:hover { background-color: #e4e4e7; }
+        .cancel-btn { display: none; width: 100%; background: none; border: 1px solid #3f3f46; color: #a1a1aa; padding: 12px; margin-top: 12px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; cursor: pointer; text-align: center; }
+        .cancel-btn:hover { color: #ffffff; border-color: #ffffff; }
+        .management-list { display: flex; flex-direction: column; gap: 12px; margin-top: 24px; }
+        .management-row { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border: 1px solid #27272a; background-color: #000000; }
+        .action-group { display: flex; gap: 8px; }
+        .edit-btn, .delete-btn { background: none; padding: 6px 12px; font-size: 10px; font-family: monospace; cursor: pointer; transition: all 0.2s ease; font-weight: bold; }
+        .edit-btn { border: 1px solid #3f3f46; color: #ffffff; }
+        .edit-btn:hover { background-color: #ffffff; color: #000000; border-color: #ffffff; }
+        .delete-btn { border: 1px solid #ef4444; color: #ef4444; }
+        .delete-btn:hover { background-color: #ef4444; color: #ffffff; }
+        .status-message { display: none; font-size: 12px; padding: 12px; margin-bottom: 24px; font-family: monospace; border: 1px solid transparent; }
+        .gallery-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 24px; }
+        .gallery-manage-card { border: 1px solid #27272a; background-color: #000000; padding: 8px; display: flex; flex-direction: column; gap: 8px; }
+        .gallery-manage-card img { width: 100%; aspect-ratio: 3 / 2; object-fit: cover; border: 1px solid #27272a; }
+    </style>
+</head>
+
+<body>
+    <script>
+        if (!localStorage.getItem('havoc_token')) window.location.href = 'admin-login.html';
+    </script>
+    
+    <aside>
+        <div class="sidebar-logo">HAVOC</div>
+        <div class="sidebar-menu">
+            <div class="menu-item active" onclick="switchSection('artistsSection', this)">Künstler</div>
+            <div class="menu-item" onclick="switchSection('datesSection', this)">Tourdaten</div>
+            <div class="menu-item" onclick="switchSection('gallerySection', this)">Bildergalerie</div>
+            <div class="menu-item" onclick="switchSection('newsSection', this)">News</div>
+            <div class="menu-item" onclick="switchSection('teamSection', this)">Team</div>
+            <div class="menu-item" onclick="switchSection('agencyShowsSection', this)">Shows (Agentur)</div>
+        </div>
+        <button class="sidebar-logout" onclick="logout()">LOGOUT</button>
+    </aside>
+
+    <div class="content-area">
+
+        <!-- SEKTION 1: KÜNSTLER -->
+        <div id="artistsSection" class="dashboard-section active">
+            <div class="dashboard-box" id="artistFormBox">
+                <div class="mode-badge" id="artistModeBadge">Bearbeitungs-Modus</div>
+                <h2 id="artistFormTitle">Künstler hinzufügen</h2>
+                <div class="subtitle" id="artistFormSubtitle">Erstelle ein neues zweisprachiges Bandprofil.</div>
+                <div id="statusMessage" class="status-message"></div>
+                <form id="artistForm">
+                    <div class="form-group"><label>Bandname</label><input type="text" id="artistName" required autocomplete="off"></div>
+                    <div class="form-group"><label>Genre</label><input type="text" id="artistGenre" placeholder="z.B. Post-Hardcore"></div>
+                    <div class="form-group"><label>Biografie (DE)</label><textarea id="artistBio" rows="4"></textarea></div>
+                    <div class="form-group"><label>Biography (EN)</label><textarea id="artistBioEn" rows="4"></textarea></div>
+                    <div class="form-group"><label>Spotify URL</label><input type="text" id="artistSpotify"></div>
+                    <div class="form-group"><label>YouTube URL</label><input type="text" id="artistYoutube"></div>
+                    <div class="form-group"><label>Offizielle Webseite</label><input type="text" id="artistWebsite"></div>
+                    <div class="form-group"><label>Instagram URL</label><input type="text" id="artistInstagram"></div>
+                    <div class="form-group"><label>TikTok URL</label><input type="text" id="artistTiktok"></div>
+                    <div class="form-group">
+                        <label>Bild (Drag & Drop)</label>
+                        <div class="drop-zone" id="dropZone">Bild hier ablegen oder klicken<input type="file" id="fileInput" accept="image/*" style="display: none;"></div>
+                        <img id="imagePreview" class="preview-img" alt="Vorschau">
+                    </div>
+                    <button type="submit" class="submit-btn" id="artistSubmitBtn">KÜNSTLER SPEICHERN</button>
+                    <button type="button" class="cancel-btn" id="artistCancelBtn" onclick="cancelArtistEdit()">ABBRECHEN</button>
+                </form>
+            </div>
+            <div class="dashboard-box">
+                <h2>Künstler verwalten</h2>
+                <div class="management-list" id="artistDeleteList"></div>
+            </div>
+        </div>
+
+        <!-- SEKTION 2: TOURDATEN -->
+        <div id="datesSection" class="dashboard-section">
+            <div class="dashboard-box" id="dateFormBox">
+                <div class="mode-badge" id="dateModeBadge">Bearbeitungs-Modus</div>
+                <h2 id="dateFormTitle">Tourdaten hinzufügen</h2>
+                <div id="dateStatusMessage" class="status-message"></div>
+                <form id="dateForm">
+                    <div class="form-group"><label>Band auswählen</label><select id="artistSelect" required><option value="">Lade Liste...</option></select></div>
+                    <div class="form-group"><label>Datum</label><input type="text" id="showDate" required placeholder="TT.MM.JJJJ"></div>
+                    <div class="form-group"><label>Stadt</label><input type="text" id="showCity" required></div>
+                    <div class="form-group"><label>Location</label><input type="text" id="showVenue" required></div>
+                    <div class="form-group"><label>Ticket-Link</label><input type="text" id="showLink"></div>
+                    <button type="submit" class="submit-btn" id="dateSubmitBtn">TERMIN SPEICHERN</button>
+                    <button type="button" class="cancel-btn" id="dateCancelBtn" onclick="cancelDateEdit()">ABBRECHEN</button>
+                </form>
+            </div>
+            <div class="dashboard-box">
+                <h2>Tourdaten verwalten</h2>
+                <div class="management-list" id="datesDeleteList"></div>
+            </div>
+        </div>
+
+        <!-- SEKTION 3: BILDERGALERIE -->
+        <div id="gallerySection" class="dashboard-section">
+            <div class="dashboard-box">
+                <h2>Bildergalerie verwalten (Max. 8)</h2>
+                <div id="galleryStatusMessage" class="status-message"></div>
+                <div class="form-group"><label>Band auswählen</label><select id="galleryArtistSelect" onchange="loadGalleryGrid()" required><option value="">Lade Liste...</option></select></div>
+                <div class="form-group">
+                    <label>Neues Foto (Drag & Drop)</label>
+                    <div class="drop-zone" id="galleryDropZone">Galeriebild hier ablegen oder klicken<input type="file" id="galleryFileInput" accept="image/*" style="display: none;"></div>
+                    <img id="galleryImagePreview" class="preview-img" alt="Vorschau">
+                </div>
+                <button type="button" class="submit-btn" onclick="uploadGalleryImage()">BILD HOCHLADEN</button>
+            </div>
+            <div class="dashboard-box">
+                <h2>Aktuelle Galeriebilder</h2>
+                <div class="gallery-grid" id="galleryGridContainer"></div>
+            </div>
+        </div>
+
+            <!-- SEKTION 4: NEWS -->
+        <div id="newsSection" class="dashboard-section">
+            <div class="dashboard-box" id="newsFormBox">
+                <div class="mode-badge" id="newsModeBadge">Bearbeitungs-Modus</div>
+                <h2 id="newsFormTitle">News verfassen</h2>
+                <div id="newsStatusMessage" class="status-message"></div>
+                <form id="newsForm">
+                    <div class="form-group"><label>Titel</label><input type="text" id="newsTitle" required autocomplete="off"></div>
+                    <div class="form-group"><label>Inhalt</label><textarea id="newsText" rows="6" required></textarea></div>
+                    <div class="form-group">
+                        <label>News-Bild (Optional)</label>
+                        <div class="drop-zone" id="newsDropZone">News-Bild ablegen oder klicken<input type="file" id="newsFileInput" accept="image/*" style="display: none;"></div>
+                        <img id="newsImagePreview" class="preview-img" alt="Vorschau">
+                    </div>
+                    <button type="submit" class="submit-btn" id="newsSubmitBtn">NEWS VERÖFFENTLICHEN</button>
+                    <button type="button" class="cancel-btn" id="newsCancelBtn" onclick="cancelNewsEdit()">ABBRECHEN</button>
+                </form>
+            </div>
+            <div class="dashboard-box">
+                <h2>News verwalten</h2>
+                <div class="management-list" id="newsDeleteList"></div>
+            </div>
+        </div>
+
+        <!-- SEKTION 5: TEAM -->
+        <div id="teamSection" class="dashboard-section">
+            <div class="dashboard-box" id="teamFormBox">
+                <h2>Teammitglied hinzufügen</h2>
+                <div class="subtitle">Erstelle ein neues internes Profil für die Agentur-Teamseite.</div>
+                <form id="teamForm">
+                    <div class="form-group"><label>Name *</label><input type="text" id="teamName" required autocomplete="off"></div>
+                    <div class="form-group"><label>Telefonnummer</label><input type="text" id="teamPhone" placeholder="z.B. +49 (0) 123 45678"></div>
+                    <div class="form-group"><label>E-Mail-Adresse *</label><input type="email" id="teamEmail" required autocomplete="off"></div>
+                    <div class="form-group"><label>Hobbys (mit Komma trennen)</label><input type="text" id="teamHobbies" placeholder="z.B. Vinyl, Konzerte, Skaten"></div>
+                    <div class="form-group"><label>Infotext / Biografie</label><textarea id="teamBio" rows="6" placeholder="Beschreibe das Teammitglied..."></textarea></div>
+                    <div class="form-group">
+                        <label>Profilbild (Drag & Drop)</label>
+                        <div class="drop-zone" id="teamDropZone">Profilbild ablegen oder klicken<input type="file" id="teamFileInput" accept="image/*" style="display: none;"></div>
+                        <img id="teamImagePreview" class="preview-img" alt="Vorschau">
+                    </div>
+                    <button type="submit" class="submit-btn" id="teamSubmitBtn">MITGLIED SPEICHERN</button>
+                    <button type="button" class="cancel-btn" style="display:block;" onclick="resetTeamForm()">ZURÜCKSETZEN</button>
+                </form>
+            </div>
+            <div class="dashboard-box">
+                <h2>Teammitglieder verwalten</h2>
+                <div class="management-list" id="adminTeamList">Lade Team...</div>
+            </div>
+        </div>
+
+        <!-- SEKTION 6: AGENCY SHOWS -->
+        <div id="agencyShowsSection" class="dashboard-section">
+            <div class="dashboard-box" id="agencyShowFormBox">
+                <h2>Agency Show hinzufügen //</h2>
+                <div class="subtitle">Erstelle ein neues exklusives Event oder Festival für die Agentur-Showseite.</div>
+                <form id="agencyShowForm">
+                    <div class="form-group"><label>Name der Show / Festival *</label><input type="text" id="showTitle" required autocomplete="off"></div>
+                    <div class="form-group"><label>Datum *</label><input type="text" id="agencyShowDate" required placeholder="TT.MM.JJJJ oder z.B. 12.-14. JUNI 2026"></div>
+                    <div class="form-group"><label>Stadt *</label><input type="text" id="agencyShowCity" required autocomplete="off"></div>
+                    <div class="form-group"><label>Location / Venue *</label><input type="text" id="agencyShowVenue" required autocomplete="off"></div>
+                    <div class="form-group"><label>Ticket-Link</label><input type="text" id="agencyShowTicketUrl" placeholder="https://..."></div>
+                    <div class="form-group"><label>Ausführlicher Infotext (Detailseite)</label><textarea id="agencyShowInfoText" rows="6" placeholder="Bands, Zeitplan, zusätzliche Infos..."></textarea></div>
+                    <div class="form-group">
+                        <label>Festival-Plakat / Show-Bild (Drag & Drop)</label>
+                        <div class="drop-zone" id="agencyShowDropZone">Show-Bild ablegen oder klicken<input type="file" id="agencyShowFileInput" accept="image/*" style="display: none;"></div>
+                        <img id="agencyShowImagePreview" class="preview-img" alt="Vorschau">
+                    </div>
+                    <button type="submit" class="submit-btn">SHOW VERÖFFENTLICHEN</button>
+                    <button type="button" class="cancel-btn" style="display:block;" onclick="resetAgencyShowForm()">ZURÜCKSETZEN</button>
+                </form>
+            </div>
+            <div class="dashboard-box">
+                <h2>Agency Shows verwalten</h2>
+                <div class="management-list" id="adminAgencyShowsList">Lade Shows...</div>
+            </div>
+        </div>
+
+    </div> <!-- Ende content-area -->
+
+      <script>
+        let selectedFile = null, selectedGalleryFile = null, selectedNewsFile = null, selectedTeamFile = null, selectedShowFile = null;
+        let editArtistId = null, editDateId = null, editNewsId = null, globalArtists = [];
+        let currentTeamImageBase64 = "", currentShowImageBase64 = "", currentArtistImageBase64 = "";
+
+        const dropZone = document.getElementById('dropZone'), fileInput = document.getElementById('fileInput'), imagePreview = document.getElementById('imagePreview');
+        const galleryDropZone = document.getElementById('galleryDropZone'), galleryFileInput = document.getElementById('galleryFileInput'), galleryImagePreview = document.getElementById('galleryImagePreview');
+        const newsDropZone = document.getElementById('newsDropZone'), newsFileInput = document.getElementById('newsFileInput'), newsImagePreview = document.getElementById('newsImagePreview');
+        const teamDropZone = document.getElementById('teamDropZone'), teamFileInput = document.getElementById('teamFileInput'), teamImagePreview = document.getElementById('teamImagePreview');
+        const agencyShowDropZone = document.getElementById('agencyShowDropZone'), agencyShowFileInput = document.getElementById('agencyShowFileInput'), agencyShowImagePreview = document.getElementById('agencyShowImagePreview');
+        const artistSelect = document.getElementById('artistSelect'), galleryArtistSelect = document.getElementById('galleryArtistSelect');
+        const artistDeleteList = document.getElementById('artistDeleteList'), datesDeleteList = document.getElementById('datesDeleteList'), newsDeleteList = document.getElementById('newsDeleteList'), galleryGridContainer = document.getElementById('galleryGridContainer'), adminTeamList = document.getElementById('adminTeamList'), adminAgencyShowsList = document.getElementById('adminAgencyShowsList');
+
+        function switchSection(sectionId, element) {
+            document.querySelectorAll('.dashboard-section').forEach(sec => sec.classList.remove('active'));
+            document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
+            const targetSection = document.getElementById(sectionId);
+            if (targetSection) targetSection.classList.add('active');
+            if (element) element.classList.add('active');
+            if (typeof cancelArtistEdit === 'function') cancelArtistEdit();
+            if (typeof cancelDateEdit === 'function') cancelDateEdit();
+            if (typeof cancelNewsEdit === 'function') cancelNewsEdit();
+            if (typeof resetGalleryForm === 'function') resetGalleryForm();
+            if (typeof resetTeamForm === 'function') resetTeamForm();
+            if (typeof resetAgencyShowForm === 'function') resetAgencyShowForm();
+            if (sectionId === 'datesSection') { if (typeof loadDatesDeleteList === 'function') loadDatesDeleteList(); }
+            else if (sectionId === 'newsSection') { if (typeof loadNewsDeleteList === 'function') loadNewsDeleteList(); }
+            else if (sectionId === 'teamSection') { if (typeof loadAdminTeamList === 'function') loadAdminTeamList(); }
+            else if (sectionId === 'agencyShowsSection') { if (typeof loadAdminAgencyShowsList === 'function') loadAdminAgencyShowsList(); }
+            else if (sectionId === 'gallerySection') { if (galleryGridContainer) galleryGridContainer.innerHTML = '<div style="font-size:11px; color:#52525b; text-transform:uppercase; grid-column: span 4;">Bitte wähle zuerst eine Band aus.</div>'; }
+        }
+
+        async function refreshAllData() {
+            try {
+                const response = await fetch('https://havoc-backend-063h.onrender.com/api/artists');
+                globalArtists = await response.json();
+                const dropdownHtml = '<option value="">-- Band auswählen --</option>' + globalArtists.map(a => `<option value="${a.id}">${a.name}</option>`).join('');
+                if (artistSelect) artistSelect.innerHTML = dropdownHtml; 
+                if (galleryArtistSelect) galleryArtistSelect.innerHTML = dropdownHtml;
+                if (artistDeleteList) { artistDeleteList.innerHTML = globalArtists.map(a => `<div class="management-row"><span>${a.name}</span><div class="action-group"><button class="edit-btn" onclick="startArtistEdit(${a.id})">EDITIEREN</button><button class="delete-btn" onclick="deleteArtist(${a.id})">LÖSCHEN</button></div></div>`).join(''); }
+                loadAdminTeamList(); loadAdminAgencyShowsList();
+            } catch (err) { console.error("Künstler-Ladefehler:", err); }
+        }
+
+        async function loadDatesDeleteList() {
+            try {
+                const response = await fetch('https://havoc-backend-063h.onrender.com/api/dates-all'); const dates = await response.json();
+                if (datesDeleteList) { datesDeleteList.innerHTML = dates.map(d => `<div class="management-row"><div><span style="font-size:11px; color:#a1a1aa;">${d.date}</span> <span style="font-weight:900;">${d.artist_name}</span></div><div class="action-group"><button class="edit-btn" onclick="startDateEdit(${d.id}, ${d.artist_id}, '${d.date}', '${d.city}', '${d.venue}', '${d.link || ''}')">EDITIEREN</button><button class="delete-btn" onclick="deleteDate(${d.id})">LÖSCHEN</button></div></div>`).join(''); }
+            } catch (err) { console.error("Tourdaten-Ladefehler:", err); }
+        }
+
+        async function loadGalleryGrid() {
+            const id = galleryArtistSelect.value; if (!id) return;
+            try {
+                const response = await fetch('https://havoc-backend-063h.onrender.com/api/artists/' + id); const artist = await response.json();
+                if (galleryGridContainer) { galleryGridContainer.innerHTML = (artist.gallery || []).map(img => `<div class="gallery-manage-card"><img src="${img.gallery_url}"><button class="delete-btn" style="width:100%;" onclick="deleteGalleryImage(${img.id})">ENTFERNEN</button></div>`).join(''); }
+            } catch (err) { console.error("Galerie-Ladefehler:", err); }
+        }
+
+        async function loadNewsDeleteList() {
+            try {
+                const response = await fetch('https://havoc-backend-063h.onrender.com/api/news'); const contentType = response.headers.get("content-type"); if (!contentType || !contentType.includes("application/json")) return;
+                const newsList = await response.json();
+                if (newsDeleteList) { newsDeleteList.innerHTML = newsList.map(n => { const safeText = btoa(unescape(encodeURIComponent(n.text || ''))); return `<div class="management-row"><span style="font-weight:900;">${n.title}</span><div class="action-group"><button class="edit-btn" data-text="${safeText}" onclick="window.startNewsEdit(${n.id}, '${n.title.replace(/'/g, "\\'")}', this.getAttribute('data-text'), '${n.image_url || ''}')">EDITIEREN</button><button class="delete-btn" onclick="window.deleteNews(${n.id})">LÖSCHEN</button></div></div>`; }).join(''); }
+            } catch (err) { console.error("News-Ladefehler:", err); }
+        }
+
+        async function loadAdminTeamList() {
+            if (!adminTeamList) return;
+            try {
+                const response = await fetch('https://havoc-backend-063h.onrender.com/api/team'); const data = await response.json(); adminTeamList.innerHTML = '';
+                if (data.length === 0) { adminTeamList.innerHTML = '<div style="font-size:11px; color:#52525b; text-transform:uppercase; padding: 14px 0;">Keine Teammitglieder eingetragen.</div>'; return; }
+                adminTeamList.innerHTML = data.map(m => { const cleanBio = m.bio ? decodeURIComponent(escape(atob(m.bio))) : ''; return `<div class="management-row"><div><span style="font-weight:900; text-transform:uppercase;">${m.name}</span> <span style="font-size:11px; color:#a1a1aa; margin-left:8px;">[${m.email}]</span><p style="font-size:11px; color:#52525b; margin-top:4px;">${cleanBio.substring(0, 60)}...</p></div><div class="action-group"><button class="delete-btn" onclick="deleteTeamMember(${m.id})">LÖSCHEN</button></div></div>`; }).join('');
+            } catch (err) { console.error("Team-Ladefehler:", err); }
+        }
+
+        async function loadAdminAgencyShowsList() {
+            if (!adminAgencyShowsList) return;
+            try {
+                const response = await fetch('https://havoc-backend-063h.onrender.com/api/agency-shows'); const data = await response.json(); adminAgencyShowsList.innerHTML = '';
+                if (data.length === 0) { adminAgencyShowsList.innerHTML = '<div style="font-size:11px; color:#52525b; text-transform:uppercase; padding: 14px 0;">Keine exklusiven Shows eingetragen.</div>'; return; }
+                adminAgencyShowsList.innerHTML = data.map(s => { return `<div class="management-row"><div><span style="font-weight:900; text-transform: uppercase;">${s.title}</span> <span style="font-size:11px; color:#a1a1aa; margin-left:8px;">[${s.date} — ${s.city}]</span></div><div class="action-group"><button class="delete-btn" onclick="deleteAgencyShow(${s.id})">LÖSCHEN</button></div></div>`; }).join('');
+            } catch (err) { console.error("Shows-Ladefehler:", err); }
+        }
+
+         function startArtistEdit(id) {
+            const a = globalArtists.find(x => x.id === id); if (!a) return;
+            editArtistId = id; document.getElementById('artistName').value = a.name; document.getElementById('artistGenre').value = a.genre || ''; document.getElementById('artistBio').value = a.bio || ''; document.getElementById('artistBioEn').value = a.bio_en || ''; document.getElementById('artistSpotify').value = a.spotify_url || ''; document.getElementById('artistYoutube').value = a.youtube_url || ''; document.getElementById('artistWebsite').value = a.website_url || ''; document.getElementById('artistInstagram').value = a.instagram_url || ''; document.getElementById('artistTiktok').value = a.tiktok_url || '';
+            if (a.image_url) { imagePreview.src = a.image_url; imagePreview.style.display = 'block'; dropZone.textContent = 'Bild hinterlegt'; }
+            document.getElementById('artistModeBadge').style.display = 'block'; document.getElementById('artistFormTitle').textContent = 'Künstler bearbeiten'; document.getElementById('artistSubmitBtn').textContent = 'ÄNDERUNGEN SPEICHERN'; document.getElementById('artistCancelBtn').style.display = 'block'; window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        function cancelArtistEdit() { editArtistId = null; document.getElementById('artistForm').reset(); document.getElementById('artistModeBadge').style.display = 'none'; document.getElementById('artistFormTitle').textContent = 'Künstler hinzufügen'; document.getElementById('artistSubmitBtn').textContent = 'KÜNSTLER SPEICHERN'; document.getElementById('artistCancelBtn').style.display = 'none'; imagePreview.style.display = 'none'; dropZone.textContent = 'Bild hier ablegen oder klicken'; selectedFile = null; }
+        function startDateEdit(id, aId, date, city, venue, link) { editDateId = id; artistSelect.value = aId; document.getElementById('showDate').value = date; document.getElementById('showCity').value = city; document.getElementById('showVenue').value = venue; document.getElementById('showLink').value = link; document.getElementById('dateModeBadge').style.display = 'block'; document.getElementById('dateFormTitle').textContent = 'Tourtermin bearbeiten'; document.getElementById('dateSubmitBtn').textContent = 'ÄNDERUNGEN SPEICHERN'; document.getElementById('dateCancelBtn').style.display = 'block'; document.getElementById('dateFormBox').scrollIntoView({ behavior: 'smooth' }); }
+        function cancelDateEdit() { editDateId = null; document.getElementById('dateForm').reset(); document.getElementById('dateModeBadge').style.display = 'none'; document.getElementById('dateFormTitle').textContent = 'Tourdaten hinzufügen'; document.getElementById('dateSubmitBtn').textContent = 'TERMIN SPEICHERN'; document.getElementById('dateCancelBtn').style.display = 'none'; }
+        window.startNewsEdit = function(id, title, encodedText, imageUrl) { editNewsId = id; document.getElementById('newsTitle').value = title; document.getElementById('newsText').value = decodeURIComponent(escape(atob(encodedText))); if (imageUrl) { newsImagePreview.src = imageUrl; newsImagePreview.style.display = 'block'; newsDropZone.textContent = 'Bild hinterlegt'; } document.getElementById('newsModeBadge').style.display = 'block'; document.getElementById('newsFormTitle').textContent = 'News bearbeiten'; document.getElementById('newsSubmitBtn').textContent = 'ÄNDERUNGEN SPEICHERN'; document.getElementById('newsCancelBtn').style.display = 'block'; document.getElementById('newsFormBox').scrollIntoView({ behavior: 'smooth' }); };
+        function cancelNewsEdit() { editNewsId = null; document.getElementById('newsForm').reset(); document.getElementById('newsModeBadge').style.display = 'none'; document.getElementById('newsFormTitle').textContent = 'News verfassen'; document.getElementById('newsSubmitBtn').textContent = 'NEWS VERÖFFENTLICHEN'; document.getElementById('newsCancelBtn').style.display = 'none'; newsImagePreview.style.display = 'none'; newsDropZone.textContent = 'News-Bild ablegen oder klicken'; selectedNewsFile = null; }
+
+        async function deleteArtist(id) { if (!confirm('Künstler unwiderruflich löschen?')) return; try { const r = await fetch('https://havoc-backend-063h.onrender.com/api/artists/' + id, { method: 'DELETE', headers: { 'Authorization': 'Bearer ' + localStorage.getItem('havoc_token') } }); const d = await r.json(); if (d.success) { refreshAllData(); loadDatesDeleteList(); cancelArtistEdit(); } } catch (err) {} }
+        async function deleteDate(id) { if (!confirm('Termin löschen?')) return; try { const r = await fetch('https://havoc-backend-063h.onrender.com/api/dates/' + id, { method: 'DELETE', headers: { 'Authorization': 'Bearer ' + localStorage.getItem('havoc_token') } }); const d = await r.json(); if (d.success) loadDatesDeleteList(); } catch (err) {} }
+        async function deleteGalleryImage(id) { if (!confirm('Bild entfernen?')) return; try { const r = await fetch('https://havoc-backend-063h.onrender.com/api/gallery/' + id, { method: 'DELETE', headers: { 'Authorization': 'Bearer ' + localStorage.getItem('havoc_token') } }); const d = await r.json(); if (d.success) loadGalleryGrid(); } catch (err) {} }
+        async function deleteTeamMember(id) { if (!confirm('Teammitglied unwiderruflich löschen?')) return; try { const r = await fetch('https://havoc-backend-063h.onrender.com/api/team/' + id, { method: 'DELETE', headers: { 'Authorization': 'Bearer ' + localStorage.getItem('havoc_token') } }); const d = await r.json(); if (d.success) loadAdminTeamList(); } catch (err) {} }
+        async function deleteAgencyShow(id) { if (!confirm('Diese exklusive Show unwiderruflich löschen?')) return; try { const r = await fetch('https://havoc-backend-063h.onrender.com/api/agency-shows/' + id, { method: 'DELETE', headers: { 'Authorization': 'Bearer ' + localStorage.getItem('havoc_token') } }); const d = await r.json(); if (d.success) loadAdminAgencyShowsList(); } catch (err) {} }
+        window.deleteNews = async function(id) { if (!confirm('News löschen?')) return; try { const r = await fetch('https://havoc-backend-063h.onrender.com/api/news/' + id, { method: 'DELETE', headers: { 'Authorization': 'Bearer ' + localStorage.getItem('havoc_token') } }); const d = await r.json(); if (d.success) { loadNewsDeleteList(); cancelNewsEdit(); } } catch (err) {} };
+
+        dropZone.addEventListener('click', () => fileInput.click()); dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); }); ['dragleave', 'drop'].forEach(ev => dropZone.addEventListener(ev, () => dropZone.classList.remove('drag-over'))); dropZone.addEventListener('drop', (e) => { e.preventDefault(); if (e.dataTransfer.files.length) handleArtistFile(e.dataTransfer.files); }); fileInput.addEventListener('change', (e) => { if (fileInput.files.length) handleArtistFile(fileInput.files); });
+        galleryDropZone.addEventListener('click', () => galleryFileInput.click()); galleryDropZone.addEventListener('dragover', (e) => { e.preventDefault(); galleryDropZone.classList.add('drag-over'); }); ['dragleave', 'drop'].forEach(ev => galleryDropZone.addEventListener(ev, () => galleryDropZone.classList.remove('drag-over'))); galleryDropZone.addEventListener('drop', (e) => { e.preventDefault(); if (e.dataTransfer.files.length) handleGalleryFile(e.dataTransfer.files); }); galleryFileInput.addEventListener('change', () => { if (galleryFileInput.files.length) handleGalleryFile(galleryFileInput.files); });
+        newsDropZone.addEventListener('click', () => newsFileInput.click()); newsDropZone.addEventListener('dragover', (e) => { e.preventDefault(); newsDropZone.classList.add('drag-over'); }); ['dragleave', 'drop'].forEach(ev => newsDropZone.addEventListener(ev, () => newsDropZone.classList.remove('drag-over'))); newsDropZone.addEventListener('drop', (e) => { e.preventDefault(); if (e.dataTransfer.files.length) handleNewsFile(e.dataTransfer.files); }); newsFileInput.addEventListener('change', () => { if (newsFileInput.files.length) handleNewsFile(newsFileInput.files); });
+        teamDropZone.addEventListener('click', () => teamFileInput.click()); teamDropZone.addEventListener('dragover', (e) => { e.preventDefault(); teamDropZone.classList.add('drag-over'); }); ['dragleave', 'drop'].forEach(ev => teamDropZone.addEventListener(ev, () => teamDropZone.classList.remove('drag-over'))); teamDropZone.addEventListener('drop', (e) => { e.preventDefault(); if (e.dataTransfer.files.length) handleTeamFile(e.dataTransfer.files); }); teamFileInput.addEventListener('change', () => { if (teamFileInput.files.length) handleTeamFile(teamFileInput.files); });
+        agencyShowDropZone.addEventListener('click', () => agencyShowFileInput.click()); agencyShowDropZone.addEventListener('dragover', (e) => { e.preventDefault(); agencyShowDropZone.classList.add('drag-over'); }); ['dragleave', 'drop'].forEach(ev => agencyShowDropZone.addEventListener(ev, () => agencyShowDropZone.classList.remove('drag-over'))); agencyShowDropZone.addEventListener('drop', (e) => { e.preventDefault(); if (e.dataTransfer.files.length) handleShowFile(e.dataTransfer.files); }); agencyShowFileInput.addEventListener('change', (e) => { if (agencyShowFileInput.files.length) handleShowFile(agencyShowFileInput); });
+
+        function handleArtistFile(f) {
+            // Holt sich die Datei aus dem Auswahlfeld oder der Dropzone
+            const file = f.files ? f.files[0] : (f.dataTransfer && f.dataTransfer.files ? f.dataTransfer.files[0] : (f[0] ? f[0] : f));
+            
+            if (!file || !file.type || !file.type.startsWith('image/')) { 
+                alert('Bitte nur Bilder hochladen!'); 
+                return; 
+            }
+            
+            if (dropZone) dropZone.textContent = file.name;
+            
+            const r = new FileReader();
+            r.onload = (e) => {
+                if (imagePreview) {
+                    imagePreview.src = e.target.result;
+                    imagePreview.style.display = 'block';
+                }
+                // DIESE ZEILE HIER MUSS EXAKT SO STEHEN:
+                currentArtistImageBase64 = e.target.result; 
+            };
+            r.readAsDataURL(file);
+        }
+
+        function handleGalleryFile(f) { const file = f.files ? f.files[0] : (f.dataTransfer ? f.dataTransfer.files[0] : f[0]); if (!file || !file.type.startsWith('image/')) { alert('Bitte nur Bilder hochladen!'); return; } selectedGalleryFile = file; galleryDropZone.textContent = file.name; const r = new FileReader(); r.onload = (e) => { galleryImagePreview.src = e.target.result; galleryImagePreview.style.display = 'block'; }; r.readAsDataURL(file); }
+        function handleNewsFile(f) { const file = f.files ? f.files[0] : (f.dataTransfer ? f.dataTransfer.files[0] : f[0]); if (!file || !file.type.startsWith('image/')) { alert('Bitte nur Bilder hochladen!'); return; } selectedNewsFile = file; newsDropZone.textContent = file.name; const r = new FileReader(); r.onload = (e) => { newsImagePreview.src = e.target.result; newsImagePreview.style.display = 'block'; }; r.readAsDataURL(file); }
+        function handleTeamFile(f) { const file = f.files ? f.files[0] : (f.dataTransfer ? f.dataTransfer.files[0] : f[0]); if (!file || !file.type.startsWith('image/')) { alert('Bitte nur Bilder hochladen!'); return; } selectedTeamFile = file; teamDropZone.textContent = file.name; const r = new FileReader(); r.onload = (e) => { teamImagePreview.src = e.target.result; teamImagePreview.style.display = 'block'; currentTeamImageBase64 = e.target.result; }; r.readAsDataURL(file); }
+        function handleShowFile(f) { const file = f.files ? f.files[0] : (f.dataTransfer ? f.dataTransfer.files[0] : f[0]); if (!file || !file.type || !file.type.startsWith('image/')) { alert('Bitte nur Bilder hochladen!'); return; } selectedShowFile = file; agencyShowDropZone.textContent = file.name; const r = new FileReader(); r.onload = (e) => { agencyShowImagePreview.src = e.target.result; agencyShowImagePreview.style.display = 'block'; currentShowImageBase64 = e.target.result; }; r.readAsDataURL(file); }
+
+        function resetGalleryForm() { selectedGalleryFile = null; if(galleryFileInput) galleryFileInput.value = ''; galleryImagePreview.style.display = 'none'; galleryDropZone.textContent = 'Galeriebild hier ablegen oder klicken'; }
+        function resetTeamForm() { document.getElementById('teamForm').reset(); if (teamImagePreview) teamImagePreview.style.display = 'none'; if (teamDropZone) teamDropZone.textContent = 'Profilbild ablegen oder klicken'; selectedTeamFile = null; currentTeamImageBase64 = ""; }
+        function resetAgencyShowForm() { document.getElementById('agencyShowForm').reset(); if (agencyShowImagePreview) agencyShowImagePreview.style.display = 'none'; if (agencyShowDropZone) agencyShowDropZone.textContent = 'Show-Bild ablegen oder klicken'; selectedShowFile = null; currentShowImageBase64 = ""; }
+
+document.getElementById('artistForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Biografie-Texte sicher in Base64 umwandeln
+            const rawBio = document.getElementById('artistBio').value || "";
+            const encryptedBio = btoa(unescape(encodeURIComponent(rawBio)));
+            const rawBioEn = document.getElementById('artistBioEn').value || "";
+            const encryptedBioEn = btoa(unescape(encodeURIComponent(rawBioEn)));
+
+            const payload = {
+                name: document.getElementById('artistName').value,
+                genre: document.getElementById('artistGenre').value || "",
+                bio: encryptedBio,
+                bio_en: encryptedBioEn,
+                spotify_url: document.getElementById('artistSpotify').value || "",
+                youtube_url: document.getElementById('artistYoutube').value || "",
+                website_url: document.getElementById('artistWebsite').value || "",
+                instagram_url: document.getElementById('artistInstagram').value || "",
+                tiktok_url: document.getElementById('artistTiktok').value || "",
+                image_url: currentArtistImageBase64 || "" // Übergibt die pure Bild-Textkette
+            };
+
+            // EXAKTE LIVE-URL: Schießt die Daten direkt zu deinem Render-Server!
+            const url = editArtistId ? 'https://havoc-backend-063h.onrender.com/api/artists/' + editArtistId : 'https://havoc-backend-063h.onrender.com/api/artists';
+            
+            try { 
+                const r = await fetch(url, { 
+                    method: editArtistId ? 'PUT' : 'POST', 
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + localStorage.getItem('havoc_token') 
+                    }, 
+                    body: JSON.stringify(payload) 
+                }); 
+                const d = await r.json(); 
+                if(d.success || d.message) { 
+                    alert('Künstlerprofil erfolgreich gespeichert //');
+                    cancelArtistEdit(); 
+                    refreshAllData(); 
+                } else if (d.error) {
+                    alert('Server-Fehler: ' + d.error);
+                }
+            } catch(err) { 
+                console.error("Sende-Fehler:", err);
+                alert("Verbindungsfehler zum Cloud-Server. Bitte URL prüfen.");
+            }
+        });
+
+        document.getElementById('dateForm').addEventListener('submit', async (e) => {
+        e.preventDefault(); const payload = { artist_id: document.getElementById('artistSelect').value, date: document.getElementById('showDate').value, city: document.getElementById('showCity').value, venue: document.getElementById('showVenue').value, link: document.getElementById('showLink').value }; const url = editDateId ? 'https://havoc-backend-063h.onrender.com/api/dates/' + editDateId : 'https://havoc-backend-063h.onrender.com/api/dates';
+        try { const r = await fetch(url, { method: editDateId ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + localStorage.getItem('havoc_token') }, body: JSON.stringify(payload) }); const d = await r.json(); if(d.success) { loadDatesDeleteList(); if(!editDateId) document.getElementById('dateForm').reset(); alert(editDateId ? 'Show erfolgreich aktualisiert!' : 'Show erfolgreich hinzugefügt!'); } } catch(err) {}
+        });
+
+        async function uploadGalleryImage() {
+        const id = galleryArtistSelect.value; if (!id || !selectedGalleryFile) return; const fd = new FormData(); fd.append('artist_id', id); fd.append('galleryImage', selectedGalleryFile); try { const r = await fetch('https://havoc-backend-063h.onrender.com/api/gallery', { method: 'POST', headers: { 'Authorization': 'Bearer ' + localStorage.getItem('havoc_token') }, body: fd }); const d = await r.json(); if(d.success) { resetGalleryForm(); loadGalleryGrid(); } } catch(err) {}
+        }
+
+        document.getElementById('newsForm').addEventListener('submit', async (e) => {
+        e.preventDefault(); const fd = new FormData(); fd.append('title', document.getElementById('newsTitle').value); fd.append('text', document.getElementById('newsText').value); if (selectedNewsFile) fd.append('image', selectedNewsFile); const url = editNewsId ? 'https://havoc-backend-063h.onrender.com/api/news/' + editNewsId : 'https://havoc-backend-063h.onrender.com/api/news';
+        try { const r = await fetch(url, { method: editNewsId ? 'PUT' : 'POST', headers: { 'Authorization': 'Bearer ' + localStorage.getItem('havoc_token') }, body: fd }); const d = await r.json(); if(d.success) { loadNewsDeleteList(); if(!editNewsId) cancelNewsEdit(); alert(editNewsId ? 'News-Beitrag erfolgreich aktualisiert!' : 'News-Beitrag erfolgreich veröffentlicht!'); } } catch(err) {}
+        });
+
+        document.getElementById('teamForm').addEventListener('submit', async (e) => {
+        e.preventDefault(); const rawBio = document.getElementById('teamBio').value; const encryptedBio = btoa(unescape(encodeURIComponent(rawBio))); const payload = { name: document.getElementById('teamName').value, phone: document.getElementById('teamPhone').value, email: document.getElementById('teamEmail').value, hobbies: document.getElementById('teamHobbies').value, bio: encryptedBio, image_url: currentTeamImageBase64 };
+        try { const response = await fetch('https://havoc-backend-063h.onrender.com/api/team', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + localStorage.getItem('havoc_token') }, body: JSON.stringify(payload) }); const data = await response.json(); if (data.success) { alert('Teammitglied erfolgreich hinzugefügt //'); resetTeamForm(); loadAdminTeamList(); } else { alert('Fehler: ' + data.error); } } catch (err) {}
+        });
+
+        document.getElementById('agencyShowForm').addEventListener('submit', async (e) => {
+        e.preventDefault(); const rawText = document.getElementById('agencyShowInfoText').value; const encryptedText = btoa(unescape(encodeURIComponent(rawText))); const payload = { title: document.getElementById('showTitle').value, date: document.getElementById('agencyShowDate').value, city: document.getElementById('agencyShowCity').value, venue: document.getElementById('agencyShowVenue').value, ticket_url: document.getElementById('agencyShowTicketUrl').value, info_text: encryptedText, image_url: currentShowImageBase64 };
+        try { const response = await fetch('https://havoc-backend-063h.onrender.com/api/agency-shows', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + localStorage.getItem('havoc_token') }, body: JSON.stringify(payload) }); const data = await response.json(); if (data.success || data.id) { alert('Agency-Show erfolgreich veröffentlicht //'); resetAgencyShowForm(); loadAdminAgencyShowsList(); } else { alert('Fehler: ' + data.error); } } catch (err) {}
+        });
+
+        function logout() { localStorage.removeItem('havoc_token'); window.location.href = 'admin-login.html'; }
+        window.addEventListener('DOMContentLoaded', refreshAllData);
+    </script>
+</body>
+</html>

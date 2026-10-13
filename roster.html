@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HAVOC AGENCY | Roster</title>
+    <style>
+        @import url('https://googleapis.com');
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #ffffff;
+            color: #000000;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        ::selection {
+            background-color: #000000;
+            color: #ffffff;
+        }
+
+     header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center; 
+    border-bottom: 1px solid #e0e0e0; 
+    padding-bottom: 20px;
+    margin-bottom: 60px;
+    width: 100%; 
+}
+
+.artist-img {
+    filter: grayscale(100%); 
+    transition: filter 0.4s ease-in-out; 
+}
+
+.poster-frame:hover .artist-img {
+    filter: grayscale(0%); 
+}
+
+.logo-link {
+    display: inline-block;
+    text-decoration: none;
+    line-height: 0;
+    transition: opacity 0.2s ease;
+}
+
+.logo-link:hover {
+    opacity: 0.8;
+}
+
+.logo-link img {
+    height: 98px; /* Exakt 50% vergrößert für den brachialen Look */
+    width: auto;
+    display: block;
+}
+
+nav {
+    display: flex;
+    align-items: center;
+    gap: 25px;
+}
+
+nav a {
+    color: #000000;
+    text-decoration: none;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.05em;
+    transition: opacity 0.2s ease;
+}
+
+nav a:hover {
+    opacity: 0.5;
+}
+
+nav a.active {
+    opacity: 0.4; /* Kennzeichnet die aktuell aktive Seite */
+}
+
+nav a.admin-btn {
+    border: 1px solid #000000;
+    padding: 6px 12px;
+    margin-left: 5px;
+}
+
+        main {
+            flex-grow: 1;
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 80px 24px;
+        }
+
+        .page-title {
+            font-weight: 900;
+            font-size: clamp(36px, 6vw, 64px);
+            text-transform: uppercase;
+            letter-spacing: -0.04em;
+            line-height: 0.9;
+            margin-bottom: 48px;
+        }
+
+        .page-title span {
+            color: #a1a1aa;
+        }
+
+        /* RESPONSIVES GRUPPEN-RASTER */
+        .roster-section {
+            width: 100%;
+            border-top: 1px solid #000000;
+            border-left: 1px solid #000000;
+            border-right: 1px solid #000000;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: 1fr;
+        }
+
+        /* 📱 TABLET: Ab 768px Breite schaltet das Raster auf 2 Spalten um */
+        @media (min-width: 768px) {
+            .grid-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* 💻 MONITOR: Ab 1024px Breite entfaltet sich das Roster im vollen 3-Spalten-Look */
+        @media (min-width: 1024px) {
+            .grid-container {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        .artist-card {
+            border-bottom: 1px solid #000000;
+            padding: 24px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Dynamische Rahmen-Logik für 2 Spalten auf Tablets */
+        @media (min-width: 768px) and (max-width: 1023px) {
+            .artist-card:not(:nth-child(2n+1)) {
+                border-left: 1px solid #000000;
+            }
+        }
+
+        /* Dynamische Rahmen-Logik für 3 Spalten auf Desktop-Monitoren */
+        @media (min-width: 1024px) {
+            .artist-card:not(:nth-child(3n+1)) {
+                border-left: 1px solid #000000;
+            }
+        }
+
+        .artist-card:hover {
+            background-color: #f4f4f5;
+        }
+
+        /* 🎬 KORRIGIERT: Das flache 2:1 Breitbild-Format (Halbe Höhe!) */
+        .image-wrapper {
+            width: 100%;
+            aspect-ratio: 2 / 1; 
+            background-color: #e4e4e7;
+            margin-bottom: 20px;
+            overflow: hidden;
+            filter: grayscale(100%);
+            transition: all 0.5s ease;
+            border: 1px solid #000000;
+        }
+
+        .artist-card:hover .image-wrapper {
+            filter: grayscale(0%);
+        }
+
+        .image-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+
+        .artist-card:hover .image-wrapper img {
+            transform: scale(1.03);
+        }
+
+        .no-image {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #a1a1aa;
+            font-weight: 900;
+            font-size: 14px;
+            letter-spacing: 0.1em;
+            background-color: #f4f4f5;
+            text-transform: uppercase;
+        }
+
+        .artist-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-top: auto;
+        }
+
+        .artist-name {
+            font-weight: 900;
+            font-size: 24px;
+            text-transform: uppercase;
+            letter-spacing: -0.02em;
+        }
+
+        .artist-genre {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #71717a;
+            margin-top: 4px;
+        }
+
+        footer {
+            border-top: 1px solid #000000;
+            padding: 40px 24px;
+            text-align: center;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            color: #71717a;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <a href="index.html" class="logo-link">
+        <img src="uploads/havoc-logo.jpeg" alt="HAVOC AGENCY">
+    </a>
+    <nav>
+        <a href="index.html">START //</a>
+        <a href="roster.html">ARTISTS //</a> <!-- Springt direkt zum Künstler-Grid auf der Startseite -->
+        <a href="kalender.html">TOUR DATES //</a>
+        <a href="shows.html">SHOWS //</a>
+        <a href="team.html">TEAM //</a>
+        <a href="stu.html">STU //</a>
+        <a href="kontakt.html">CONTACT //</a>
+        <a href="admin-dashboard.html" class="admin-btn">ADMIN</a>
+    </nav>
+</header>
+
+    <main>
+        <h1 class="page-title">Agency<span> Roster //</span></h1>
+        
+        <section class="roster-section">
+            <div class="grid-container" id="artistsGrid">
+                <!-- Das JavaScript befüllt diesen Bereich live -->
+                <div style="padding: 48px; color:#71717a; text-transform:uppercase; font-size:12px; letter-spacing:0.1em; text-align:center; grid-column: span 3;">Lade HAVOC Roster...</div>
+            </div>
+        </section>
+    </main>
+
+<footer style="margin-top: 100px; border-top: 1px solid #000000; padding-top: 20px; width: 100%; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">
+    <!-- Der Link ist jetzt elegant geschrumpft (0.7rem) und im gleichen Grau wie das Copyright -->
+    <div style="margin-bottom: 8px;">
+        <a href="impressum.html" target="_blank" class="footer-legal-link" style="font-size: 0.7rem; font-weight: 500; text-transform: uppercase; color: #757575; text-decoration: none; letter-spacing: 0.05em; transition: color 0.2s ease;" onmouseover="this.style.color='#000000'" onmouseout="this.style.color='#757575'">IMPRESSUM //</a>
+    </div>
+    <div style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: #757575; letter-spacing: -0.01em;">
+        © 2026 HAVOC AGENCY. ALL RIGHTS RESERVED.
+    </div>
+</footer>
+
+        <script>
+// --- LIVE-DATEN FÜR DAS AGENCY ROSTER GRID MIT BOMBENSICHERER BILD-ENGINE ---
+        window.addEventListener('DOMContentLoaded', async () => {
+            // Findet die Künstler-Box im HTML vollautomatisch
+            const artistsGrid = document.querySelector('.artists-grid') || document.getElementById('artistsGrid') || document.querySelector('.main-content');
+            if (!artistsGrid) return;
+
+            try {
+                // Holt sich die Bands schnurgerade aus deiner Live-Render-Cloud
+                const response = await fetch('https://havoc-backend-063h.onrender.com/api/artists');
+                const artists = await response.json();
+
+                if (artists && artists.length > 0) {
+                    let html = '';
+                    for (let i = 0; i < artists.length; i++) {
+                        const artist = artists[i];
+                        
+                        // BASE64-WEICHE: Erkennt unzerstörbare Grafik-Textcodes fehlerfrei
+                        let imgUrl = 'uploads/havoc-logo.jpeg';
+                        if (artist.image_url && artist.image_url.trim() !== '') {
+                            if (artist.image_url.startsWith('data:image')) {
+                                imgUrl = artist.image_url;
+                            } else if (!artist.image_url.startsWith('http')) {
+                                imgUrl = 'https://havoc-backend-063h.onrender.com/uploads/' + artist.image_url;
+                            } else {
+                                imgUrl = artist.image_url;
+                            }
+                        }
+
+                        // Baut die HTML-Karte für das Grid zusammen
+                        html += `<div class="artist-card" onclick="window.location.href='artist.html?id=${artist.id}'" style="cursor: pointer;">`;
+                        html += `  <div class="poster-frame" style="width: 100%; aspect-ratio: 1/1; overflow: hidden; background: #f0f0f0;">`;
+                        html += `    <img class="artist-img" src="${imgUrl}" alt="${artist.name}" style="width: 100%; height: 100%; object-fit: cover;">`;
+                        html += `  </div>`;
+                        html += `  <div style="font-weight: 900; text-transform: uppercase; font-size: 1.1rem; margin-top: 15px; letter-spacing: -0.01em;">${artist.name}</div>`;
+                        html += `  <div style="font-size: 0.8rem; color: #757575; text-transform: uppercase; margin-top: 4px;">${artist.genre || 'Alternative'}</div>`;
+                        html += `</div>`;
+                    }
+                    artistsGrid.innerHTML = html;
+                } else {
+                    artistsGrid.innerHTML = '<div style="grid-column: 1/-1; text-transform: uppercase; font-size: 0.8rem; color: #757575; padding: 40px 0;">NO ARTISTS IN ROSTER YET //</div>';
+                }
+            } catch (err) {
+                console.error("Fehler beim Laden des Grids:", err);
+                artistsGrid.innerHTML = '<div style="grid-column: 1/-1; text-transform: uppercase; font-size: 0.8rem; color: #757575; padding: 40px 0;">DATABASE CONNECTION ERROR //</div>';
+            }
+        });
+    </script>
+</body>
+</html>
