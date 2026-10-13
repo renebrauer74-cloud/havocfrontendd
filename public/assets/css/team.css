@@ -1,0 +1,92 @@
+/* --- TEAM --- */
+
+h1.page-title {
+    font-size: 4rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    margin-bottom: 60px;
+    line-height: 0.9;
+    width: 100%;
+}
+
+.list-empty {
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.team-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 60px 40px;
+    width: 100%;
+}
+
+.team-card {
+    border-top: 1px solid var(--black);
+    padding-top: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.profile-wrapper {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    background-color: #f0f0f0;
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+
+.profile-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: grayscale(100%);
+    transition: filter 0.3s ease;
+}
+
+.team-card:hover .profile-img {
+    filter: grayscale(0%);
+}
+
+.member-name {
+    font-size: 1.8rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    margin-bottom: 15px;
+    line-height: 1.1;
+}
+
+.metadata-group {
+    margin-bottom: 20px;
+    font-size: 0.9rem;
+    line-height: 1.6;
+}
+
+.metadata-row {
+    display: flex;
+}
+
+.metadata-label {
+    font-weight: 700;
+    text-transform: uppercase;
+    width: 90px;
+    flex-shrink: 0;
+}
+
+.metadata-value a {
+    color: var(--black);
+    text-decoration: none;
+    border-bottom: 1px solid var(--black);
+}
+
+.member-bio {
+    font-size: 1rem;
+    line-height: 1.5;
+    color: var(--black);
+    text-align: justify;
+}
+
+@media (max-width: 768px) {
+    h1.page-title { font-size: 2.5rem; margin-bottom: 40px; }
+    .team-grid { grid-template-columns: 1fr; gap: 40px; }
+}

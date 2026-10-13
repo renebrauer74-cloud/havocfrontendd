@@ -1,0 +1,269 @@
+/* --- ARTIST-PROFIL --- */
+
+/* ARTIST HERO BANNER */
+.artist-hero {
+    max-width: 1200px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 40px 24px;
+    border-left: 1px solid #000000;
+    border-right: 1px solid #000000;
+    border-bottom: 1px solid #000000;
+}
+
+.hero-image-container {
+    width: 100%;
+    aspect-ratio: 2 / 1;
+    border: 1px solid #000000;
+    overflow: hidden;
+    background-color: #f4f4f5;
+}
+
+.hero-image-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.artist-header-box {
+    padding: 40px 0 0 0;
+}
+
+.artist-main-name {
+    font-weight: 900;
+    font-size: clamp(36px, 6vw, 72px);
+    text-transform: uppercase;
+    letter-spacing: -0.04em;
+    line-height: 0.9;
+}
+
+.artist-main-genre {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: #71717a;
+    margin-top: 12px;
+}
+
+/* CONTENT GRID: BIO & LINKS */
+.profile-grid {
+    max-width: 1200px;
+    width: 100%;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr;
+    border-left: 1px solid #000000;
+    border-right: 1px solid #000000;
+}
+
+@media (min-width: 768px) {
+    .profile-grid {
+        grid-template-columns: 2fr 1fr;
+    }
+}
+
+.bio-box {
+    padding: 40px 24px;
+    border-bottom: 1px solid #000000;
+    line-height: 1.6;
+    font-size: 15px;
+    color: #18181b;
+}
+
+.bio-empty {
+    color: #a1a1aa;
+    font-style: italic;
+}
+
+/* Sprach-Toggle DE / EN */
+.lang-toggle {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+    border-bottom: 1px solid #e4e4e7;
+    padding-bottom: 12px;
+}
+
+.lang-btn {
+    background: none;
+    color: #71717a;
+    border: 1px solid #e4e4e7;
+    padding: 4px 10px;
+    font-size: 10px;
+    font-weight: 900;
+    font-family: monospace;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.lang-btn.is-active {
+    background: #000000;
+    color: #ffffff;
+    border-color: #000000;
+}
+
+.links-box {
+    padding: 40px 24px;
+    border-bottom: 1px solid #000000;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+@media (min-width: 768px) {
+    .links-box {
+        border-left: 1px solid #000000;
+    }
+}
+
+.media-btn {
+    display: block;
+    width: 100%;
+    text-align: center;
+    padding: 14px;
+    font-size: 11px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    border: 1px solid #000000;
+    background-color: #000000;
+    color: #ffffff;
+}
+
+.media-btn:hover {
+    background-color: #ffffff;
+    color: #000000;
+}
+
+/* LIVE-FOTO GALERIE GRID */
+.artist-gallery-section {
+    max-width: 1200px;
+    width: 100%;
+    margin: 0 auto;
+    border-left: 1px solid #000000;
+    border-right: 1px solid #000000;
+    border-bottom: 1px solid #000000;
+}
+
+.gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    padding: 24px;
+    background-color: #ffffff;
+}
+
+@media (min-width: 768px) {
+    .gallery-grid { grid-template-columns: repeat(4, 1fr); }
+}
+
+.gallery-item {
+    display: block;
+    width: 100%;
+    aspect-ratio: 3 / 2;
+    overflow: hidden;
+    border: 1px solid #000000;
+    background-color: #f4f4f5;
+}
+
+.gallery-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: grayscale(100%);
+    transition: all 0.4s ease;
+}
+
+.gallery-item:hover img {
+    filter: grayscale(0%);
+    transform: scale(1.02);
+}
+
+/* TOURDATEN */
+.artist-shows {
+    max-width: 1200px;
+    width: 100%;
+    margin: 0 auto;
+    border-left: 1px solid #000000;
+    border-right: 1px solid #000000;
+    border-bottom: 1px solid #000000;
+}
+
+.section-title {
+    font-weight: 900;
+    font-size: 24px;
+    text-transform: uppercase;
+    letter-spacing: -0.02em;
+    padding: 24px;
+    border-bottom: 1px solid #000000;
+    background-color: #f4f4f5;
+}
+
+.artist-shows-list {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.shows-empty {
+    padding: 24px;
+}
+
+.ticket-row {
+    display: flex;
+    flex-direction: column;
+    padding: 24px;
+    border-bottom: 1px solid #e4e4e7;
+    background-color: #ffffff;
+    width: 100%;
+    gap: 12px;
+}
+
+.ticket-row:last-child { border-bottom: none; }
+
+@media (min-width: 768px) {
+    .ticket-row {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0;
+    }
+}
+
+.ticket-row:hover { background-color: #f4f4f5; }
+
+.date-info { font-family: monospace; font-size: 15px; color: #52525b; min-width: 140px; }
+.show-info { font-weight: 900; font-size: 18px; text-transform: uppercase; margin: 0; flex-grow: 1; }
+.show-info .separator { color: #a1a1aa; font-weight: 300; }
+@media (min-width: 768px) { .show-info { padding-left: 32px; padding-right: 32px; } }
+
+.ticket-btn {
+    background-color: #000000;
+    color: #ffffff;
+    text-decoration: none;
+    padding: 10px 24px;
+    font-size: 11px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    text-align: center;
+    border: 1px solid #000000;
+    transition: all 0.2s ease;
+    display: inline-block;
+    width: 100%;
+}
+
+@media (min-width: 768px) { .ticket-btn { width: auto; } }
+.ticket-btn:hover { background-color: #ffffff; color: #000000; }
+
+/* Footer als Box im 1200px-Raster */
+body.layout-app .site-footer {
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+    border-left: 1px solid #000000;
+    border-right: 1px solid #000000;
+    border-bottom: 1px solid #000000;
+}

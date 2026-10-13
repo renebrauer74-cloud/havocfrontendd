@@ -1,0 +1,96 @@
+/* ==========================================================================
+   HAVOC ADMIN – Login & Dashboard
+   ========================================================================== */
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body { font-family: sans-serif; background-color: #000000; color: #ffffff; min-height: 100vh; }
+
+::selection { background-color: #ffffff; color: #000000; }
+
+/* --- Formulare (Login + Dashboard) --- */
+.form-group { margin-bottom: 24px; }
+label { display: block; font-size: 10px; letter-spacing: 0.15em; color: #a1a1aa; text-transform: uppercase; margin-bottom: 8px; }
+input, textarea, select { width: 100%; background-color: #000000; border: 1px solid #27272a; padding: 12px; font-size: 14px; color: #ffffff; outline: none; transition: border-color 0.2s ease; font-family: inherit; }
+input:focus, textarea:focus, select:focus { border-color: #ffffff; }
+
+.submit-btn { width: 100%; background-color: #ffffff; color: #000000; border: none; padding: 14px; font-weight: 900; font-size: 13px; letter-spacing: 0.15em; text-transform: uppercase; cursor: pointer; transition: background-color 0.2s ease; }
+.submit-btn:hover { background-color: #e4e4e7; }
+.submit-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.status-message { font-size: 12px; padding: 12px; margin-bottom: 24px; font-family: monospace; border: 1px solid transparent; }
+.status-message.is-success { border-color: #22c55e; color: #22c55e; background-color: rgba(20, 83, 45, 0.2); }
+.status-message.is-error { border-color: #ef4444; color: #ef4444; background-color: rgba(69, 10, 10, 0.2); }
+
+/* --- LOGIN --- */
+body.admin-login { display: flex; align-items: center; justify-content: center; padding: 24px; font-family: 'Inter', sans-serif; }
+.login-box { border: 1px solid #27272a; padding: 32px; width: 100%; max-width: 400px; background-color: #09090b; }
+.logo-container { text-align: center; margin-bottom: 32px; }
+.logo-box { background-color: #ffffff; color: #000000; padding: 8px 24px; font-weight: 900; font-size: 28px; letter-spacing: -0.05em; display: inline-block; text-transform: uppercase; }
+.logo-sub { font-size: 10px; letter-spacing: 0.4em; text-transform: uppercase; font-weight: 300; margin-top: 8px; color: #a1a1aa; }
+.admin-login label { font-weight: 300; }
+.admin-login input { font-family: monospace; }
+.admin-login .submit-btn { padding: 12px; font-size: 14px; }
+
+/* --- DASHBOARD --- */
+body.admin-dashboard { display: flex; }
+
+aside { width: 260px; background-color: #09090b; border-right: 1px solid #27272a; display: flex; flex-direction: column; padding: 32px 24px; position: fixed; height: 100vh; z-index: 100; }
+.sidebar-logo { background-color: #ffffff; color: #000000; padding: 6px 16px; font-weight: 900; font-size: 24px; letter-spacing: -0.05em; text-transform: uppercase; display: inline-block; text-align: center; margin-bottom: 48px; text-decoration: none; }
+.sidebar-menu { display: flex; flex-direction: column; gap: 12px; }
+.menu-item { color: #a1a1aa; text-decoration: none; font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; padding: 12px; border: 1px solid transparent; transition: all 0.2s ease; }
+.menu-item:hover, .menu-item.active { color: #ffffff; border-color: #27272a; background-color: #18181b; }
+.sidebar-logout-form { margin-top: auto; }
+.sidebar-logout { width: 100%; background: none; border: 1px solid #3f3f46; color: #ef4444; padding: 10px; font-size: 11px; font-family: monospace; cursor: pointer; text-transform: uppercase; letter-spacing: 0.1em; }
+.sidebar-logout:hover { background-color: #ef4444; color: #ffffff; }
+
+.content-area { margin-left: 260px; flex-grow: 1; padding: 48px; max-width: 900px; width: 100%; }
+
+.dashboard-box { border: 1px solid #27272a; background-color: #09090b; padding: 32px; margin-bottom: 40px; position: relative; }
+.mode-badge { position: absolute; top: 32px; right: 32px; background-color: #f59e0b; color: #000000; padding: 4px 12px; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.1em; }
+h2 { font-weight: 900; font-size: 24px; text-transform: uppercase; letter-spacing: -0.02em; margin-bottom: 8px; }
+.subtitle { color: #52525b; font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 32px; }
+.dashboard-box > h2 + form, .dashboard-box > h2 + .management-list, .dashboard-box > h2 + .gallery-grid { margin-top: 24px; }
+
+.drop-zone { width: 100%; border: 2px dashed #3f3f46; padding: 32px; text-align: center; background-color: #000000; cursor: pointer; color: #71717a; font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; transition: all 0.2s ease; }
+.drop-zone.drag-over { border-color: #ffffff; background-color: #18181b; color: #ffffff; }
+.preview-img { max-width: 100%; max-height: 120px; margin-top: 12px; display: block; border: 1px solid #27272a; object-fit: contain; }
+.preview-img[hidden] { display: none; }
+
+.cancel-btn { display: block; width: 100%; background: none; border: 1px solid #3f3f46; color: #a1a1aa; padding: 12px; margin-top: 12px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; cursor: pointer; text-align: center; text-decoration: none; }
+.cancel-btn:hover { color: #ffffff; border-color: #ffffff; }
+
+.management-list { display: flex; flex-direction: column; gap: 12px; }
+.management-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 16px; border: 1px solid #27272a; background-color: #000000; }
+.row-title { font-weight: 900; text-transform: uppercase; }
+.row-meta { font-size: 11px; color: #a1a1aa; margin: 0 8px 0 0; }
+a.row-meta { text-decoration: none; }
+a.row-meta:hover { color: #ffffff; }
+.row-excerpt { font-size: 11px; color: #52525b; margin-top: 4px; }
+.list-empty { font-size: 11px; color: #52525b; text-transform: uppercase; padding: 14px 0; }
+
+.action-group { display: flex; gap: 8px; flex-shrink: 0; }
+.edit-btn, .delete-btn { display: inline-block; background: none; padding: 6px 12px; font-size: 10px; font-family: monospace; cursor: pointer; transition: all 0.2s ease; font-weight: bold; text-decoration: none; }
+.edit-btn { border: 1px solid #3f3f46; color: #ffffff; }
+.edit-btn:hover { background-color: #ffffff; color: #000000; border-color: #ffffff; }
+.delete-btn { border: 1px solid #ef4444; color: #ef4444; }
+.delete-btn:hover { background-color: #ef4444; color: #ffffff; }
+
+.gallery-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.gallery-hint { grid-column: 1 / -1; }
+.gallery-manage-card { border: 1px solid #27272a; background-color: #000000; padding: 8px; display: flex; flex-direction: column; gap: 8px; }
+.gallery-manage-card img { width: 100%; aspect-ratio: 3 / 2; object-fit: cover; border: 1px solid #27272a; }
+.gallery-manage-card .delete-btn { width: 100%; }
+
+.message-row { align-items: flex-start; }
+.message-text { font-size: 13px; line-height: 1.5; color: #d4d4d8; margin-top: 8px; }
+
+@media (max-width: 900px) {
+    body.admin-dashboard { flex-direction: column; }
+    aside { position: static; width: 100%; height: auto; padding: 24px; }
+    .sidebar-logo { margin-bottom: 24px; }
+    .sidebar-menu { flex-direction: row; flex-wrap: wrap; gap: 8px; }
+    .sidebar-logout-form { margin-top: 24px; }
+    .content-area { margin-left: 0; padding: 24px; }
+    .gallery-grid { grid-template-columns: repeat(2, 1fr); }
+}

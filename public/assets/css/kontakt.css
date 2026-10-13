@@ -1,0 +1,171 @@
+/* --- KONTAKT & BOOKING --- */
+
+main {
+    flex-grow: 1;
+    max-width: 1200px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 80px 24px;
+}
+
+.page-title {
+    font-weight: 900;
+    font-size: clamp(36px, 6vw, 64px);
+    text-transform: uppercase;
+    letter-spacing: -0.04em;
+    line-height: 0.9;
+    margin-bottom: 60px;
+}
+
+.page-title span {
+    color: #a1a1aa;
+}
+
+/* SPLIT-LAYOUT */
+.contact-split-container {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 60px;
+    border-top: 2px solid #000000;
+    padding-top: 48px;
+}
+
+@media (min-width: 768px) {
+    .contact-split-container {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+.contact-form-side {
+    display: flex;
+    flex-direction: column;
+}
+
+@media (min-width: 768px) {
+    .contact-form-side {
+        border-right: 1px solid #e4e4e7;
+        padding-right: 60px;
+    }
+}
+
+.contact-form {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-field label {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #52525b;
+}
+
+.form-field input,
+.form-field textarea {
+    width: 100%;
+    border: 1px solid #000000;
+    padding: 12px;
+    font-size: 14px;
+    outline: none;
+    background: #ffffff;
+    color: #000000;
+}
+
+.form-field textarea {
+    font-family: sans-serif;
+    resize: vertical;
+}
+
+/* Honeypot gegen Spam-Bots */
+.hp-field {
+    position: absolute;
+    left: -10000px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+}
+
+.form-status {
+    font-size: 12px;
+    padding: 12px;
+    margin-bottom: 24px;
+    font-family: monospace;
+    border: 1px solid transparent;
+}
+
+.form-status.is-success {
+    border-color: #22c55e;
+    color: #16a34a;
+    background-color: rgba(20, 83, 45, 0.05);
+}
+
+.form-status.is-error {
+    border-color: #ef4444;
+    color: #ef4444;
+    background-color: rgba(69, 10, 10, 0.05);
+}
+
+/* RECHTE SEITE: EDITORIAL LISTE */
+.contact-info-side {
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+}
+
+.contact-info-block h3 {
+    font-weight: 900;
+    font-size: 18px;
+    text-transform: uppercase;
+    letter-spacing: -0.01em;
+    margin-bottom: 8px;
+}
+
+.contact-info-block p {
+    font-size: 14px;
+    line-height: 1.6;
+    color: #52525b;
+    margin-bottom: 12px;
+}
+
+.contact-mail-link {
+    font-family: monospace;
+    font-size: 15px;
+    font-weight: 900;
+    color: #000000;
+    text-decoration: none;
+    border-bottom: 1px solid #000000;
+    padding-bottom: 2px;
+    transition: all 0.2s ease;
+}
+
+.contact-mail-link:hover {
+    color: #a1a1aa;
+    border-color: #a1a1aa;
+}
+
+.ticket-btn {
+    background-color: #000000;
+    color: #ffffff;
+    text-decoration: none;
+    padding: 14px;
+    font-size: 13px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    text-align: center;
+    transition: all 0.2s ease;
+    border: 1px solid #000000;
+    cursor: pointer;
+}
+
+.ticket-btn:hover {
+    background-color: #ffffff;
+    color: #000000;
+}

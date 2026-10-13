@@ -1,0 +1,76 @@
+/* --- IMPRESSUM --- */
+
+.site-header nav a {
+    font-size: 0.75rem;
+}
+
+.content-container {
+    max-width: 800px;
+}
+
+h1.page-title {
+    font-size: 4rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    margin-bottom: 40px;
+    line-height: 0.9;
+}
+
+.legal-section {
+    border-top: 1px solid var(--black);
+    padding-top: 30px;
+    margin-bottom: 40px;
+}
+
+.legal-section h2 {
+    font-size: 1.4rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    margin-bottom: 15px;
+    letter-spacing: -0.01em;
+}
+
+.legal-section p {
+    font-size: 1rem;
+    line-height: 1.6;
+    margin-bottom: 15px;
+    color: var(--black);
+}
+
+.legal-section p a {
+    color: var(--black);
+}
+
+.meta-grid {
+    display: grid;
+    grid-template-columns: 160px 1fr;
+    row-gap: 8px;
+    margin-bottom: 20px;
+    font-size: 1rem;
+    line-height: 1.5;
+}
+
+.meta-label {
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.meta-value a {
+    color: var(--black);
+    text-decoration: none;
+    border-bottom: 1px solid var(--black);
+}
+
+.meta-value.mono {
+    font-family: monospace;
+    letter-spacing: 0.05em;
+}
+
+.disclaimer-text {
+    text-align: justify;
+}
+
+@media (max-width: 768px) {
+    h1.page-title { font-size: 2.5rem; }
+    .meta-grid { grid-template-columns: 120px 1fr; }
+}

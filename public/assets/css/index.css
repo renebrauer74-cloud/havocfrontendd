@@ -1,0 +1,343 @@
+/* --- STARTSEITE --- */
+
+.hero {
+    max-width: 1200px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 120px 24px;
+    border-bottom: 1px solid #000000;
+}
+
+.hero h1 {
+    font-weight: 900;
+    font-size: clamp(48px, 8vw, 96px);
+    line-height: 0.9;
+    text-transform: uppercase;
+    letter-spacing: -0.04em;
+}
+
+.hero h1 span {
+    color: #a1a1aa;
+}
+
+.hero p {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.3em;
+    color: #52525b;
+    margin-top: 24px;
+    font-weight: 300;
+}
+
+.roster-section {
+    max-width: 1200px;
+    width: 100%;
+    margin: 0 auto;
+    border-left: 1px solid #000000;
+    border-right: 1px solid #000000;
+}
+
+/* --- FULL-WIDTH BAND CAROUSEL --- */
+.carousel-section {
+    width: 100%;
+    overflow: hidden;
+    background-color: #ffffff;
+    border-bottom: 1px solid #000000;
+    position: relative;
+}
+
+.carousel-empty {
+    padding: 40px;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+}
+
+.carousel-track {
+    display: flex;
+    width: max-content;
+    animation: marqueeLoop 150s linear infinite;
+}
+
+/* Pausiert den Fluss, sobald die Maus auf der Leiste steht */
+.carousel-section:hover .carousel-track {
+    animation-play-state: paused;
+}
+
+.carousel-item {
+    position: relative;
+    display: block;
+    width: clamp(350px, 35vw, 550px);
+    aspect-ratio: 16 / 10;
+    border-right: 1px solid #000000;
+    overflow: hidden;
+    background-color: #f4f4f5;
+    flex-shrink: 0;
+}
+
+.carousel-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: grayscale(100%);
+    transition: filter 0.5s ease, transform 0.5s ease;
+}
+
+.carousel-meta {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 24px;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0) 100%);
+    color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    transform: translateY(10px);
+    opacity: 0;
+    transition: all 0.4s ease;
+}
+
+.carousel-item:hover img { filter: grayscale(0%); transform: scale(1.02); }
+.carousel-item:hover .carousel-meta { transform: translateY(0); opacity: 1; }
+
+.carousel-band-name { font-weight: 900; font-size: 22px; text-transform: uppercase; letter-spacing: -0.02em; }
+.carousel-band-genre { font-size: 10px; text-transform: uppercase; letter-spacing: 0.15em; color: #a1a1aa; }
+
+/* Die Liste ist doppelt gerendert: exakt die erste Hälfte durchschieben, dann springt der Loop unmerklich auf 0 zurück. */
+@keyframes marqueeLoop {
+    0%   { transform: translate3d(0, 0, 0); }
+    100% { transform: translate3d(-50%, 0, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .carousel-track { animation: none; }
+    .carousel-section { overflow-x: auto; }
+}
+
+/* --- MODERN EDITORIAL NEWS --- */
+.news-section {
+    margin-top: 40px;
+    margin-bottom: 40px;
+    padding: 24px;
+    border-bottom: 1px solid #000000;
+}
+
+.section-heading {
+    font-weight: 900;
+    font-size: 32px;
+    text-transform: uppercase;
+    letter-spacing: -0.04em;
+    margin-bottom: 32px;
+}
+
+.news-container {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 32px;
+    width: 100%;
+}
+
+@media (min-width: 768px) {
+    .news-container { grid-template-columns: repeat(2, 1fr); }
+}
+
+.news-card {
+    border: 1px solid #000000;
+    display: flex;
+    flex-direction: column;
+    background-color: #ffffff;
+}
+
+.news-img-box {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    border-bottom: 1px solid #000000;
+    overflow: hidden;
+    background-color: #f4f4f5;
+}
+
+.news-img-box img { width: 100%; height: 100%; object-fit: cover; }
+
+.news-img-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #a1a1aa;
+    font-weight: 900;
+}
+
+.news-content { padding: 24px; display: flex; flex-direction: column; }
+.news-date { font-family: monospace; font-size: 11px; color: #71717a; margin-bottom: 8px; }
+.news-title { font-weight: 900; font-size: 22px; text-transform: uppercase; letter-spacing: -0.02em; margin-bottom: 12px; }
+.news-text { font-size: 14px; line-height: 1.6; color: #27272a; }
+
+/* ARCHIV-ZEILEN FÜR ÄLTERE NEWS */
+.archive-section {
+    margin-top: 40px;
+    border-top: 1px solid #000000;
+    padding-top: 24px;
+}
+
+.archive-heading {
+    font-weight: 900;
+    font-size: 18px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #71717a;
+    margin-bottom: 16px;
+}
+
+.archive-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 0;
+    border-bottom: 1px solid #e4e4e7;
+    cursor: pointer;
+    list-style: none;
+}
+
+.archive-row::-webkit-details-marker { display: none; }
+.archive-title { font-weight: 900; text-transform: uppercase; font-size: 14px; }
+.archive-date { font-family: monospace; font-size: 12px; color: #a1a1aa; }
+
+.archive-body {
+    padding: 16px;
+    background-color: #f4f4f5;
+    border-left: 2px solid #000000;
+    margin-bottom: 8px;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+/* --- KOMPAKTER TOUR-KALENDER --- */
+.dates-section {
+    margin-top: 60px;
+    margin-bottom: 120px;
+}
+
+.dates-heading {
+    font-weight: 900;
+    font-size: 32px;
+    text-transform: uppercase;
+    letter-spacing: -0.02em;
+    padding: 24px;
+    border-bottom: 1px solid #000000;
+}
+
+.dates-empty {
+    padding: 24px;
+    color: #a1a1aa;
+}
+
+.ticket-row {
+    display: flex;
+    flex-direction: column;
+    padding: 20px 24px;
+    border-bottom: 1px solid #000000;
+    transition: background-color 0.2s ease;
+}
+
+@media (min-width: 768px) {
+    .ticket-row {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+    }
+}
+
+.ticket-row:hover {
+    background-color: #f4f4f5;
+}
+
+.date-info {
+    font-family: monospace;
+    font-size: 14px;
+    color: #52525b;
+    min-width: 120px;
+}
+
+.show-info {
+    font-weight: 900;
+    font-size: 18px;
+    text-transform: uppercase;
+    margin: 8px 0;
+}
+
+.show-info .separator {
+    color: #a1a1aa;
+    font-weight: 300;
+}
+
+@media (min-width: 768px) {
+    .show-info {
+        margin: 0;
+        flex-grow: 1;
+        padding-left: 24px;
+    }
+}
+
+.homepage-artist-name {
+    font-weight: 900;
+    color: #000000;
+    text-transform: uppercase;
+    letter-spacing: -0.01em;
+    background-color: #f4f4f5;
+    padding: 2px 8px;
+    border: 1px solid #000000;
+    font-size: 11px;
+    display: inline-block;
+    margin-top: 4px;
+}
+
+@media (min-width: 768px) {
+    .homepage-artist-name { margin-top: 0; margin-left: 12px; }
+}
+
+.ticket-btn {
+    background-color: #000000;
+    color: #ffffff;
+    text-decoration: none;
+    padding: 8px 16px;
+    font-size: 11px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    text-align: center;
+    transition: background-color 0.2s ease;
+    border: 1px solid #000000;
+}
+
+.ticket-btn:hover {
+    background-color: #ffffff;
+    color: #000000;
+}
+
+.more-calendar-wrap {
+    padding: 24px;
+    background-color: #ffffff;
+}
+
+.more-calendar-btn {
+    display: block;
+    width: 100%;
+    background-color: #000000;
+    color: #ffffff;
+    border: 1px solid #000000;
+    padding: 16px;
+    font-weight: 900;
+    font-size: 13px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    text-align: center;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.more-calendar-btn:hover {
+    background-color: #ffffff;
+    color: #000000;
+}

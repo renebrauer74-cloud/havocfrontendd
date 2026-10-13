@@ -1,0 +1,7 @@
+/config/config.php
+
+/storage/data/*
+!/storage/data/.gitkeep
+
+/public/uploads/*
+!/public/uploads/.gitkeep

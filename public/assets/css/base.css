@@ -1,0 +1,158 @@
+/* ==========================================================================
+   HAVOC AGENCY – gemeinsame Basis (Reset, Layouts, Header, Navigation, Footer)
+   Seitenspezifische Styles liegen in eigenen Dateien daneben.
+   ========================================================================== */
+
+:root {
+    --black: #000000;
+    --white: #ffffff;
+    --gray: #757575;
+    --font-main: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+::selection {
+    background-color: #000000;
+    color: #ffffff;
+}
+
+/* --- Layout "app": randlos, Inhalte in eigenen Containern (Start, Roster, Artist, Kalender, Kontakt) --- */
+body.layout-app {
+    font-family: 'Inter', sans-serif;
+    background-color: #ffffff;
+    color: #000000;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* --- Layout "editorial": Rahmen um die komplette Seite (Shows, Team, STU, Impressum) --- */
+body.layout-editorial {
+    background-color: var(--white);
+    color: var(--black);
+    font-family: var(--font-main);
+    padding: 40px;
+    letter-spacing: -0.02em;
+}
+
+.content-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+/* --- HEADER ÜBER DIE KOMPLETTE BREITE --- */
+.site-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #e0e0e0;
+    padding-bottom: 20px;
+    margin-bottom: 60px;
+    width: 100%;
+}
+
+.logo-link {
+    display: inline-block;
+    text-decoration: none;
+    line-height: 0;
+    transition: opacity 0.2s ease;
+}
+
+.logo-link:hover {
+    opacity: 0.8;
+}
+
+.logo-link img {
+    height: 98px;
+    width: auto;
+    display: block;
+}
+
+.site-header nav {
+    display: flex;
+    align-items: center;
+    gap: 25px;
+}
+
+.site-header nav a {
+    color: #000000;
+    text-decoration: none;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.05em;
+    transition: opacity 0.2s ease;
+}
+
+.site-header nav a:hover {
+    opacity: 0.5;
+}
+
+.site-header nav a.active {
+    opacity: 0.4; /* Kennzeichnet die aktuell aktive Seite */
+}
+
+.site-header nav a.admin-btn {
+    border: 1px solid #000000;
+    padding: 6px 12px;
+    margin-left: 5px;
+}
+
+/* --- FOOTER --- */
+.site-footer {
+    margin-top: 100px;
+    border-top: 1px solid #000000;
+    padding-top: 20px;
+    width: 100%;
+    font-family: var(--font-main);
+}
+
+body.layout-app .site-footer {
+    padding: 20px 24px 40px;
+    text-align: center;
+}
+
+.footer-legal {
+    margin-bottom: 8px;
+}
+
+.footer-legal-link {
+    font-size: 0.7rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    color: #757575;
+    text-decoration: none;
+    letter-spacing: 0.05em;
+    transition: color 0.2s ease;
+}
+
+.footer-legal-link:hover {
+    color: #000000;
+}
+
+.footer-copy {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #757575;
+    letter-spacing: -0.01em;
+}
+
+/* --- Hinweis-/Leerzustände --- */
+.empty-state {
+    color: #71717a;
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+}
+
+@media (max-width: 768px) {
+    body.layout-editorial { padding: 20px; }
+    body.layout-editorial .site-header { flex-direction: column; align-items: flex-start; gap: 20px; }
+}
