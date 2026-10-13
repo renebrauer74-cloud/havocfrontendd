@@ -23,5 +23,14 @@ return [
         'max_bytes' => 8 * 1024 * 1024,
     ],
 
-    // TODO: DB-Anbindung folgt – bis dahin liegen die Daten als JSON in storage/data/.
+    'database' => [
+        // 'mysql' = MariaDB/MySQL (Produktion), 'json' = Dateien in storage/data/ (lokale Entwicklung).
+        // Die IONOS-DB ist nur vom IONOS-Webspace aus erreichbar, lokal also 'json' verwenden.
+        'driver'   => 'json',
+        'host'     => '',
+        'port'     => 3306,
+        'name'     => '',
+        'user'     => '',
+        'password' => '',
+    ],
 ];

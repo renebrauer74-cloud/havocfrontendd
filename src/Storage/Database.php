@@ -3,26 +3,68 @@ declare(strict_types=1);
 
 namespace Havoc\Storage;
 
+use PDO;
 use RuntimeException;
 
 /**
- * Liefert die Tabellen für die Repositories.
- * TODO DB-Anbindung: hier statt JsonTable eine PdoTable (gleiches Table-Interface) zurückgeben.
+ * Liefert die Tabellen für die Repositories – je nach config('database.driver')
+ * aus MariaDB/MySQL ('mysql') oder als JSON-Dateien in storage/data/ ('json', lokale Entwicklung).
  */
 final class Database
 {
     /** @var array<string, Table> */
     private array $tables = [];
 
-    public function __construct(private readonly string $directory)
+    private ?PDO $pdo = null;
+
+    /** @param array<string, mixed> $config Abschnitt 'database' aus der Config */
+    public function __construct(private readonly array $config, private readonly string $jsonDirectory)
     {
-        if (!is_dir($this->directory) && !mkdir($this->directory, 0775, true) && !is_dir($this->directory)) {
-            throw new RuntimeException("Datenverzeichnis kann nicht angelegt werden: {$this->directory}");
-        }
     }
 
     public function table(string $name): Table
     {
-        return $this->tables[$name] ??= new JsonTable($this->directory . '/' . $name . '.json');
+        return $this->tables[$name] ??= $this->usesPdo()
+            ? new PdoTable($this->pdo(), $name)
+            : new JsonTable($this->jsonDirectory() . '/' . $name . '.json');
+    }
+
+    public function usesPdo(): bool
+    {
+        return ($this->config['driver'] ?? 'json') === 'mysql';
+    }
+
+    public function pdo(): PDO
+    {
+        if ($this->pdo !== null) {
+            return $this->pdo;
+        }
+        if (!$this->usesPdo()) {
+            throw new RuntimeException("database.driver ist nicht 'mysql'.");
+        }
+
+        $dsn = sprintf(
+            'mysql:host=%s;port=%d;dbname=%s;charset=utf8mb4',
+            $this->config['host'] ?? 'localhost',
+            (int) ($this->config['port'] ?? 3306),
+            $this->config['name'] ?? ''
+        );
+
+        return $this->pdo = new PDO($dsn, $this->config['user'] ?? '', $this->config['password'] ?? '', [
+            PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            // Echte Prepared Statements: Integer-Spalten kommen als int zurück (strikte Vergleiche bleiben gültig).
+            PDO::ATTR_EMULATE_PREPARES   => false,
+            PDO::MYSQL_ATTR_FOUND_ROWS   => true,
+            PDO::ATTR_TIMEOUT            => 5,
+        ]);
+    }
+
+    private function jsonDirectory(): string
+    {
+        if (!is_dir($this->jsonDirectory) && !mkdir($this->jsonDirectory, 0775, true) && !is_dir($this->jsonDirectory)) {
+            throw new RuntimeException("Datenverzeichnis kann nicht angelegt werden: {$this->jsonDirectory}");
+        }
+        return $this->jsonDirectory;
     }
 }
