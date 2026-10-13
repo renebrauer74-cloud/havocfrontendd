@@ -23,7 +23,7 @@ return [
     ],
 
     'uploads' => [
-        'max_bytes' => 8 * 1024 * 1024,
+        'max_bytes' => 500 * 1024 * 1024,
     ],
 
     'database' => [
