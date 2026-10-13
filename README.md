@@ -50,6 +50,3 @@ Einrichtung auf dem Server:
 2. Tabellen anlegen: per SSH `php bin/migrate.php` oder `database/schema.sql` in phpMyAdmin importieren.
    Das Schema ist idempotent (`CREATE TABLE IF NOT EXISTS`).
 3. Optional bestehende JSON-Daten übernehmen: `php bin/import-json.php` (nur in leere Tabellen, IDs bleiben erhalten).
-
-Noch offen: Inhalte aus dem alten Render-Backend übernehmen. Dort sind Bios und Infotexte Base64-kodiert
-und Bilder teils als Data-URIs gespeichert.
