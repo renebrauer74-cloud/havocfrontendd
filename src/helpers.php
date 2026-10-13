@@ -192,7 +192,7 @@ function verify_csrf(): void
 function db(): Database
 {
     static $db = null;
-    return $db ??= new Database(BASE_PATH . '/storage/data');
+    return $db ??= new Database((array) config('database', []), BASE_PATH . '/storage/data');
 }
 
 function artists(): ArtistRepository

@@ -1,6 +1,6 @@
 # HAVOC AGENCY – Website
 
-Plain PHP (ohne Framework), PHP ≥ 8.2 mit den Extensions `fileinfo`, `mbstring` und `json`.
+Plain PHP (ohne Framework), PHP ≥ 8.2 mit den Extensions `fileinfo`, `mbstring`, `json` und `pdo_mysql`.
 
 ## Lokal starten
 
@@ -27,18 +27,29 @@ src/
   helpers.php      Escaping, URLs, CSRF, Flash, Repository-Zugriff
   Auth.php         Session-Login für den Admin
   Upload.php       Bild-Uploads (MIME-Prüfung, zufällige Dateinamen)
-  Storage/         Table-Interface + JsonTable (Übergangsspeicher)
+  Storage/         Table-Interface, PdoTable (MariaDB) und JsonTable (lokale Entwicklung)
   Repository/      Datenzugriff pro Bereich (Artists, Tourdaten, Galerie, News, Team, Shows, Anfragen)
 templates/         Header/Footer und Admin-Sektionen
-storage/data/      JSON-Daten (nicht im Git)
+database/          schema.sql (Tabellen für MariaDB/MySQL)
+bin/               CLI: Passwort-Hash, Migration, JSON-Import
+storage/data/      JSON-Daten für lokale Entwicklung (nicht im Git)
 config/            config.php (nicht im Git) + Vorlage
 ```
 
-## TODO: Datenbank-Anbindung
+## Datenbank
 
-Aktuell speichern die Repositories ihre Daten als JSON in `storage/data/`. Für die DB:
+Produktiv liegen die Daten in einer MariaDB 11.8 bei IONOS. Die DB ist **nur vom IONOS-Webspace aus erreichbar**,
+deshalb gibt es zwei Treiber, gesteuert über `database.driver` in `config/config.php`:
 
-1. Eine `PdoTable` schreiben, die `Havoc\Storage\Table` implementiert.
-2. In `Havoc\Storage\Database::table()` statt `JsonTable` eine `PdoTable` zurückgeben, mit Zugangsdaten aus der Config.
-3. Tabellen anlegen: `artists`, `tour_dates`, `gallery`, `news`, `team`, `agency_shows`, `messages`. Die Felder stehen jeweils in `FIELDS` der Repositories, dazu kommen `id`, `created_at` und `updated_at`.
-4. Bestehende Inhalte aus dem alten Render-Backend übernehmen. Dort sind Bios und Infotexte Base64-kodiert und Bilder teils als Data-URIs gespeichert.
+- `mysql`: MariaDB/MySQL per PDO (Server)
+- `json`: JSON-Dateien in `storage/data/` (lokale Entwicklung)
+
+Einrichtung auf dem Server:
+
+1. In `config/config.php` auf dem Server `'driver' => 'mysql'` setzen und die Zugangsdaten im `database`-Block eintragen.
+2. Tabellen anlegen: per SSH `php bin/migrate.php` oder `database/schema.sql` in phpMyAdmin importieren.
+   Das Schema ist idempotent (`CREATE TABLE IF NOT EXISTS`).
+3. Optional bestehende JSON-Daten übernehmen: `php bin/import-json.php` (nur in leere Tabellen, IDs bleiben erhalten).
+
+Noch offen: Inhalte aus dem alten Render-Backend übernehmen. Dort sind Bios und Infotexte Base64-kodiert
+und Bilder teils als Data-URIs gespeichert.
