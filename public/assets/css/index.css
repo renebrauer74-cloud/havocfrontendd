@@ -55,7 +55,7 @@
 .carousel-track {
     display: flex;
     width: max-content;
-    animation: marqueeLoop 50s linear infinite;
+    animation: marqueeLoop 25s linear infinite;
 }
 
 /* Pausiert den Fluss, sobald die Maus auf der Leiste steht */
