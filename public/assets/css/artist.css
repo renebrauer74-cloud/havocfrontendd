@@ -257,13 +257,3 @@
 
 @media (min-width: 768px) { .ticket-btn { width: auto; } }
 .ticket-btn:hover { background-color: #ffffff; color: #000000; }
-
-/* Footer als Box im 1200px-Raster */
-body.layout-app .site-footer {
-    max-width: 1200px;
-    margin-left: auto;
-    margin-right: auto;
-    border-left: 1px solid #000000;
-    border-right: 1px solid #000000;
-    border-bottom: 1px solid #000000;
-}

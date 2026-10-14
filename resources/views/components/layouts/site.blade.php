@@ -34,16 +34,23 @@
     <a href="{{ route('home') }}" class="logo-link">
         <img src="{{ asset('assets/img/havoc-logo.jpeg') }}" alt="HAVOC AGENCY">
     </a>
-    <nav>
 @if ($backLink)
+    <nav>
         <a href="{{ $backLink[0] }}">{{ $backLink[1] }}</a>
+    </nav>
 @else
+    <button type="button" class="nav-toggle" aria-controls="site-nav" aria-expanded="false" aria-label="Menü öffnen" data-nav-toggle>
+        <span class="nav-toggle-bar"></span>
+        <span class="nav-toggle-bar"></span>
+        <span class="nav-toggle-bar"></span>
+    </button>
+    <nav id="site-nav" class="site-nav" aria-label="Hauptnavigation">
 @foreach ($navItems as $routeName => $label)
-        <a href="{{ route($routeName) }}" @class(['active' => request()->routeIs($routeName)])>{{ $label }}</a>
+        <a href="{{ route($routeName) }}" @class(['active' => request()->routeIs($routeName)]) @if (request()->routeIs($routeName)) aria-current="page" @endif>{{ $label }}</a>
 @endforeach
         <a href="{{ route('admin') }}" class="admin-btn">ADMIN</a>
-@endif
     </nav>
+@endif
 </header>
 
 {{ $slot }}

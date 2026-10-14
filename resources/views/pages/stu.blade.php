@@ -2,7 +2,7 @@
 
     <div class="content-container">
         <main>
-            <h1 class="page-title">STU //</h1>
+            <h1 class="page-title">SUPPORT THE UNDERGROUND //</h1>
             <div class="section-subtitle">Support The Underground – Von Musikern für Musiker – Weil wir euren Weg kennen.</div>
 
             <div class="text-block">

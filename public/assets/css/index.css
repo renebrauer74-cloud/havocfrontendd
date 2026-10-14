@@ -341,3 +341,38 @@
     background-color: #ffffff;
     color: #000000;
 }
+
+/* --- MOBIL (320–767px) --- */
+@media (max-width: 767px) {
+    .hero { padding: 64px 16px; }
+    .hero h1 { font-size: clamp(40px, 13vw, 64px); }
+    .hero p { margin-top: 16px; letter-spacing: 0.2em; }
+
+    .carousel-item { width: 82vw; }
+    .carousel-meta { padding: 16px; }
+    .carousel-band-name { font-size: 18px; }
+
+    .news-section { margin-top: 24px; margin-bottom: 24px; padding: 16px; }
+    .section-heading { font-size: 26px; margin-bottom: 20px; }
+    .news-container { gap: 20px; }
+    .news-content { padding: 16px; }
+    .news-title { font-size: 18px; }
+
+    .archive-section { margin-top: 32px; padding-top: 16px; }
+    .archive-row { gap: 12px; }
+    .archive-title { min-width: 0; }
+    .archive-date { flex-shrink: 0; }
+
+    .dates-section { margin-top: 32px; margin-bottom: 64px; }
+    .dates-heading { font-size: 26px; padding: 16px; }
+    .dates-empty { padding: 16px; }
+    .ticket-row { padding: 16px; }
+    .show-info { font-size: 16px; }
+    .more-calendar-wrap { padding: 16px; }
+    .more-calendar-btn { letter-spacing: 0.15em; }
+}
+
+/* Touch-Geräte haben kein Hover: Bandname im Karussell immer einblenden */
+@media (hover: none) {
+    .carousel-meta { transform: none; opacity: 1; }
+}

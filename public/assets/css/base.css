@@ -16,6 +16,11 @@
     padding: 0;
 }
 
+/* Lange Wörter/URLs (z.B. in News-Texten) dürfen auf schmalen Screens umbrechen */
+body {
+    overflow-wrap: break-word;
+}
+
 ::selection {
     background-color: #000000;
     color: #ffffff;
@@ -104,18 +109,20 @@ body.layout-editorial {
     margin-left: 5px;
 }
 
-/* --- FOOTER --- */
+/* --- FOOTER: auf allen Seiten gleich – volle Breite, zentriert --- */
 .site-footer {
     margin-top: 100px;
     border-top: 1px solid #000000;
-    padding-top: 20px;
+    padding: 20px 24px 40px;
     width: 100%;
+    text-align: center;
     font-family: var(--font-main);
 }
 
-body.layout-app .site-footer {
-    padding: 20px 24px 40px;
-    text-align: center;
+/* Im Editorial-Layout den Seitenrahmen (Body-Padding) aufheben, damit die Linie randlos läuft */
+body.layout-editorial .site-footer {
+    width: auto;
+    margin: 100px -40px -40px;
 }
 
 .footer-legal {
@@ -152,7 +159,145 @@ body.layout-app .site-footer {
     letter-spacing: 0.1em;
 }
 
-@media (max-width: 768px) {
-    body.layout-editorial { padding: 20px; }
-    body.layout-editorial .site-header { flex-direction: column; align-items: flex-start; gap: 20px; }
+/* --- TABLET: Desktop-Navigation enger setzen, damit sie neben das Logo passt --- */
+@media (min-width: 768px) and (max-width: 1023px) {
+    .site-header nav { gap: 14px; }
+    .site-header nav a.admin-btn { margin-left: 0; }
+}
+
+/* --- BURGER-BUTTON (nur mobil sichtbar) --- */
+.nav-toggle {
+    display: none;
+    position: relative;
+    z-index: 2;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+    padding: 0;
+    background: none;
+    border: 0;
+    color: #000000;
+    cursor: pointer;
+}
+
+.nav-toggle:focus-visible {
+    outline: 2px solid #000000;
+    outline-offset: 2px;
+}
+
+.nav-toggle-bar {
+    display: block;
+    width: 28px;
+    height: 3px;
+    background-color: currentColor;
+    transition: transform 0.3s ease, opacity 0.2s ease;
+}
+
+/* Aus den drei Linien wird ein "X" */
+.site-header.is-open .nav-toggle-bar:nth-child(1) { transform: translateY(9px) rotate(45deg); }
+.site-header.is-open .nav-toggle-bar:nth-child(2) { opacity: 0; }
+.site-header.is-open .nav-toggle-bar:nth-child(3) { transform: translateY(-9px) rotate(-45deg); }
+
+/* Kein Scrollen der Seite hinter dem geöffneten Menü */
+html.nav-open {
+    overflow: hidden;
+}
+
+/* --- MOBIL: fixierter Header mit Logo links, Burger rechts, Navigation als Vollbild-Overlay --- */
+@media (max-width: 767px) {
+    body.layout-editorial { padding: 0 20px 20px; }
+
+    .site-header {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        flex-wrap: wrap;
+        gap: 12px;
+        padding: 12px 16px;
+        margin-bottom: 32px;
+        background-color: #ffffff;
+    }
+
+    body.layout-editorial .site-header {
+        width: auto;
+        margin: 0 -20px 32px;
+        padding: 12px 20px;
+    }
+
+    .logo-link {
+        position: relative;
+        z-index: 2;
+    }
+
+    .logo-link img { height: 64px; }
+
+    .nav-toggle { display: flex; }
+
+    .site-header .site-nav {
+        position: fixed;
+        inset: 0;
+        z-index: 1;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0;
+        padding: 112px 20px 40px;
+        /* Trennlinie unter Logo und "X", passend zur Header-Linie */
+        background: linear-gradient(#e0e0e0, #e0e0e0) 0 88px / 100% 1px no-repeat, #ffffff;
+        overflow-y: auto;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-16px);
+    }
+
+    .site-header.is-open .site-nav {
+        opacity: 1;
+        visibility: visible;
+        transform: none;
+    }
+
+    .site-header .site-nav a {
+        display: block;
+        padding: 14px 0;
+        border-bottom: 1px solid #000000;
+        font-size: clamp(1.5rem, 8vw, 2.25rem);
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        transform: translateY(12px);
+    }
+
+    .site-header.is-open .site-nav a { transform: none; }
+
+    /* Übergänge erst nach Klick auf den Burger – nicht beim Laden oder beim Wechsel über den Breakpoint */
+    .site-header.is-animated .site-nav { transition: opacity 0.3s ease, transform 0.3s ease, visibility 0s linear 0.3s; }
+    .site-header.is-animated.is-open .site-nav { transition: opacity 0.3s ease, transform 0.3s ease, visibility 0s; }
+    .site-header.is-animated .site-nav a { transition: opacity 0.2s ease, transform 0.4s ease; }
+    .site-header.is-animated.is-open .site-nav a:nth-child(2) { transition-delay: 0s, 0.03s; }
+    .site-header.is-animated.is-open .site-nav a:nth-child(3) { transition-delay: 0s, 0.06s; }
+    .site-header.is-animated.is-open .site-nav a:nth-child(4) { transition-delay: 0s, 0.09s; }
+    .site-header.is-animated.is-open .site-nav a:nth-child(5) { transition-delay: 0s, 0.12s; }
+    .site-header.is-animated.is-open .site-nav a:nth-child(6) { transition-delay: 0s, 0.15s; }
+    .site-header.is-animated.is-open .site-nav a:nth-child(7) { transition-delay: 0s, 0.18s; }
+    .site-header.is-animated.is-open .site-nav a:nth-child(8) { transition-delay: 0s, 0.21s; }
+
+    .site-header .site-nav a.admin-btn {
+        align-self: flex-start;
+        margin: 32px 0 0;
+        padding: 10px 16px;
+        border: 1px solid #000000;
+        font-size: 0.85rem;
+        letter-spacing: 0.1em;
+    }
+
+    .site-footer { margin-top: 64px; }
+    body.layout-editorial .site-footer { margin: 64px -20px -20px; }
+}
+
+@media (max-width: 767px) and (prefers-reduced-motion: reduce) {
+    .nav-toggle-bar,
+    .site-header .site-nav,
+    .site-header .site-nav a { transition: none !important; }
 }
