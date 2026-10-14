@@ -1,7 +1,7 @@
 <x-layouts.site title="HAVOC AGENCY | Live Calendar" :styles="['kalender.css']">
 
     <main>
-        <h1 class="calendar-title">Roster Live<span> Calendar //</span></h1>
+        <h1 class="calendar-title">Tour<span> Dates //</span></h1>
 
 @forelse ($artists as $artist)
         <div class="artist-block">

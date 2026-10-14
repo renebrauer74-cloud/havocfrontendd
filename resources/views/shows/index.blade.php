@@ -2,7 +2,7 @@
 
     <div class="content-container">
         <main>
-            <h1 class="page-title">AGENCY SHOWS //</h1>
+            <h1 class="page-title">OUR SHOWS //</h1>
             <div class="show-list">
 @forelse ($shows as $show)
                 <a href="{{ route('shows.show', $show) }}" class="show-row">
