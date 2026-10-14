@@ -109,18 +109,20 @@ body.layout-editorial {
     margin-left: 5px;
 }
 
-/* --- FOOTER --- */
+/* --- FOOTER: auf allen Seiten gleich – volle Breite, zentriert --- */
 .site-footer {
     margin-top: 100px;
     border-top: 1px solid #000000;
-    padding-top: 20px;
+    padding: 20px 24px 40px;
     width: 100%;
+    text-align: center;
     font-family: var(--font-main);
 }
 
-body.layout-app .site-footer {
-    padding: 20px 24px 40px;
-    text-align: center;
+/* Im Editorial-Layout den Seitenrahmen (Body-Padding) aufheben, damit die Linie randlos läuft */
+body.layout-editorial .site-footer {
+    width: auto;
+    margin: 100px -40px -40px;
 }
 
 .footer-legal {
@@ -291,6 +293,7 @@ html.nav-open {
     }
 
     .site-footer { margin-top: 64px; }
+    body.layout-editorial .site-footer { margin: 64px -20px -20px; }
 }
 
 @media (max-width: 767px) and (prefers-reduced-motion: reduce) {
