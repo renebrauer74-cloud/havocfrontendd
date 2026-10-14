@@ -1,52 +1,82 @@
 # HAVOC AGENCY – Website
 
-Plain PHP (ohne Framework), PHP ≥ 8.2 mit den Extensions `fileinfo`, `mbstring`, `json` und `pdo_mysql`.
+Laravel 13 (PHP ≥ 8.3) mit Blade-Templates. Kein Frontend-Build nötig: CSS und JS liegen fertig unter `public/assets/`.
 
 ## Lokal starten
 
 ```bash
-cp config/config.example.php config/config.php
-php -S localhost:8000 -t public
+composer install
+cp .env.example .env
+php artisan key:generate
+php artisan migrate
+php artisan db:seed        # Demo-Inhalte + Admin "admin" / "havoc-dev"
+php artisan serve
 ```
 
-Dann <http://localhost:8000> öffnen. Der Admin-Bereich liegt unter `/admin/`. Die Zugangsdaten stehen in `config/config.php`.
-Einen neuen Passwort-Hash erzeugst du mit `php bin/hash-password.php "neues-passwort"`.
+Dann <http://localhost:8000> öffnen. Der Admin-Bereich liegt unter `/admin`.
+Lokal läuft die Datenbank als SQLite-Datei (`database/database.sqlite`).
 
-Das Logo gehört nach `public/assets/img/havoc-logo.jpeg`.
+Tests: `php artisan test --compact` · Code-Stil: `vendor/bin/pint`
 
 ## Struktur
 
 ```
-public/            Webroot (nur dieser Ordner ist von außen erreichbar)
-  *.php            öffentliche Seiten
-  admin/           Login + Dashboard
-  assets/          CSS (base.css + eine Datei pro Seite), JS, Bilder
-  uploads/         hochgeladene Bilder (nicht im Git)
-src/
-  bootstrap.php    Autoload, Config, Session
-  helpers.php      Escaping, URLs, CSRF, Flash, Repository-Zugriff
-  Auth.php         Session-Login für den Admin
-  Upload.php       Bild-Uploads (MIME-Prüfung, zufällige Dateinamen)
-  Storage/         Table-Interface, PdoTable (MariaDB) und JsonTable (lokale Entwicklung)
-  Repository/      Datenzugriff pro Bereich (Artists, Tourdaten, Galerie, News, Team, Shows, Anfragen)
-templates/         Header/Footer und Admin-Sektionen
-database/          schema.sql (Tabellen für MariaDB/MySQL)
-bin/               CLI: Passwort-Hash, Migration, JSON-Import
-storage/data/      JSON-Daten für lokale Entwicklung (nicht im Git)
-config/            config.php (nicht im Git) + Vorlage
+app/
+  Http/Controllers/        öffentliche Seiten (Home, Artist, Calendar, AgencyShow, Team, Contact)
+  Http/Controllers/Admin/  Backend: CRUD pro Bereich (Künstler, Tourdaten, Galerie, News, Team, Shows, Anfragen)
+  Http/Requests/           Validierung (Formular-Requests)
+  Models/                  Eloquent-Models; Concerns/HasUploadedImage = Bild-Upload, Collections/ShowDateCollection = Freitext-Datum sortieren
+  Console/Commands/        havoc:admin, havoc:import-json
+  helpers.php              media_url(), safe_link(), placeholder_image()
+config/havoc.php           Kontakt-Mail und Upload-Limit
+database/migrations/       Tabellen (überspringen bereits vorhandene Tabellen aus dem alten schema.sql)
+resources/views/           Blade: pages/, shows/, admin/, components/ (Layouts, Dropzone, Lösch-Button)
+routes/web.php             alle Routen inkl. 301-Weiterleitungen der alten *.php-URLs
+public/                    Webroot: assets/ (CSS, JS, Logo), uploads/ (hochgeladene Bilder, nicht im Git)
+lang/de/validation.php     deutsche Fehlermeldungen
 ```
 
-## Datenbank
+## Admin-Zugang
 
-Produktiv liegen die Daten in einer MariaDB 11.8 bei IONOS. Die DB ist **nur vom IONOS-Webspace aus erreichbar**,
-deshalb gibt es zwei Treiber, gesteuert über `database.driver` in `config/config.php`:
+Admins liegen in der Tabelle `users` und werden per Artisan verwaltet:
 
-- `mysql`: MariaDB/MySQL per PDO (Server)
-- `json`: JSON-Dateien in `storage/data/` (lokale Entwicklung)
+```bash
+php artisan havoc:admin rene                                  # fragt das Passwort ab
+php artisan havoc:admin admin --password-hash='$2y$12$...'     # Hash aus der alten config/config.php übernehmen
+```
 
-Einrichtung auf dem Server:
+## Produktion (IONOS)
 
-1. In `config/config.php` auf dem Server `'driver' => 'mysql'` setzen und die Zugangsdaten im `database`-Block eintragen.
-2. Tabellen anlegen: per SSH `php bin/migrate.php` oder `database/schema.sql` in phpMyAdmin importieren.
-   Das Schema ist idempotent (`CREATE TABLE IF NOT EXISTS`).
-3. Optional bestehende JSON-Daten übernehmen: `php bin/import-json.php` (nur in leere Tabellen, IDs bleiben erhalten).
+Die MariaDB 11.8 ist **nur vom IONOS-Webspace aus erreichbar**. Alle Befehle unten also per SSH auf dem Server ausführen.
+
+### Umstieg von der alten Plain-PHP-Version (einmalig)
+
+1. **Alte Dateien auf dem Server entfernen:** `src/`, `templates/`, `bin/`, `public/admin/` und die alten Seiten
+   `public/*.php` (außer dem neuen `public/index.php`). Sonst liefert der Webserver sie weiter direkt aus.
+   `public/uploads/` **behalten** – die gespeicherten Bildpfade bleiben gültig.
+2. Die Werte aus der alten `config/config.php` notieren (DB-Zugang, Admin-Hash, `contact.mail_to`)
+   und die Datei danach löschen – Laravel würde sonst jede Datei in `config/` als Konfiguration laden.
+3. Code hochladen und Abhängigkeiten installieren: `composer install --no-dev --optimize-autoloader`
+   (oder `vendor/` lokal so bauen und mit hochladen).
+4. `.env` aus `.env.example` anlegen und anpassen:
+   `APP_ENV=production`, `APP_DEBUG=false`, `APP_URL=https://…`, `DB_CONNECTION=mariadb` + Zugangsdaten,
+   `MAIL_MAILER=sendmail` (oder SMTP), `CONTACT_MAIL_TO=…`. Danach `php artisan key:generate`.
+5. `php artisan migrate --force` – vorhandene Tabellen aus dem alten `schema.sql` bleiben unverändert,
+   neu angelegt werden nur `users`, `sessions`, `cache`, `jobs` und `migrations`.
+6. Lagen die Daten bisher noch als JSON auf dem Server: die Dateien nach `storage/data/` legen und
+   `php artisan havoc:import-json` ausführen (nur in leere Tabellen, IDs bleiben erhalten).
+7. Admin anlegen: `php artisan havoc:admin admin --password-hash='<password_hash aus der alten Config>'`.
+8. Caches bauen: `php artisan config:cache && php artisan route:cache && php artisan view:cache`.
+
+### Bei jedem Deployment
+
+```bash
+composer install --no-dev --optimize-autoloader
+php artisan migrate --force
+php artisan optimize
+```
+
+Der Webroot der Domain muss auf `public/` zeigen. `storage/` und `bootstrap/cache/` müssen beschreibbar sein.
+Die Upload-Limits für PHP stehen in `public/.user.ini` und passen zu `UPLOAD_MAX_KILOBYTES` in der `.env`.
+
+Die alten URLs (`/roster.php`, `/artist.php?id=…` usw.) leiten dauerhaft (301) auf die neuen um.
