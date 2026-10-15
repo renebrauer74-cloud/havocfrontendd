@@ -12,7 +12,8 @@ use function Laravel\Prompts\password;
 
 #[Signature('band-manager:admin
     {email : E-Mail-Adresse für den Login unter /band-manager}
-    {--name= : Anzeigename (Standard bei neuen Accounts: Administrator)}')]
+    {--name= : Anzeigename (Standard bei neuen Accounts: Administrator)}
+    {--password= : Passwort direkt setzen statt interaktiv abfragen, z.B. auf Laravel Cloud}')]
 #[Description('Legt einen Admin im Band-Manager an oder setzt dessen Passwort neu')]
 class CreateBandManagerAdmin extends Command
 {
@@ -29,11 +30,19 @@ class CreateBandManagerAdmin extends Command
             return self::FAILURE;
         }
 
+        $password = $this->option('password');
+
+        if ($password !== null && mb_strlen($password) < 8) {
+            $this->error('Das Passwort muss mindestens 8 Zeichen lang sein.');
+
+            return self::FAILURE;
+        }
+
         $user = User::query()->firstOrNew(['email' => $email]);
         $user->name = $this->option('name') ?? ($user->name ?: 'Administrator');
         $user->role = User::ROLE_ADMIN;
         $user->is_active = true;
-        $user->password = password(
+        $user->password = $password ?? password(
             label: 'Passwort',
             required: true,
             validate: fn (string $value): ?string => mb_strlen($value) < 8 ? 'Mindestens 8 Zeichen.' : null,
