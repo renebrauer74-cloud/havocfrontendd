@@ -1,0 +1,580 @@
+/* =====================================================================
+   HAVOC – Hell & Dunkel mit Seitenleiste (auf Bootstrap 5.3)
+   ===================================================================== */
+
+/* ---------- Farben HELL ---------- */
+:root,
+[data-bs-theme="light"] {
+  --hv-bg:            #f4f4f6;
+  --hv-surface:       #ffffff;
+  --hv-surface-2:     #f1f1f4;
+  --hv-surface-3:     #e7e7ec;
+  --hv-border:        #e2e2e8;
+  --hv-border-strong: #cdcdd5;
+  --hv-text:          #1e1e24;
+  --hv-heading:       #0b0b0e;
+  --hv-muted:         #6b6b77;
+  --hv-nav-text:      #4b4b56;
+  --hv-label:         #4f4f5a;
+  --hv-input-bg:      #ffffff;
+  --hv-placeholder:   #a3a3ad;
+  --hv-accent:        #dc2f32;
+  --hv-accent-rgb:    220, 47, 50;
+  --hv-accent-hover:  #bb2427;
+  --hv-accent-text:   #c4262a;
+  --hv-accent-soft:   rgba(220, 47, 50, .09);
+  --hv-topbar-bg:     rgba(255, 255, 255, .88);
+  --hv-logo-border:   #e2e2e8;
+  --hv-card-shadow:   0 1px 2px rgba(16, 16, 24, .05);
+  --hv-fc-bg-opacity: .45;
+  --hv-backdrop:      .45;
+
+  --bs-body-bg-rgb: 244, 244, 246;
+  --bs-body-color-rgb: 30, 30, 36;
+  --bs-emphasis-color: #000;
+  --bs-link-color-rgb: 30, 30, 36;
+  --bs-link-hover-color-rgb: 196, 38, 42;
+}
+
+/* ---------- Farben DUNKEL ---------- */
+[data-bs-theme="dark"] {
+  --hv-bg:            #0b0b0e;
+  --hv-surface:       #131317;
+  --hv-surface-2:     #1b1b21;
+  --hv-surface-3:     #25252c;
+  --hv-border:        #26262e;
+  --hv-border-strong: #3a3a44;
+  --hv-text:          #e7e7ec;
+  --hv-heading:       #ffffff;
+  --hv-muted:         #8b8b97;
+  --hv-nav-text:      #b4b4be;
+  --hv-label:         #b9b9c3;
+  --hv-input-bg:      #0e0e11;
+  --hv-placeholder:   #5c5c66;
+  --hv-accent:        #e5383b;
+  --hv-accent-rgb:    229, 56, 59;
+  --hv-accent-hover:  #cc2f32;
+  --hv-accent-text:   #ff7a7c;
+  --hv-accent-soft:   rgba(229, 56, 59, .12);
+  --hv-topbar-bg:     rgba(19, 19, 23, .88);
+  --hv-logo-border:   transparent;
+  --hv-card-shadow:   none;
+  --hv-fc-bg-opacity: .35;
+  --hv-backdrop:      .7;
+
+  --bs-body-bg-rgb: 11, 11, 14;
+  --bs-body-color-rgb: 231, 231, 236;
+  --bs-emphasis-color: #fff;
+  --bs-link-color-rgb: 255, 255, 255;
+  --bs-link-hover-color-rgb: 255, 107, 110;
+}
+
+/* ---------- Gemeinsam (Bootstrap-Variablen) ---------- */
+:root,
+[data-bs-theme] {
+  --hv-sidebar-w: 250px;
+  --hv-font: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
+  --bs-body-font-family: var(--hv-font);
+  --bs-body-font-size: .9rem;
+  --bs-body-line-height: 1.55;
+  --bs-body-bg: var(--hv-bg);
+  --bs-body-color: var(--hv-text);
+  --bs-heading-color: var(--hv-heading);
+  --bs-secondary-color: var(--hv-muted);
+  --bs-secondary-bg: var(--hv-surface-2);
+  --bs-tertiary-bg: var(--hv-surface);
+  --bs-border-color: var(--hv-border);
+  --bs-primary: var(--hv-accent);
+  --bs-primary-rgb: var(--hv-accent-rgb);
+  --bs-link-color: var(--hv-heading);
+  --bs-link-hover-color: var(--hv-accent-text);
+  --bs-border-radius: 8px;
+  --bs-border-radius-sm: 6px;
+  --bs-border-radius-lg: 12px;
+  --bs-border-radius-xl: 16px;
+}
+
+body.hv-body {
+  background: var(--hv-bg);
+  color: var(--hv-text);
+  -webkit-font-smoothing: antialiased;
+}
+a { text-decoration: none; }
+::selection { background: rgba(var(--hv-accent-rgb), .3); }
+code { color: var(--hv-accent-text); }
+
+/* ---------- Logo-Box (weiß) ---------- */
+.hv-logo-box {
+  display: inline-flex; align-items: center; justify-content: center;
+  background: #fff;
+  border: 1px solid var(--hv-logo-border);
+  border-radius: 10px;
+  padding: .7rem 1rem;
+}
+.hv-logo-box img {
+  display: block;
+  height: 40px;            /* vorher 26px – Seitenleiste PC/Tablet */
+  width: auto;
+  max-width: 100%;         /* passt immer in die Seitenleiste */
+  object-fit: contain;     /* nichts wird verzerrt */
+}
+.hv-logo-box--sm { padding: .3rem .7rem; }
+.hv-logo-box--sm img { height: 30px; }   /* vorher 22px – Kopfzeile Handy */
+.hv-logo-box--lg { padding: .9rem 1.6rem; }
+.hv-logo-box--lg img { height: 42px; }   /* Login-Seite, unverändert */
+
+/* =====================================================================
+   Grundlayout
+   ===================================================================== */
+.hv-main { min-height: 100vh; display: flex; flex-direction: column; }
+.hv-content { flex: 1; width: 100%; max-width: 1320px; padding: 2rem 2.5rem 3rem; }
+
+@media (min-width: 768px) {
+  .hv-sidebar {
+    position: fixed; top: 0; left: 0; bottom: 0;
+    width: var(--hv-sidebar-w);
+    z-index: 1030;
+  }
+  .hv-main { margin-left: var(--hv-sidebar-w); }
+}
+@media (min-width: 768px) and (max-width: 991.98px) {
+  :root, [data-bs-theme] { --hv-sidebar-w: 220px; }
+  .hv-content { padding: 1.5rem 1.5rem 2.5rem; }
+}
+@media (max-width: 767.98px) {
+  .hv-sidebar { --bs-offcanvas-width: 280px; --bs-offcanvas-bg: var(--hv-surface); }
+  .hv-content { padding: 1.25rem 1rem 2rem; }
+  .form-control, .form-select { font-size: 16px !important; } /* verhindert Zoom auf dem iPhone */
+}
+
+/* =====================================================================
+   Seitenleiste
+   ===================================================================== */
+.hv-sidebar-inner {
+  display: flex; flex-direction: column;
+  width: 100%; height: 100%;
+  background: var(--hv-surface);
+  border-right: 1px solid var(--hv-border);
+}
+.hv-sidebar-head {
+  display: flex; align-items: center; justify-content: space-between; gap: .75rem;
+  padding: 1.25rem 1rem 1rem;
+}
+.hv-sidebar-head .hv-logo-box { flex: 1; }
+
+.hv-side-nav { flex: 1; overflow-y: auto; scrollbar-width: thin; padding: .25rem .75rem 1rem; }
+.hv-side-label {
+  display: flex; align-items: center; gap: .4rem;
+  font-size: .68rem; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .09em;
+  color: var(--hv-muted);
+  padding: .75rem .75rem .45rem;
+}
+.hv-side-link {
+  position: relative;
+  display: flex; align-items: center; gap: .7rem;
+  padding: .55rem .75rem;
+  margin-bottom: 2px;
+  border-radius: 8px;
+  font-size: .875rem; font-weight: 500;
+  color: var(--hv-nav-text);
+  transition: background .15s, color .15s;
+}
+.hv-side-link i { font-size: 1.05rem; width: 1.2rem; text-align: center; opacity: .8; }
+.hv-side-link:hover { background: var(--hv-surface-2); color: var(--hv-heading); }
+.hv-side-link.active { background: var(--hv-accent-soft); color: var(--hv-heading); }
+.hv-side-link.active i { color: var(--hv-accent); opacity: 1; }
+.hv-side-link.active::before {
+  content: "";
+  position: absolute; left: -.75rem; top: 22%; bottom: 22%;
+  width: 3px; border-radius: 0 3px 3px 0;
+  background: var(--hv-accent);
+}
+.hv-side-badge {
+  margin-left: auto;
+  min-width: 20px; height: 20px; padding: 0 6px;
+  border-radius: 10px;
+  background: var(--hv-accent); color: #fff;
+  font-size: .7rem; font-weight: 600;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.hv-side-section { margin-top: 1rem; padding-top: .5rem; border-top: 1px solid var(--hv-border); }
+.hv-side-section .hv-side-label { color: var(--hv-accent); }
+
+/* ---------- Hell/Dunkel-Schalter ---------- */
+.hv-side-theme { padding: .85rem 1rem 0; border-top: 1px solid var(--hv-border); }
+.hv-theme-switch {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 4px;
+  padding: 4px;
+  background: var(--hv-surface-2);
+  border: 1px solid var(--hv-border);
+  border-radius: 10px;
+}
+.hv-theme-switch button {
+  display: inline-flex; align-items: center; justify-content: center; gap: .4rem;
+  padding: .4rem .5rem;
+  border: 0; border-radius: 7px;
+  background: transparent;
+  color: var(--hv-muted);
+  font-size: .78rem; font-weight: 500;
+  transition: background .15s, color .15s;
+}
+.hv-theme-switch button:hover { color: var(--hv-heading); }
+.hv-theme-switch button.active {
+  background: var(--hv-surface);
+  color: var(--hv-heading);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .15);
+}
+.hv-theme-switch button.active i { color: var(--hv-accent); }
+
+/* ---------- Benutzer + Logout ---------- */
+.hv-side-foot {
+  display: flex; align-items: center; justify-content: space-between; gap: .5rem;
+  padding: .85rem 1rem .9rem;
+}
+.hv-user-chip { display: flex; align-items: center; gap: .65rem; min-width: 0; }
+.hv-avatar {
+  flex: 0 0 34px; height: 34px; border-radius: 50%;
+  background: var(--hv-accent-soft);
+  border: 1px solid rgba(var(--hv-accent-rgb), .35);
+  color: var(--hv-heading); font-size: .8rem; font-weight: 600;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.hv-user-text { display: flex; flex-direction: column; min-width: 0; line-height: 1.25; }
+.hv-user-name, .hv-user-role { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hv-user-name { font-size: .85rem; font-weight: 600; color: var(--hv-heading); }
+.hv-user-role { font-size: .72rem; color: var(--hv-muted); }
+.hv-logout {
+  flex: 0 0 34px; height: 34px;
+  border: 0; border-radius: 8px;
+  background: transparent; color: var(--hv-muted);
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 1.05rem;
+  transition: .15s;
+}
+.hv-logout:hover { background: var(--hv-accent-soft); color: var(--hv-accent); }
+
+/* ---------- Handy-Kopfzeile & Icon-Buttons ---------- */
+.hv-topbar {
+  position: sticky; top: 0; z-index: 1020;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: .65rem 1rem;
+  background: var(--hv-topbar-bg);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--hv-border);
+}
+.hv-icon-btn {
+  position: relative;
+  width: 40px; height: 40px;
+  border: 1px solid var(--hv-border); border-radius: 8px;
+  background: var(--hv-surface); color: var(--hv-heading);
+  font-size: 1.2rem;
+  display: inline-flex; align-items: center; justify-content: center;
+  transition: background .15s;
+}
+.hv-icon-btn:hover { background: var(--hv-surface-2); }
+.hv-icon-btn .bi-list { font-size: 1.35rem; }
+.hv-burger-dot {
+  position: absolute; top: 7px; right: 7px;
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--hv-accent);
+  box-shadow: 0 0 0 2px var(--hv-surface);
+}
+.hv-guest-toggle { position: fixed; top: 1rem; right: 1rem; z-index: 10; }
+
+/* ---------- Impersonation-Leiste ---------- */
+.hv-impersonate {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .5rem 1rem;
+  padding: .5rem 1rem;
+  background: var(--hv-accent); color: #fff;
+  font-size: .82rem;
+}
+
+/* ---------- Footer ---------- */
+.hv-footer {
+  padding: 1.1rem 2.5rem;
+  border-top: 1px solid var(--hv-border);
+  font-size: .75rem;
+  color: var(--hv-muted);
+}
+
+/* =====================================================================
+   Login / Gäste
+   ===================================================================== */
+.hv-guest {
+  min-height: 100vh;
+  display: flex; flex-direction: column; justify-content: center;
+  padding: 3rem 0;
+  background: radial-gradient(ellipse at top, rgba(var(--hv-accent-rgb), .14), transparent 60%), var(--hv-bg);
+}
+.hv-guest-brand { text-align: center; margin-bottom: 2rem; padding: 0 1rem; }
+.hv-claim {
+  font-size: clamp(1.8rem, 5vw, 2.6rem);
+  font-weight: 700;
+  letter-spacing: -.03em;
+  color: var(--hv-heading);
+  margin: 1.5rem 0 .25rem;
+}
+.hv-claim span { color: var(--hv-accent); }
+.hv-sub {
+  margin: 0;
+  font-size: .72rem;
+  text-transform: uppercase;
+  letter-spacing: .25em;
+  color: var(--hv-muted);
+}
+
+/* =====================================================================
+   Typografie
+   ===================================================================== */
+h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
+  font-family: var(--hv-font);
+  font-weight: 600;
+  letter-spacing: -.02em;
+  text-transform: none;
+  color: var(--hv-heading);
+}
+.h3, h3 { font-size: 1.35rem; }
+.h4, h4 { font-size: 1.15rem; }
+.h5, h5 { font-size: 1rem; }
+.fw-bold { font-weight: 600 !important; }
+
+/* =====================================================================
+   Karten, Listen, Fenster
+   ===================================================================== */
+.card {
+  --bs-card-bg: var(--hv-surface);
+  --bs-card-border-color: var(--hv-border);
+  --bs-card-cap-bg: transparent;
+  --bs-card-border-radius: 12px;
+  --bs-card-inner-border-radius: 11px;
+  --bs-card-spacer-x: 1.25rem;
+  --bs-card-spacer-y: 1.25rem;
+  --bs-card-cap-padding-x: 1.25rem;
+  --bs-card-cap-padding-y: .85rem;
+  color: var(--hv-text);
+  box-shadow: var(--hv-card-shadow);
+}
+.card-header { font-size: .875rem; font-weight: 600; color: var(--hv-heading); }
+.card-header a { font-weight: 500; color: var(--hv-muted); }
+.card-header a:hover { color: var(--hv-heading); }
+a.card { transition: border-color .15s, transform .15s; }
+a.card:hover { border-color: var(--hv-border-strong); transform: translateY(-1px); }
+.shadow-sm { box-shadow: var(--hv-card-shadow) !important; }
+
+.list-group {
+  --bs-list-group-bg: transparent;
+  --bs-list-group-color: var(--hv-text);
+  --bs-list-group-border-color: var(--hv-border);
+  --bs-list-group-action-hover-bg: var(--hv-surface-2);
+  --bs-list-group-action-hover-color: var(--hv-heading);
+  --bs-list-group-action-color: var(--hv-text);
+  --bs-list-group-item-padding-x: 1.25rem;
+  --bs-list-group-item-padding-y: .75rem;
+}
+
+.modal {
+  --bs-modal-bg: var(--hv-surface);
+  --bs-modal-color: var(--hv-text);
+  --bs-modal-border-color: var(--hv-border);
+  --bs-modal-border-radius: 14px;
+  --bs-modal-header-border-color: var(--hv-border);
+  --bs-modal-footer-border-color: var(--hv-border);
+}
+.modal-backdrop { --bs-backdrop-opacity: var(--hv-backdrop); }
+
+/* =====================================================================
+   Formulare
+   ===================================================================== */
+.form-label { font-size: .8rem; font-weight: 500; color: var(--hv-label); margin-bottom: .35rem; }
+.form-control, .form-select {
+  background-color: var(--hv-input-bg);
+  border: 1px solid var(--hv-border);
+  border-radius: 8px;
+  color: var(--hv-text);
+  font-size: .875rem;
+  padding: .55rem .8rem;
+}
+.form-select { padding-right: 2.25rem; }
+.form-control::placeholder { color: var(--hv-placeholder); }
+.form-control:focus, .form-select:focus {
+  background-color: var(--hv-input-bg);
+  color: var(--hv-heading);
+  border-color: var(--hv-accent);
+  box-shadow: 0 0 0 3px rgba(var(--hv-accent-rgb), .18);
+}
+.form-check-input { background-color: var(--hv-input-bg); border-color: var(--hv-border-strong); }
+.form-check-input:checked { background-color: var(--hv-accent); border-color: var(--hv-accent); }
+.form-check-input:focus { border-color: var(--hv-accent); box-shadow: 0 0 0 3px rgba(var(--hv-accent-rgb), .18); }
+
+/* =====================================================================
+   Buttons
+   ===================================================================== */
+.btn {
+  --bs-btn-font-family: var(--hv-font);
+  --bs-btn-font-size: .85rem;
+  --bs-btn-font-weight: 500;
+  --bs-btn-padding-x: 1rem;
+  --bs-btn-padding-y: .5rem;
+  --bs-btn-border-radius: 8px;
+  text-transform: none;
+  letter-spacing: 0;
+}
+.btn-sm {
+  --bs-btn-font-size: .78rem;
+  --bs-btn-padding-x: .7rem;
+  --bs-btn-padding-y: .3rem;
+  --bs-btn-border-radius: 6px;
+}
+.btn-primary {
+  --bs-btn-color: #fff;
+  --bs-btn-bg: var(--hv-accent);
+  --bs-btn-border-color: var(--hv-accent);
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: var(--hv-accent-hover);
+  --bs-btn-hover-border-color: var(--hv-accent-hover);
+  --bs-btn-active-color: #fff;
+  --bs-btn-active-bg: var(--hv-accent-hover);
+  --bs-btn-active-border-color: var(--hv-accent-hover);
+  --bs-btn-disabled-bg: var(--hv-accent);
+  --bs-btn-disabled-border-color: var(--hv-accent);
+  --bs-btn-focus-shadow-rgb: var(--hv-accent-rgb);
+}
+.btn-outline-primary {
+  --bs-btn-color: var(--hv-accent-text);
+  --bs-btn-border-color: rgba(var(--hv-accent-rgb), .45);
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: var(--hv-accent);
+  --bs-btn-hover-border-color: var(--hv-accent);
+  --bs-btn-active-color: #fff;
+  --bs-btn-active-bg: var(--hv-accent);
+  --bs-btn-active-border-color: var(--hv-accent);
+}
+.btn-secondary {
+  --bs-btn-color: var(--hv-text);
+  --bs-btn-bg: var(--hv-surface-2);
+  --bs-btn-border-color: var(--hv-border);
+  --bs-btn-hover-color: var(--hv-heading);
+  --bs-btn-hover-bg: var(--hv-surface-3);
+  --bs-btn-hover-border-color: var(--hv-border-strong);
+  --bs-btn-active-color: var(--hv-heading);
+  --bs-btn-active-bg: var(--hv-surface-3);
+  --bs-btn-active-border-color: var(--hv-border-strong);
+}
+.btn-outline-secondary {
+  --bs-btn-color: var(--hv-nav-text);
+  --bs-btn-border-color: var(--hv-border);
+  --bs-btn-hover-color: var(--hv-heading);
+  --bs-btn-hover-bg: var(--hv-surface-2);
+  --bs-btn-hover-border-color: var(--hv-border-strong);
+  --bs-btn-active-color: var(--hv-heading);
+  --bs-btn-active-bg: var(--hv-surface-2);
+  --bs-btn-active-border-color: var(--hv-border-strong);
+}
+
+/* Auswahl im Kalender-Fenster (überschreibt app.css) */
+.btn-check:checked + .btn {
+  border: 1px solid var(--hv-accent);
+  background: var(--hv-accent-soft);
+  color: var(--hv-heading);
+}
+
+/* =====================================================================
+   Tabellen
+   ===================================================================== */
+.table {
+  --bs-table-bg: transparent;
+  --bs-table-color: var(--hv-text);
+  --bs-table-border-color: var(--hv-border);
+  --bs-table-hover-bg: var(--hv-surface-2);
+  --bs-table-striped-bg: var(--hv-surface-2);
+  font-size: .85rem;
+}
+.table > :not(caption) > * > * { padding: .75rem 1rem; }
+.table-sm > :not(caption) > * > * { padding: .45rem 1rem; }
+.table thead th {
+  font-size: .7rem; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .06em;
+  color: var(--hv-muted);
+  white-space: nowrap;
+}
+.card .table tbody tr:last-child > * { border-bottom: 0; }
+
+/* =====================================================================
+   Badges, Meldungen
+   ===================================================================== */
+.badge { font-weight: 500; font-size: .72rem; border-radius: 6px; padding: .38em .62em; }
+.badge.bg-primary, .text-bg-primary { background-color: var(--hv-accent) !important; }
+.badge.text-bg-light {
+  background: var(--hv-surface-2) !important;
+  color: var(--hv-muted) !important;
+  border-color: var(--hv-border) !important;
+}
+.alert { border-radius: 10px; font-size: .875rem; }
+.hv-flash { display: flex; align-items: flex-start; gap: .6rem; }
+.hv-flash i { font-size: 1rem; line-height: 1.35; }
+.status-dot { width: .7rem; height: .7rem; }
+
+/* Nachrichten: eigene Nachrichten leicht rot hinterlegt */
+.card.border-dark {
+  border-color: rgba(var(--hv-accent-rgb), .4) !important;
+  background: rgba(var(--hv-accent-rgb), .06);
+}
+
+/* =====================================================================
+   FullCalendar (Ampel-Kalender)
+   ===================================================================== */
+.fc {
+  --fc-border-color: var(--hv-border);
+  --fc-page-bg-color: var(--hv-surface);
+  --fc-neutral-bg-color: var(--hv-surface-2);
+  --fc-today-bg-color: rgba(var(--hv-accent-rgb), .08);
+  --fc-highlight-color: rgba(var(--hv-accent-rgb), .2);
+  --fc-button-text-color: var(--hv-text);
+  --fc-button-bg-color: var(--hv-surface-2);
+  --fc-button-border-color: var(--hv-border);
+  --fc-button-hover-bg-color: var(--hv-surface-3);
+  --fc-button-hover-border-color: var(--hv-border-strong);
+  --fc-button-active-bg-color: var(--hv-accent);
+  --fc-button-active-border-color: var(--hv-accent);
+}
+.fc .fc-toolbar { flex-wrap: wrap; gap: .5rem; }
+.fc .fc-toolbar-title { font-size: 1.1rem; font-weight: 600; color: var(--hv-heading); }
+.fc .fc-button { font-size: .8rem; font-weight: 500; padding: .4rem .75rem; border-radius: 8px; box-shadow: none !important; }
+.fc .fc-button-primary:not(:disabled).fc-button-active { color: #fff; }
+.fc .fc-col-header-cell-cushion {
+  color: var(--hv-muted);
+  font-size: .72rem; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .05em;
+}
+.fc .fc-daygrid-day-number { color: var(--hv-text); font-size: .8rem; }
+.fc .fc-bg-event { opacity: var(--hv-fc-bg-opacity); }
+.fc .fc-bg-event .fc-event-title { color: var(--hv-heading); }
+.fc .fc-multimonth-title { color: var(--hv-heading); font-size: 1rem; }
+@media (max-width: 575.98px) {
+  .fc .fc-toolbar-title { font-size: 1rem; }
+}
+
+/* =====================================================================
+   Formatierungs-Legende (Markdown)
+   ===================================================================== */
+.hv-md-legend {
+  display: flex; flex-wrap: wrap; align-items: center; gap: .3rem .35rem;
+  margin-top: .4rem;
+  font-size: .72rem; color: var(--hv-muted);
+  opacity: .7; transition: opacity .15s;
+}
+textarea:focus + .hv-md-legend,
+.hv-md-legend:hover { opacity: 1; }
+.hv-md-label { display: inline-flex; align-items: center; gap: .3rem; margin-right: .1rem; }
+.hv-md-chip {
+  display: inline-flex; align-items: center; gap: .1rem;
+  padding: .1rem .5rem;
+  border: 1px solid var(--hv-border); border-radius: 6px;
+  background: var(--hv-surface-2); color: var(--hv-text);
+  font-size: .72rem; line-height: 1.5;
+  transition: border-color .15s, color .15s;
+}
+.hv-md-chip:hover { border-color: rgba(var(--hv-accent-rgb), .5); color: var(--hv-heading); }
+.hv-md-syntax { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--hv-accent-text); }

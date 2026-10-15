@@ -2,6 +2,9 @@
 
 namespace App\Providers;
 
+use App\Models\BandManager\User as BandManagerUser;
+use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -19,6 +22,19 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        $this->defineBandManagerGates();
+    }
+
+    /**
+     * Rechte des Band-Managers: Jedes Recht aus config('band-manager.permissions') ist ein Gate
+     * (@can('gigs.view')). Admins ('*') dürfen alles – auch alle Policies.
+     */
+    private function defineBandManagerGates(): void
+    {
+        Gate::before(function (Authenticatable $user, string $ability): ?bool {
+            return $user instanceof BandManagerUser && $user->hasPermission($ability) ? true : null;
+        });
+
+        Gate::define('band-manager.admin', fn (BandManagerUser $user): bool => $user->isAdmin());
     }
 }

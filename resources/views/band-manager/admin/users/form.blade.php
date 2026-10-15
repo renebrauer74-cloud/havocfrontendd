@@ -1,0 +1,64 @@
+@php
+    $isEdit = $user->exists;
+    $selected = array_map('intval', old('bands', $selectedBandIds));
+    $isActive = $errors->any() ? (bool) old('is_active') : $user->is_active;
+@endphp
+<x-band-manager.layout :title="$isEdit ? 'Benutzer bearbeiten' : 'Neuer Benutzer'">
+    <h1 class="h3 mb-4">{{ $isEdit ? 'Benutzer bearbeiten' : 'Neuer Benutzer' }}</h1>
+
+    <form method="post" action="{{ $isEdit ? route('band-manager.admin.users.update', $user) : route('band-manager.admin.users.store') }}"
+          class="card card-body shadow-sm" style="max-width:760px">
+        @csrf
+        @if ($isEdit)
+            @method('PUT')
+        @endif
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label" for="name">Name *</label>
+                <input name="name" id="name" class="form-control" required value="{{ old('name', $user->name) }}">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label" for="email">E-Mail *</label>
+                <input type="email" name="email" id="email" class="form-control" required value="{{ old('email', $user->email) }}">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label" for="password">Passwort {{ $isEdit ? '(leer = unverändert)' : '*' }}</label>
+                <input type="password" name="password" id="password" class="form-control" minlength="8" @required(! $isEdit) autocomplete="new-password">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label" for="role">Rolle</label>
+                <select name="role" id="role" class="form-select">
+                    @foreach (config('band-manager.roles') as $key => $label)
+                        <option value="{{ $key }}" @selected(old('role', $user->role) === $key)>{{ $label }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-12">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" name="is_active" id="is_active" value="1" @checked($isActive)>
+                    <label class="form-check-label" for="is_active">Account aktiv</label>
+                </div>
+            </div>
+            <div class="col-12">
+                <label class="form-label">Zugeordnete Bands</label>
+                <div class="row">
+                    @forelse ($bands as $band)
+                        <div class="col-sm-6 col-md-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="bands[]" value="{{ $band->id }}" id="band-{{ $band->id }}"
+                                    @checked(in_array($band->id, $selected, true))>
+                                <label class="form-check-label" for="band-{{ $band->id }}">{{ $band->name }}</label>
+                            </div>
+                        </div>
+                    @empty
+                        <div class="text-muted small">Noch keine Bands vorhanden.</div>
+                    @endforelse
+                </div>
+            </div>
+        </div>
+        <div class="mt-4 d-flex gap-2">
+            <button class="btn btn-primary">Speichern</button>
+            <a href="{{ route('band-manager.admin.users.index') }}" class="btn btn-secondary">Abbrechen</a>
+        </div>
+    </form>
+</x-band-manager.layout>

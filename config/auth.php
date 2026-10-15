@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\BandManager\User as BandManagerUser;
 use App\Models\User;
 
 return [
@@ -42,6 +43,11 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+
+        'band-manager' => [
+            'driver' => 'session',
+            'provider' => 'band-manager-users',
+        ],
     ],
 
     /*
@@ -65,6 +71,11 @@ return [
         'users' => [
             'driver' => 'eloquent',
             'model' => env('AUTH_MODEL', User::class),
+        ],
+
+        'band-manager-users' => [
+            'driver' => 'eloquent',
+            'model' => BandManagerUser::class,
         ],
 
         // 'users' => [

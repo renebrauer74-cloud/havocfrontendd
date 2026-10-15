@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\BandManager\User as BandManagerUser;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -26,4 +27,12 @@ pest()->extend(TestCase::class)
 function actingAsAdmin(): TestCase
 {
     return test()->actingAs(User::factory()->create());
+}
+
+/**
+ * Im Band-Manager einloggen – ohne Benutzer als Agentur-Admin.
+ */
+function actingAsBandManager(?BandManagerUser $user = null): TestCase
+{
+    return test()->actingAs($user ?? BandManagerUser::factory()->admin()->create(), 'band-manager');
 }

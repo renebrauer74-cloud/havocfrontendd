@@ -1,5 +1,7 @@
 <?php
 
+use App\Services\BandManager\Markdown;
+
 /**
  * View-Helfer für gespeicherte Bilder und externe Links aus dem Admin.
  */
@@ -61,5 +63,38 @@ if (! function_exists('placeholder_image')) {
         );
 
         return 'data:image/svg+xml;charset=utf-8,'.rawurlencode($svg);
+    }
+}
+
+/**
+ * Band-Manager: Freitexte mit Mini-Markdown (**fett**, *kursiv* …), siehe App\Services\BandManager\Markdown.
+ */
+if (! function_exists('md')) {
+    /**
+     * Freitext als sicheres HTML – Ausgabe in Blade mit {!! md($text) !!}.
+     */
+    function md(?string $text): string
+    {
+        return app(Markdown::class)->toHtml($text);
+    }
+}
+
+if (! function_exists('md_plain')) {
+    /**
+     * Freitext ohne Formatierungszeichen (Vorschauen, Tooltips) – Ausgabe weiterhin mit {{ }}.
+     */
+    function md_plain(?string $text): string
+    {
+        return app(Markdown::class)->plain($text);
+    }
+}
+
+if (! function_exists('md_legend')) {
+    /**
+     * Legende mit Formatier-Buttons für Textfelder mit data-md.
+     */
+    function md_legend(): string
+    {
+        return app(Markdown::class)->legend();
     }
 }
