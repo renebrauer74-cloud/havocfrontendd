@@ -30,6 +30,21 @@ it('promotes and reactivates an existing account', function () {
         ->is_active->toBeTrue();
 });
 
+it('sets the password from the option without prompting', function () {
+    $this->artisan('band-manager:admin', ['email' => 'rene@havoc-agency.com', '--password' => 'ein-sicheres-passwort'])
+        ->expectsOutput("Admin 'rene@havoc-agency.com' angelegt.")
+        ->assertSuccessful();
+
+    expect(Hash::check('ein-sicheres-passwort', User::sole()->password))->toBeTrue();
+});
+
+it('refuses a password option shorter than eight characters', function () {
+    $this->artisan('band-manager:admin', ['email' => 'rene@havoc-agency.com', '--password' => 'kurz'])
+        ->assertFailed();
+
+    expect(User::count())->toBe(0);
+});
+
 it('refuses invalid email addresses', function () {
     $this->artisan('band-manager:admin', ['email' => 'keine-mail'])->assertFailed();
 

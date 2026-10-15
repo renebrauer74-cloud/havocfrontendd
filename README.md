@@ -53,6 +53,7 @@ Bildergalerie, Verträge & Rider, Nachrichten Agentur ↔ Band, CSV-Export und P
 
 ```bash
 php artisan band-manager:admin rene@havoc-agency.com --name="Rene"   # Agentur-Admin anlegen, fragt das Passwort ab
+php artisan band-manager:admin rene@havoc-agency.com --password="…"  # ohne Abfrage, z.B. auf Laravel Cloud
 php artisan db:seed --class=BandManagerSeeder                       # lokal: admin@havoc.test / band@havoc.test (havoc-dev)
 ```
 
