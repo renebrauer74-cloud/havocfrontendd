@@ -5,6 +5,7 @@ use App\Http\Controllers\BandManager\Api;
 use App\Http\Controllers\BandManager\Auth\LoginController;
 use App\Http\Controllers\BandManager\BandProfileController;
 use App\Http\Controllers\BandManager\CalendarController;
+use App\Http\Controllers\BandManager\DocumentController;
 use App\Http\Controllers\BandManager\ExportController;
 use App\Http\Controllers\BandManager\GalleryController;
 use App\Http\Controllers\BandManager\GigController;
@@ -85,6 +86,11 @@ Route::middleware(['auth:band-manager', EnsureBandManagerUserIsActive::class])->
             Route::post('{image}/main', [GalleryController::class, 'makeMain'])->name('main');
             Route::delete('{image}', [GalleryController::class, 'destroy'])->name('destroy');
         });
+    });
+
+    // Dokumente – wer welche Art hochladen/löschen darf, prüfen Form-Request und Policy
+    Route::middleware('can:documents.view')->group(function () {
+        Route::resource('documents', DocumentController::class)->only(['index', 'store', 'show', 'destroy']);
     });
 
     Route::get('export', [ExportController::class, 'index'])->name('exports.index');

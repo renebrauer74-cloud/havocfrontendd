@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\BandManager\ActivityLog;
 use App\Models\BandManager\Availability;
 use App\Models\BandManager\Band;
+use App\Models\BandManager\Document;
 use App\Models\BandManager\Gig;
 use App\Models\BandManager\User;
 use Illuminate\Http\Request;
@@ -39,6 +40,7 @@ class DashboardController extends Controller
             'summary' => Availability::summary($summaryDays),
             'availabilityDate' => $date,
             'upcomingGigs' => Gig::query()->with('band')->upcoming()->notCancelled()->orderBy('date')->limit(8)->get(),
+            'latestDocuments' => Document::query()->with('band')->latest()->latest('id')->limit(8)->get(),
         ]);
     }
 }

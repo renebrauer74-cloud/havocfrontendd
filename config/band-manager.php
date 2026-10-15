@@ -155,6 +155,22 @@ return [
         ],
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Dokumente (Verträge & Rider)
+    |--------------------------------------------------------------------------
+    */
+
+    'documents' => [
+        'max_size_mb' => 50,   // Verträge & Rider (PDF)
+        'rider_categories' => [
+            'technical' => 'Technical Rider',
+            'catering' => 'Catering Rider',
+            'stageplot' => 'Stageplot / Inputliste',
+            'other' => 'Sonstiges',
+        ],
+    ],
+
     // Logo für Day Sheet und Pressekit-PDFs (PNG oder JPG)
     'pdf_logo' => public_path('assets/band-manager/img/havoc-logo.png'),
 

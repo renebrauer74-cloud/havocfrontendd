@@ -80,6 +80,10 @@
             <x-band-manager.textarea name="notes" :label="$own ? 'Notizen (sichtbar für Band & Agentur)' : 'Notizen (intern)'"
                                      :value="$gig->notes" :rows="3" :max="65000" />
 
+            @if ($isEdit && auth()->user()->can('documents.manage'))
+                @include('band-manager.gigs.contracts')
+            @endif
+
             @include('band-manager.gigs.daysheet-fields')
 
             @if ($conflict)
