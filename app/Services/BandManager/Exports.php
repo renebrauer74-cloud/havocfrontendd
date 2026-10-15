@@ -17,6 +17,13 @@ class Exports
     {
         $exports = [
             [
+                'ability' => 'presskit.create',
+                'route' => 'band-manager.presskit.create',
+                'icon' => 'newspaper',
+                'title' => 'Pressekit zusammenstellen',
+                'description' => 'Bandinfo (DE/EN), Fotos, Rider und Live-Termine – als ZIP mit PDFs.',
+            ],
+            [
                 'ability' => 'export.csv',
                 'route' => 'band-manager.admin.availability-export.index',
                 'icon' => 'filetype-csv',

@@ -12,6 +12,7 @@ use App\Http\Controllers\BandManager\GigController;
 use App\Http\Controllers\BandManager\HomeController;
 use App\Http\Controllers\BandManager\ImpersonationController;
 use App\Http\Controllers\BandManager\MessageController;
+use App\Http\Controllers\BandManager\PresskitController;
 use App\Http\Controllers\BandManager\TeamController;
 use App\Http\Controllers\BandManager\ThemeController;
 use App\Http\Middleware\EnsureBandManagerUserIsActive;
@@ -104,6 +105,10 @@ Route::middleware(['auth:band-manager', EnsureBandManagerUserIsActive::class])->
     });
 
     Route::get('export', [ExportController::class, 'index'])->name('exports.index');
+    Route::middleware('can:presskit.create')->group(function () {
+        Route::get('export/presskit', [PresskitController::class, 'create'])->name('presskit.create');
+        Route::post('export/presskit', [PresskitController::class, 'store'])->name('presskit.store');
+    });
 
     Route::prefix('admin')->name('admin.')->middleware('can:band-manager.admin')->group(function () {
         Route::get('/', Admin\DashboardController::class)->name('dashboard');

@@ -171,6 +171,25 @@ return [
         ],
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Export & Pressekit
+    |--------------------------------------------------------------------------
+    */
+
+    'exports' => [
+        'past_months' => 12,   // "Vergangene Shows" = letzte X Monate
+
+        // Kontakt im Pressekit (Bandinfo-PDF → „Kontakt & Booking“), leere Werte erscheinen nicht
+        'contact' => [
+            'name' => env('BAND_MANAGER_CONTACT_NAME', 'HAVOC AGENCY'),
+            'person' => env('BAND_MANAGER_CONTACT_PERSON', 'Rene Brauer'),
+            'email' => env('BAND_MANAGER_CONTACT_EMAIL', 'info@havoc-agency.com'),
+            'phone' => env('BAND_MANAGER_CONTACT_PHONE', '+49 177 1695943'),
+            'website' => env('BAND_MANAGER_CONTACT_WEBSITE', 'https://havoc-agency.com'),
+        ],
+    ],
+
     // Logo für Day Sheet und Pressekit-PDFs (PNG oder JPG)
     'pdf_logo' => public_path('assets/band-manager/img/havoc-logo.png'),
 

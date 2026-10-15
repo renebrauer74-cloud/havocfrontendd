@@ -63,6 +63,16 @@ class Band extends Model
     }
 
     /**
+     * Verträge und Rider.
+     *
+     * @return HasMany<Document, $this>
+     */
+    public function documents(): HasMany
+    {
+        return $this->hasMany(Document::class);
+    }
+
+    /**
      * @return HasMany<TeamMember, $this>
      */
     public function teamMembers(): HasMany

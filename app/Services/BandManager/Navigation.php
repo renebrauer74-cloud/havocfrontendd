@@ -28,7 +28,7 @@ class Navigation
             ['route' => 'band-manager.messages.index', 'active' => ['band-manager.messages.*'], 'label' => 'Nachrichten', 'icon' => 'chat-dots', 'order' => 35, 'visible' => $user->can('messages.view'),
                 'badge' => $user->can('messages.view') ? MessageThread::unreadCountFor($user) : 0],
             ['route' => 'band-manager.documents.index', 'active' => ['band-manager.documents.*'], 'label' => 'Dokumente', 'icon' => 'file-earmark-text', 'order' => 40, 'visible' => $user->can('documents.view')],
-            ['route' => 'band-manager.exports.index', 'active' => ['band-manager.exports.*', 'band-manager.admin.availability-export.*'], 'label' => 'Export', 'icon' => 'box-arrow-down', 'order' => 80, 'visible' => $this->exports->availableFor($user) !== []],
+            ['route' => 'band-manager.exports.index', 'active' => ['band-manager.exports.*', 'band-manager.presskit.*', 'band-manager.admin.availability-export.*'], 'label' => 'Export', 'icon' => 'box-arrow-down', 'order' => 80, 'visible' => $this->exports->availableFor($user) !== []],
 
             ['route' => 'band-manager.admin.bands.index', 'active' => ['band-manager.admin.bands.*'], 'label' => 'Bands', 'icon' => 'people', 'order' => 40, 'section' => 'admin', 'visible' => $user->isAdmin()],
             ['route' => 'band-manager.admin.users.index', 'active' => ['band-manager.admin.users.*'], 'label' => 'Benutzer', 'icon' => 'person-gear', 'order' => 50, 'section' => 'admin', 'visible' => $user->isAdmin()],
