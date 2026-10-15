@@ -11,6 +11,7 @@ use App\Http\Controllers\BandManager\GalleryController;
 use App\Http\Controllers\BandManager\GigController;
 use App\Http\Controllers\BandManager\HomeController;
 use App\Http\Controllers\BandManager\ImpersonationController;
+use App\Http\Controllers\BandManager\MessageController;
 use App\Http\Controllers\BandManager\TeamController;
 use App\Http\Controllers\BandManager\ThemeController;
 use App\Http\Middleware\EnsureBandManagerUserIsActive;
@@ -91,6 +92,15 @@ Route::middleware(['auth:band-manager', EnsureBandManagerUserIsActive::class])->
     // Dokumente – wer welche Art hochladen/löschen darf, prüfen Form-Request und Policy
     Route::middleware('can:documents.view')->group(function () {
         Route::resource('documents', DocumentController::class)->only(['index', 'store', 'show', 'destroy']);
+    });
+
+    // Nachrichten – Band-Zugriff prüft der Controller
+    Route::middleware('can:messages.view')->group(function () {
+        Route::resource('messages', MessageController::class)->except(['edit', 'update'])->parameters(['messages' => 'thread']);
+        Route::post('messages/{thread}/reply', [MessageController::class, 'reply'])->name('messages.reply');
+        Route::delete('messages/{thread}/messages/{message}', [MessageController::class, 'destroyMessage'])
+            ->name('messages.messages.destroy')
+            ->scopeBindings();
     });
 
     Route::get('export', [ExportController::class, 'index'])->name('exports.index');

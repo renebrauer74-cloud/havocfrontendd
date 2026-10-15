@@ -7,6 +7,9 @@
             @can('gigs.manage')
                 <a href="{{ route('band-manager.gigs.create') }}" class="btn btn-outline-primary">+ Gig</a>
             @endcan
+            @can('messages.manage')
+                <a href="{{ route('band-manager.messages.create') }}" class="btn btn-outline-primary">+ Nachricht</a>
+            @endcan
             @can('documents.manage')
                 <a href="{{ route('band-manager.documents.index') }}#vertrag" class="btn btn-outline-primary">+ Vertrag</a>
             @endcan
@@ -28,6 +31,7 @@
         @include('band-manager.admin.widgets.availability-summary')
         @include('band-manager.admin.widgets.availability-today')
         @include('band-manager.admin.widgets.upcoming-gigs')
+        @include('band-manager.admin.widgets.latest-messages')
         @include('band-manager.admin.widgets.latest-documents')
     </div>
 

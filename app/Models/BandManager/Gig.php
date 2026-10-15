@@ -91,7 +91,7 @@ class Gig extends Model
      */
     public function contracts(): HasMany
     {
-        return $this->hasMany(Document::class)->where('type', Document::TYPE_CONTRACT)->latest();
+        return $this->hasMany(Document::class)->where('type', Document::TYPE_CONTRACT);
     }
 
     /**

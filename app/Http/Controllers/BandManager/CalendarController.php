@@ -5,6 +5,7 @@ namespace App\Http\Controllers\BandManager;
 use App\Http\Controllers\Controller;
 use App\Models\BandManager\Availability;
 use App\Models\BandManager\Band;
+use App\Models\BandManager\MessageThread;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -31,10 +32,14 @@ class CalendarController extends Controller
     {
         Gate::authorize('access', $band);
 
+        $user = $request->user();
+
         return view('band-manager.calendar.show', [
             'band' => $band,
             'statuses' => Availability::statuses(),
-            'canEdit' => $request->user()->can('availability.edit'),
+            'canEdit' => $user->can('availability.edit'),
+            // Bands landen im Kalender → dort auf neue Nachrichten der Agentur hinweisen
+            'unreadMessages' => $user->can('messages.view') && ! $user->can('messages.manage') ? MessageThread::unreadCountFor($user) : 0,
         ]);
     }
 }

@@ -71,13 +71,13 @@ class Band extends Model
     }
 
     /**
-     * Hauptbild zuerst, dann in Upload-Reihenfolge.
+     * Sortiert (Hauptbild zuerst) über ->ordered().
      *
      * @return HasMany<GalleryImage, $this>
      */
     public function galleryImages(): HasMany
     {
-        return $this->hasMany(GalleryImage::class)->orderByDesc('is_main')->orderBy('sort_order')->orderBy('id');
+        return $this->hasMany(GalleryImage::class);
     }
 
     /**

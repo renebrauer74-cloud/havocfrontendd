@@ -19,6 +19,13 @@
         <p class="text-muted small">Nur Leseansicht.</p>
     @endif
 
+    @if ($unreadMessages)
+        <div class="alert alert-warning d-flex justify-content-between align-items-center">
+            <span>✉️ Du hast {{ $unreadMessages }} ungelesene {{ $unreadMessages > 1 ? 'Nachrichten' : 'Nachricht' }} von der Agentur.</span>
+            <a href="{{ route('band-manager.messages.index') }}" class="btn btn-sm btn-dark">Lesen</a>
+        </div>
+    @endif
+
     <div class="card card-body shadow-sm"><div id="calendar"></div></div>
 
     @if ($canEdit)

@@ -25,7 +25,7 @@ it('uploads several photos with previews and sets the first as main', function (
         ->assertRedirect(route('band-manager.gallery.band', $band))
         ->assertSessionHas('success', '2 Bilder wurden hochgeladen.');
 
-    $images = $band->galleryImages()->get();
+    $images = $band->galleryImages()->ordered()->get();
     $main = $images->first();
 
     expect($images)->toHaveCount(2)

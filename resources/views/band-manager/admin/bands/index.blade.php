@@ -20,6 +20,7 @@
                             <a href="{{ route('band-manager.team.band', $band) }}" class="btn btn-sm btn-outline-secondary">Team</a>
                             <a href="{{ route('band-manager.gallery.band', $band) }}" class="btn btn-sm btn-outline-secondary">Galerie</a>
                             <a href="{{ route('band-manager.documents.index', ['band' => $band]) }}" class="btn btn-sm btn-outline-secondary">Dokumente</a>
+                            <a href="{{ route('band-manager.messages.create', ['band' => $band]) }}" class="btn btn-sm btn-outline-secondary">Nachricht</a>
                             <a href="{{ route('band-manager.admin.bands.edit', $band) }}" class="btn btn-sm btn-outline-primary">Bearbeiten</a>
                             <form method="post" action="{{ route('band-manager.admin.bands.destroy', $band) }}" class="d-inline"
                                   onsubmit="return confirm('Band inkl. aller zugehörigen Daten löschen?')">

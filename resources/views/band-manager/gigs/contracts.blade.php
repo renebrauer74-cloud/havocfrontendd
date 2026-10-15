@@ -3,7 +3,7 @@
     <label class="form-label">Verträge zu diesem Gig</label>
     @if ($gig->contracts->isNotEmpty())
         <ul class="list-unstyled mb-1">
-            @foreach ($gig->contracts as $contract)
+            @foreach ($gig->contracts->sortByDesc("created_at") as $contract)
                 <li>📄 <a href="{{ route('band-manager.documents.show', $contract) }}" target="_blank" rel="noopener">{{ $contract->title }}</a>
                     <small class="text-muted">({{ $contract->created_at->format('d.m.Y') }})</small></li>
             @endforeach

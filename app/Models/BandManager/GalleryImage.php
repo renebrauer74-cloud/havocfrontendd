@@ -5,7 +5,9 @@ namespace App\Models\BandManager;
 use App\Services\BandManager\Images;
 use Database\Factories\BandManager\GalleryImageFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Attributes\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -82,6 +84,17 @@ class GalleryImage extends Model
     public function band(): BelongsTo
     {
         return $this->belongsTo(Band::class);
+    }
+
+    /**
+     * Hauptbild zuerst, dann in Upload-Reihenfolge.
+     *
+     * @param  Builder<GalleryImage>  $query
+     */
+    #[Scope]
+    protected function ordered(Builder $query): void
+    {
+        $query->orderByDesc('is_main')->orderBy('sort_order')->orderBy('id');
     }
 
     public static function mainFor(Band $band): ?self

@@ -45,7 +45,7 @@ class GalleryController extends Controller
     {
         Gate::authorize('access', $band);
 
-        $galleryImages = $band->galleryImages()->get();
+        $galleryImages = $band->galleryImages()->ordered()->get();
 
         return view('band-manager.gallery.band', [
             'band' => $band,
