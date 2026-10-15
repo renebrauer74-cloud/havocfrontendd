@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\BandManager\ActivityLog;
 use App\Models\BandManager\Availability;
 use App\Models\BandManager\Band;
+use App\Models\BandManager\Gig;
 use App\Models\BandManager\User;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -29,6 +30,7 @@ class DashboardController extends Controller
             'stats' => [
                 ['label' => 'Bands', 'value' => $bands->count(), 'url' => route('band-manager.admin.bands.index')],
                 ['label' => 'Benutzer', 'value' => User::query()->count(), 'url' => route('band-manager.admin.users.index')],
+                ['label' => 'Kommende Gigs', 'value' => Gig::query()->upcoming()->notCancelled()->count(), 'url' => route('band-manager.gigs.index')],
             ],
             'activities' => ActivityLog::query()->with('user')->latest('id')->limit(15)->get(),
             'bands' => $bands,
@@ -36,6 +38,7 @@ class DashboardController extends Controller
             'summaryDays' => $summaryDays,
             'summary' => Availability::summary($summaryDays),
             'availabilityDate' => $date,
+            'upcomingGigs' => Gig::query()->with('band')->upcoming()->notCancelled()->orderBy('date')->limit(8)->get(),
         ]);
     }
 }

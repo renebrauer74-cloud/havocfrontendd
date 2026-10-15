@@ -4,6 +4,9 @@
         <div class="d-flex flex-wrap gap-2">
             <a href="{{ route('band-manager.admin.bands.create') }}" class="btn btn-primary">+ Band</a>
             <a href="{{ route('band-manager.admin.users.create') }}" class="btn btn-outline-primary">+ Benutzer</a>
+            @can('gigs.manage')
+                <a href="{{ route('band-manager.gigs.create') }}" class="btn btn-outline-primary">+ Gig</a>
+            @endcan
         </div>
     </div>
 
@@ -21,6 +24,7 @@
     <div class="row g-4 mb-4">
         @include('band-manager.admin.widgets.availability-summary')
         @include('band-manager.admin.widgets.availability-today')
+        @include('band-manager.admin.widgets.upcoming-gigs')
     </div>
 
     <div class="card shadow-sm">

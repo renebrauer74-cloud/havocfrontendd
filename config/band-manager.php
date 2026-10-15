@@ -67,4 +67,30 @@ return [
         'summary_days' => 90,      // Zeitraum für die Dashboard-Übersicht
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Gigs / Bookings & Day Sheet
+    |--------------------------------------------------------------------------
+    */
+
+    'gigs' => [
+        'statuses' => [
+            'request' => ['label' => 'Anfrage', 'color' => '#8b5cf6'],
+            'confirmed' => ['label' => 'Bestätigt', 'color' => '#2563eb'],
+            'cancelled' => ['label' => 'Abgesagt', 'color' => '#6b7280'],
+        ],
+        'block_availability' => true,   // bestätigte Gigs setzen den Tag im Kalender automatisch …
+        'block_status' => 'red',        // … auf diesen Ampel-Status
+
+        'catering_options' => [
+            'none' => 'Keine Verpflegung vor Ort',
+            'catering' => 'Catering vor Ort',
+            'buyout' => 'Buy-out',
+            'both' => 'Catering + Buy-out',
+        ],
+    ],
+
+    // Logo für Day Sheet und Pressekit-PDFs (PNG oder JPG)
+    'pdf_logo' => public_path('assets/band-manager/img/havoc-logo.png'),
+
 ];

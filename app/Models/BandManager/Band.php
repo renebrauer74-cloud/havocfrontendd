@@ -34,4 +34,12 @@ class Band extends Model
     {
         return $this->hasMany(Availability::class);
     }
+
+    /**
+     * @return HasMany<Gig, $this>
+     */
+    public function gigs(): HasMany
+    {
+        return $this->hasMany(Gig::class);
+    }
 }

@@ -8,6 +8,8 @@ use App\Http\Requests\BandManager\StoreAvailabilityRequest;
 use App\Models\BandManager\ActivityLog;
 use App\Models\BandManager\Availability;
 use App\Models\BandManager\Band;
+use App\Models\BandManager\Gig;
+use App\Services\BandManager\GigConflicts;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -43,10 +45,28 @@ class AvailabilityController extends Controller
                 'extendedProps' => ['type' => 'availability', 'status' => $availability->status, 'note' => $availability->note],
             ]);
 
+        // Gigs der Band (ohne abgesagte) als normale Termine darüber
+        if ($request->user()->can('gigs.view')) {
+            $events = $events->concat($band->gigs()
+                ->where('date', '>=', $from->format('Y-m-d'))
+                ->where('date', '<', $to->format('Y-m-d'))
+                ->notCancelled()
+                ->orderBy('date')
+                ->get()
+                ->map(fn (Gig $gig): array => [
+                    'id' => 'gig-'.$gig->id,
+                    'start' => $gig->date,
+                    'allDay' => true,
+                    'title' => '🎤 '.$gig->title.($gig->city ? ' ('.$gig->city.')' : ''),
+                    'color' => $gig->statusDefinition()['color'],
+                    'extendedProps' => ['type' => 'gig', 'gigStatus' => $gig->statusDefinition()['label'], 'note' => $gig->venue],
+                ]));
+        }
+
         return response()->json($events->values());
     }
 
-    public function store(StoreAvailabilityRequest $request, Band $band): JsonResponse
+    public function store(StoreAvailabilityRequest $request, Band $band, GigConflicts $conflicts): JsonResponse
     {
         $from = $request->from();
         $to = $request->to();
@@ -58,7 +78,11 @@ class AvailabilityController extends Controller
             'band_id' => $band->id, 'from' => $from->format('Y-m-d'), 'to' => $to->format('Y-m-d'), 'status' => $status,
         ]);
 
-        return response()->json(['ok' => true, 'updated' => $count, 'warnings' => []]);
+        return response()->json([
+            'ok' => true,
+            'updated' => $count,
+            'warnings' => $conflicts->calendarWarnings($band, $from, $to, $status),
+        ]);
     }
 
     public function destroy(AvailabilityRangeRequest $request, Band $band): JsonResponse

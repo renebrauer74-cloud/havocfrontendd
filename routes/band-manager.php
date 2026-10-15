@@ -5,6 +5,7 @@ use App\Http\Controllers\BandManager\Api;
 use App\Http\Controllers\BandManager\Auth\LoginController;
 use App\Http\Controllers\BandManager\CalendarController;
 use App\Http\Controllers\BandManager\ExportController;
+use App\Http\Controllers\BandManager\GigController;
 use App\Http\Controllers\BandManager\HomeController;
 use App\Http\Controllers\BandManager\ImpersonationController;
 use App\Http\Controllers\BandManager\ThemeController;
@@ -42,6 +43,12 @@ Route::middleware(['auth:band-manager', EnsureBandManagerUserIsActive::class])->
     Route::middleware('can:availability.edit')->group(function () {
         Route::post('api/bands/{band}/availability', [Api\AvailabilityController::class, 'store'])->name('api.availability.store');
         Route::delete('api/bands/{band}/availability', [Api\AvailabilityController::class, 'destroy'])->name('api.availability.destroy');
+    });
+
+    // Gigs / Bookings – Feinprüfung (eigene Band, eigene Show) in Policy und Form-Request
+    Route::middleware('can:gigs.view')->group(function () {
+        Route::resource('gigs', GigController::class)->except('show');
+        Route::get('gigs/{gig}/pdf', [GigController::class, 'pdf'])->name('gigs.pdf');
     });
 
     Route::get('export', [ExportController::class, 'index'])->name('exports.index');
