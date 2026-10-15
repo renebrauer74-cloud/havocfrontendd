@@ -1,0 +1,71 @@
+/* Bildergalerie – nutzt die Farben aus havoc.css (hell + dunkel) */
+.gl-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 1rem; }
+
+.gl-card {
+  position: relative;
+  display: flex; flex-direction: column; overflow: hidden;
+  background: var(--hv-surface);
+  border: 1px solid var(--hv-border);
+  border-radius: 12px;
+  box-shadow: var(--hv-card-shadow);
+}
+.gl-card--main { border-color: var(--hv-accent); box-shadow: 0 0 0 1px var(--hv-accent); }
+
+.gl-thumb {
+  position: relative; display: block;
+  aspect-ratio: 4 / 3; overflow: hidden;
+  background: var(--hv-surface-2);
+}
+.gl-thumb img { display: block; width: 100%; height: 100%; object-fit: cover; transition: transform .25s; }
+.gl-thumb:hover img { transform: scale(1.03); }
+.gl-thumb-empty {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--hv-muted); font-size: 2.5rem; opacity: .5;
+}
+
+.gl-main-badge {
+  position: absolute; top: .6rem; left: .6rem;
+  display: inline-flex; align-items: center; gap: .3rem;
+  padding: .25rem .6rem; border-radius: 6px;
+  background: var(--hv-accent); color: #fff;
+  font-size: .72rem; font-weight: 600;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, .25);
+}
+
+.gl-body { flex: 1; display: flex; flex-direction: column; gap: .3rem; padding: .8rem .9rem .6rem; }
+.gl-cat {
+  align-self: flex-start;
+  padding: .15rem .5rem; border-radius: 6px;
+  font-size: .7rem; font-weight: 500;
+  background: var(--hv-accent-soft); color: var(--hv-accent-text);
+}
+.gl-caption { font-size: .85rem; font-weight: 500; color: var(--hv-heading); }
+.gl-meta { font-size: .72rem; color: var(--hv-muted); }
+
+.gl-actions { display: flex; flex-wrap: wrap; gap: .35rem; padding: 0 .9rem .9rem; }
+.gl-edit { padding: 0 .9rem .9rem; }
+
+.gl-slot {
+  aspect-ratio: 4 / 3;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .3rem;
+  border: 1px dashed var(--hv-border-strong); border-radius: 12px;
+  color: var(--hv-muted); font-size: .8rem;
+}
+.gl-slot .bi { font-size: 1.4rem; opacity: .6; }
+
+/* Hauptbild im Bandprofil (Band/Team) */
+.gl-teaser {
+  position: relative; display: block; overflow: hidden;
+  aspect-ratio: 4 / 3;
+  border-radius: 12px; border: 1px solid var(--hv-border);
+  background: var(--hv-surface-2);
+}
+.gl-teaser img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.gl-teaser--empty {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .2rem;
+  border: 1px dashed rgba(var(--hv-accent-rgb), .6);
+  color: var(--hv-accent-text); text-align: center; padding: 1rem;
+}
+.gl-teaser--empty .bi { font-size: 1.8rem; }
+.gl-teaser--empty small { color: var(--hv-muted); }

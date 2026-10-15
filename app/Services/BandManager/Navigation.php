@@ -21,6 +21,8 @@ class Navigation
             ['route' => 'band-manager.admin.dashboard', 'label' => 'Dashboard', 'icon' => 'grid-1x2', 'order' => 10, 'visible' => $user->isAdmin()],
             ['route' => 'band-manager.home', 'label' => 'Start', 'icon' => 'house', 'order' => 10, 'visible' => ! $user->isAdmin() && ! $user->can('availability.view')],
             ['route' => 'band-manager.calendar.index', 'active' => ['band-manager.calendar.*'], 'label' => $user->isAdmin() ? 'Kalender' : 'Mein Kalender', 'icon' => 'calendar3', 'order' => 20, 'visible' => $user->can('availability.view')],
+            ['route' => 'band-manager.team.index', 'active' => ['band-manager.team.*'], 'label' => 'Band/Team', 'icon' => 'person-vcard', 'order' => 25, 'visible' => $user->can('team.view')],
+            ['route' => 'band-manager.gallery.index', 'active' => ['band-manager.gallery.*'], 'label' => 'Galerie', 'icon' => 'images', 'order' => 27, 'visible' => $user->can('gallery.view')],
             ['route' => 'band-manager.gigs.index', 'active' => ['band-manager.gigs.*'], 'label' => 'Gigs', 'icon' => 'music-note-beamed', 'order' => 30, 'visible' => $user->can('gigs.view')],
             ['route' => 'band-manager.exports.index', 'active' => ['band-manager.exports.*', 'band-manager.admin.availability-export.*'], 'label' => 'Export', 'icon' => 'box-arrow-down', 'order' => 80, 'visible' => $this->exports->availableFor($user) !== []],
 

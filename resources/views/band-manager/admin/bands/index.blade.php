@@ -17,6 +17,8 @@
                         <td class="text-end text-nowrap">
                             <a href="{{ route('band-manager.calendar.show', $band) }}" class="btn btn-sm btn-outline-success">Kalender</a>
                             <a href="{{ route('band-manager.gigs.index', ['band' => $band]) }}" class="btn btn-sm btn-outline-secondary">Gigs</a>
+                            <a href="{{ route('band-manager.team.band', $band) }}" class="btn btn-sm btn-outline-secondary">Team</a>
+                            <a href="{{ route('band-manager.gallery.band', $band) }}" class="btn btn-sm btn-outline-secondary">Galerie</a>
                             <a href="{{ route('band-manager.admin.bands.edit', $band) }}" class="btn btn-sm btn-outline-primary">Bearbeiten</a>
                             <form method="post" action="{{ route('band-manager.admin.bands.destroy', $band) }}" class="d-inline"
                                   onsubmit="return confirm('Band inkl. aller zugehörigen Daten löschen?')">

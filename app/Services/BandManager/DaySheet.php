@@ -3,6 +3,7 @@
 namespace App\Services\BandManager;
 
 use App\Models\BandManager\Gig;
+use App\Models\BandManager\TeamMember;
 
 /**
  * Day Sheet eines Gigs als PDF (Vorlage: resources/views/band-manager/gigs/pdf.blade.php).
@@ -35,8 +36,21 @@ class DaySheet
      *
      * @return list<array{crew: bool, name: string, role: string, phone: string, diet: string}>
      */
-    private function travelParty(Gig $gig): array
+    public function travelParty(Gig $gig): array
     {
-        return [];
+        return $gig->band->teamMembers()
+            ->orderBy('first_name')
+            ->orderBy('last_name')
+            ->get()
+            ->sortBy(fn (TeamMember $person): int => $person->isCrew() ? 1 : 0)
+            ->map(fn (TeamMember $person): array => [
+                'crew' => $person->isCrew(),
+                'name' => $person->fullName().($person->stage_name ? ' („'.$person->stage_name.'“)' : ''),
+                'role' => $person->roleLabel(),
+                'phone' => (string) $person->phone,
+                'diet' => (string) $person->diet,
+            ])
+            ->values()
+            ->all();
     }
 }

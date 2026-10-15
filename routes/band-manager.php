@@ -3,11 +3,14 @@
 use App\Http\Controllers\BandManager\Admin;
 use App\Http\Controllers\BandManager\Api;
 use App\Http\Controllers\BandManager\Auth\LoginController;
+use App\Http\Controllers\BandManager\BandProfileController;
 use App\Http\Controllers\BandManager\CalendarController;
 use App\Http\Controllers\BandManager\ExportController;
+use App\Http\Controllers\BandManager\GalleryController;
 use App\Http\Controllers\BandManager\GigController;
 use App\Http\Controllers\BandManager\HomeController;
 use App\Http\Controllers\BandManager\ImpersonationController;
+use App\Http\Controllers\BandManager\TeamController;
 use App\Http\Controllers\BandManager\ThemeController;
 use App\Http\Middleware\EnsureBandManagerUserIsActive;
 use Illuminate\Support\Facades\Route;
@@ -49,6 +52,39 @@ Route::middleware(['auth:band-manager', EnsureBandManagerUserIsActive::class])->
     Route::middleware('can:gigs.view')->group(function () {
         Route::resource('gigs', GigController::class)->except('show');
         Route::get('gigs/{gig}/pdf', [GigController::class, 'pdf'])->name('gigs.pdf');
+    });
+
+    // Band & Team – Band-Zugriff prüfen Controller bzw. Form-Requests
+    Route::middleware('can:team.view')->prefix('team')->name('team.')->group(function () {
+        Route::get('/', [TeamController::class, 'index'])->name('index');
+        Route::get('band/{band}', [TeamController::class, 'band'])->name('band');
+        Route::get('band/{band}/logo', [BandProfileController::class, 'logo'])->name('logo');
+        Route::get('{member}', [TeamController::class, 'show'])->name('show');
+        Route::get('{member}/photo', [TeamController::class, 'photo'])->name('photo');
+
+        Route::middleware('can:team.edit')->group(function () {
+            Route::get('band/{band}/create', [TeamController::class, 'create'])->name('create');
+            Route::post('band/{band}', [TeamController::class, 'store'])->name('store');
+            Route::get('band/{band}/profile', [BandProfileController::class, 'edit'])->name('profile.edit');
+            Route::put('band/{band}/profile', [BandProfileController::class, 'update'])->name('profile.update');
+            Route::get('{member}/edit', [TeamController::class, 'edit'])->name('edit');
+            Route::put('{member}', [TeamController::class, 'update'])->name('update');
+            Route::delete('{member}', [TeamController::class, 'destroy'])->name('destroy');
+        });
+    });
+
+    // Bildergalerie
+    Route::middleware('can:gallery.view')->prefix('gallery')->name('gallery.')->group(function () {
+        Route::get('/', [GalleryController::class, 'index'])->name('index');
+        Route::get('band/{band}', [GalleryController::class, 'band'])->name('band');
+        Route::get('{image}/image', [GalleryController::class, 'image'])->name('image');
+
+        Route::middleware('can:gallery.edit')->group(function () {
+            Route::post('band/{band}', [GalleryController::class, 'store'])->name('store');
+            Route::put('{image}', [GalleryController::class, 'update'])->name('update');
+            Route::post('{image}/main', [GalleryController::class, 'makeMain'])->name('main');
+            Route::delete('{image}', [GalleryController::class, 'destroy'])->name('destroy');
+        });
     });
 
     Route::get('export', [ExportController::class, 'index'])->name('exports.index');
