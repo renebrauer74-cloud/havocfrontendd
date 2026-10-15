@@ -18,6 +18,11 @@
         @endforeach
     </div>
 
+    <div class="row g-4 mb-4">
+        @include('band-manager.admin.widgets.availability-summary')
+        @include('band-manager.admin.widgets.availability-today')
+    </div>
+
     <div class="card shadow-sm">
         <div class="card-header fw-semibold">Letzte Aktivitäten</div>
         <ul class="list-group list-group-flush small">

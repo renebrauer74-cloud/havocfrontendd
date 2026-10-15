@@ -9,11 +9,11 @@ it('lets an admin view the band manager as a band and switch back', function () 
 
     actingAsBandManager($admin)
         ->post(route('band-manager.admin.users.impersonation.store', $artist))
-        ->assertRedirect(route('band-manager.home'));
+        ->assertRedirect(route('band-manager.calendar.index'));
 
     $this->assertAuthenticatedAs($artist, 'band-manager');
 
-    $this->get(route('band-manager.home'))
+    $this->get(route('band-manager.calendar.index'))
         ->assertSuccessful()
         ->assertSee('Du siehst die Ansicht von');
 

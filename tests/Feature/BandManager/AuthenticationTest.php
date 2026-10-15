@@ -26,13 +26,21 @@ it('logs an agency admin in and sends them to the dashboard', function () {
         ->and(ActivityLog::sole()->action)->toBe('auth.login');
 });
 
-it('sends bands to their start page after login', function () {
+it('sends bands to their calendar after login', function () {
     $artist = User::factory()->create(['password' => 'richtig-geheim']);
 
     $this->post(route('band-manager.login.store'), ['email' => $artist->email, 'password' => 'richtig-geheim'])
-        ->assertRedirect(route('band-manager.home'));
+        ->assertRedirect(route('band-manager.calendar.index'));
 
-    $this->get(route('band-manager.index'))->assertRedirect(route('band-manager.home'));
+    $this->get(route('band-manager.index'))->assertRedirect(route('band-manager.calendar.index'));
+});
+
+it('sends logins without calendar rights to the start page', function () {
+    config(['band-manager.permissions.artist' => []]);
+
+    actingAsBandManager(User::factory()->create())
+        ->get(route('band-manager.index'))
+        ->assertRedirect(route('band-manager.home'));
 });
 
 it('rejects wrong credentials', function () {

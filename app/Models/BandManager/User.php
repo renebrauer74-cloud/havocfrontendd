@@ -6,6 +6,7 @@ use Database\Factories\BandManager\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Attributes\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -79,10 +80,26 @@ class User extends Authenticatable
     }
 
     /**
-     * Startseite nach dem Login: Agentur → Dashboard, Bands → eigene Startseite.
+     * Bands, die dieser Login sehen darf: Agentur alle, Bands nur die eigenen.
+     *
+     * @return Builder<Band>
+     */
+    public function accessibleBands(): Builder
+    {
+        return $this->isAdmin()
+            ? Band::query()
+            : Band::query()->whereHas('users', fn (Builder $query) => $query->whereKey($this->getKey()));
+    }
+
+    /**
+     * Startseite nach dem Login: Agentur → Dashboard, Bands → Kalender (sonst eigene Startseite).
      */
     public function homeUrl(): string
     {
-        return $this->isAdmin() ? route('band-manager.admin.dashboard') : route('band-manager.home');
+        if ($this->isAdmin()) {
+            return route('band-manager.admin.dashboard');
+        }
+
+        return $this->hasPermission('availability.view') ? route('band-manager.calendar.index') : route('band-manager.home');
     }
 }

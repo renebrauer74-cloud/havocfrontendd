@@ -2,6 +2,7 @@
 @php
     use App\Models\BandManager\User;
     use App\Services\BandManager\Impersonation;
+    use App\Services\BandManager\Navigation;
 
     $user = auth('band-manager')->user();
     $isImpersonating = app(Impersonation::class)->isActive();
@@ -13,15 +14,7 @@
     $theme = in_array($theme, User::THEMES, true) ? $theme : config('band-manager.default_theme');
     $toggleIcon = $theme === 'dark' ? 'sun' : 'moon-stars';
 
-    // Menü (Icons: https://icons.getbootstrap.com) – "admin" landet im abgetrennten Bereich "Administration"
-    $navigation = [];
-    if ($user?->isAdmin()) {
-        $navigation[] = ['route' => 'band-manager.admin.dashboard', 'label' => 'Dashboard', 'icon' => 'grid-1x2', 'section' => 'main'];
-        $navigation[] = ['route' => 'band-manager.admin.bands.index', 'active' => 'band-manager.admin.bands.*', 'label' => 'Bands', 'icon' => 'people', 'section' => 'admin'];
-        $navigation[] = ['route' => 'band-manager.admin.users.index', 'active' => 'band-manager.admin.users.*', 'label' => 'Benutzer', 'icon' => 'person-gear', 'section' => 'admin'];
-    } elseif ($user) {
-        $navigation[] = ['route' => 'band-manager.home', 'label' => 'Start', 'icon' => 'house', 'section' => 'main'];
-    }
+    $navigation = $user ? app(Navigation::class)->for($user) : [];
     $mainNavigation = array_filter($navigation, fn (array $item): bool => $item['section'] === 'main');
     $adminNavigation = array_filter($navigation, fn (array $item): bool => $item['section'] === 'admin');
     $unreadTotal = array_sum(array_column($navigation, 'badge'));

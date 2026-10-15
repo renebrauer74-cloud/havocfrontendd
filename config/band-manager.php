@@ -50,4 +50,21 @@ return [
         ],
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Verfügbarkeiten (Ampel-Kalender)
+    |--------------------------------------------------------------------------
+    */
+
+    'availability' => [
+        // Status-Schlüssel max. 20 Zeichen
+        'statuses' => [
+            'green' => ['label' => 'Verfügbar', 'color' => '#22c55e'],
+            'orange' => ['label' => 'Muss besprochen werden', 'color' => '#f59e0b'],
+            'red' => ['label' => 'Termin nicht möglich', 'color' => '#ef4444'],
+        ],
+        'max_range_days' => 366,   // max. Zeitraum pro Speichervorgang
+        'summary_days' => 90,      // Zeitraum für die Dashboard-Übersicht
+    ],
+
 ];
