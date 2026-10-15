@@ -26,7 +26,7 @@ app/
   Http/Controllers/Admin/  Backend: CRUD pro Bereich (Künstler, Tourdaten, Galerie, News, Team, Shows, Anfragen)
   Http/Requests/           Validierung (Formular-Requests)
   Models/                  Eloquent-Models; Concerns/HasUploadedImage = Bild-Upload, Collections/ShowDateCollection = Freitext-Datum sortieren
-  Console/Commands/        havoc:admin, havoc:import-json
+  Console/Commands/        havoc:admin, havoc:import-json, band-manager:admin
   helpers.php              media_url(), safe_link(), placeholder_image()
 config/havoc.php           Kontakt-Mail und Upload-Limit
 database/migrations/       Tabellen (überspringen bereits vorhandene Tabellen aus dem alten schema.sql)
@@ -44,6 +44,37 @@ Admins liegen in der Tabelle `users` und werden per Artisan verwaltet:
 php artisan havoc:admin rene                                  # fragt das Passwort ab
 php artisan havoc:admin admin --password-hash='$2y$12$...'     # Hash aus der alten config/config.php übernehmen
 ```
+
+## Band-Manager (`/band-manager`)
+
+Interner Bereich für Agentur und Bands mit **eigenem Login** (Tabelle `bm_users`, Guard `band-manager`) –
+unabhängig vom Website-Admin. Funktionen: Ampel-Kalender, Gigs mit Day Sheet (PDF), Band & Team mit Bandprofil,
+Bildergalerie, Verträge & Rider, Nachrichten Agentur ↔ Band, CSV-Export und Pressekit (ZIP).
+
+```bash
+php artisan band-manager:admin rene@havoc-agency.com --name="Rene"   # Agentur-Admin anlegen, fragt das Passwort ab
+php artisan db:seed --class=BandManagerSeeder                       # lokal: admin@havoc.test / band@havoc.test (havoc-dev)
+```
+
+Bands und weitere Logins legt der Admin danach unter *Administration → Bands / Benutzer* an.
+
+```
+app/Http/Controllers/BandManager/   Controller (Admin/ = Dashboard, Benutzer, Bands; Api/ = Kalender-JSON)
+app/Models/BandManager/             Models (Tabellen mit Präfix bm_)
+app/Policies/BandManager/           Band-, Gig- und Dokument-Zugriff
+app/Services/BandManager/           Navigation, Impersonation, Markdown, PDF, Day Sheet, Pressekit, Bilder …
+config/band-manager.php             Rollen & Rechte, Status, Kategorien, Upload-Limits, Pressekit-Kontakt
+routes/band-manager.php             Routen (Präfix /band-manager, Namen band-manager.*)
+resources/views/band-manager/       Blade-Views, Layout unter components/band-manager/
+public/assets/band-manager/         CSS, JS (Kalender, Hell/Dunkel, Formatierung), Logo
+storage/app/private/band-manager/   Uploads (team/, gallery/, documents/) – nicht öffentlich, Auslieferung nur mit Rechteprüfung
+```
+
+Rechte stehen pro Rolle in `config/band-manager.php` und werden als Gate geprüft (`@can('gigs.view')`).
+Admins (`*`) dürfen alles, Bands nur Daten ihrer eigenen Bands.
+
+Voraussetzungen auf dem Server: PHP-Erweiterungen `gd` (Foto-Verkleinerung), `zip` (Pressekit), `fileinfo`, `mbstring`.
+`storage/` muss beschreibbar sein. Upload-Limits (bis 50 MB pro Datei) passen zu `public/.user.ini`.
 
 ## Produktion (IONOS)
 
@@ -66,6 +97,7 @@ Die MariaDB 11.8 ist **nur vom IONOS-Webspace aus erreichbar**. Alle Befehle unt
 6. Lagen die Daten bisher noch als JSON auf dem Server: die Dateien nach `storage/data/` legen und
    `php artisan havoc:import-json` ausführen (nur in leere Tabellen, IDs bleiben erhalten).
 7. Admin anlegen: `php artisan havoc:admin admin --password-hash='<password_hash aus der alten Config>'`.
+   Für den Band-Manager zusätzlich: `php artisan band-manager:admin <e-mail>`.
 8. Caches bauen: `php artisan config:cache && php artisan route:cache && php artisan view:cache`.
 
 ### Bei jedem Deployment
