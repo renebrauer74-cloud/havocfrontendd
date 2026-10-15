@@ -1,0 +1,95 @@
+/* Band & Team – nutzt die Farben aus havoc.css (hell + dunkel) */
+.tm-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; }
+
+.tm-card {
+  display: flex; flex-direction: column; overflow: hidden;
+  background: var(--hv-surface);
+  border: 1px solid var(--hv-border);
+  border-radius: 12px;
+  color: var(--hv-text);
+  box-shadow: var(--hv-card-shadow);
+  transition: border-color .15s, transform .15s;
+}
+.tm-card:hover { border-color: var(--hv-border-strong); transform: translateY(-2px); color: var(--hv-text); }
+
+.tm-photo {
+  aspect-ratio: 1 / 1;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+  background: var(--hv-surface-2);
+  color: var(--hv-muted);
+}
+.tm-photo img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.tm-photo .bi { font-size: 3rem; opacity: .5; }
+.tm-photo--profile { max-width: 320px; border-radius: 14px; border: 1px solid var(--hv-border); }
+.tm-photo--form { max-width: 240px; border-radius: 12px; border: 1px dashed var(--hv-border-strong); }
+.tm-initials { font-size: 2.4rem; font-weight: 600; letter-spacing: -.02em; color: var(--hv-muted); }
+
+.tm-body { padding: .85rem 1rem 1rem; }
+.tm-name { font-weight: 600; color: var(--hv-heading); line-height: 1.3; }
+.tm-sub  { font-size: .8rem; color: var(--hv-muted); }
+.tm-role {
+  display: inline-block; margin-top: .5rem;
+  padding: .2rem .55rem; border-radius: 6px;
+  font-size: .72rem; font-weight: 500;
+  background: var(--hv-accent-soft); color: var(--hv-accent-text);
+}
+.tm-count { font-weight: 400; font-size: .9rem; color: var(--hv-muted); }
+
+.tm-empty {
+  padding: 2rem 1rem; text-align: center;
+  color: var(--hv-muted);
+  border: 1px dashed var(--hv-border-strong); border-radius: 12px;
+}
+
+.tm-section {
+  margin: 1.75rem 0 1rem; padding-top: 1.25rem;
+  border-top: 1px solid var(--hv-border);
+  font-size: .72rem; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .08em;
+  color: var(--hv-muted);
+}
+.tm-section--first { margin-top: 0; padding-top: 0; border-top: 0; }
+
+.tm-facts dt {
+  margin-bottom: .15rem;
+  font-size: .7rem; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .06em;
+  color: var(--hv-muted);
+}
+.tm-facts dd { margin-bottom: 1rem; color: var(--hv-text); }
+
+/* ---------- Bandprofil ---------- */
+.tm-bio { max-height: 24rem; overflow-y: auto; line-height: 1.65; color: var(--hv-text); padding-right: .25rem; }
+.tm-socials { display: flex; flex-wrap: wrap; gap: .5rem; }
+.tm-social {
+  display: inline-flex; align-items: center; gap: .5rem;
+  padding: .3rem .8rem .3rem .3rem;
+  border: 1px solid var(--hv-border); border-radius: 999px;
+  background: var(--hv-surface);
+  color: var(--hv-text); font-size: .8rem; font-weight: 500;
+  transition: border-color .15s, color .15s;
+}
+.tm-social:hover { border-color: var(--c); color: var(--hv-heading); }
+.tm-social-icon {
+  width: 28px; height: 28px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--c); color: #fff; font-size: .85rem;
+}
+.tm-platform-icon {
+  min-width: 44px; justify-content: center;
+  background: var(--c) !important; border-color: var(--c) !important; color: #fff !important;
+}
+
+/* ---------- Bandlogo (Karomuster zeigt transparente Bereiche) ---------- */
+.tm-logo {
+  display: flex; align-items: center; justify-content: center;
+  aspect-ratio: 16 / 9; padding: 1rem; overflow: hidden;
+  border: 1px solid var(--hv-border); border-radius: 12px;
+  background: repeating-conic-gradient(#ececf0 0% 25%, #ffffff 0% 50%) 50% / 16px 16px;
+}
+.tm-logo img { display: block; max-width: 100%; max-height: 100%; object-fit: contain; }
+.tm-logo--form { max-width: 360px; }
+.tm-logo--empty { background: var(--hv-surface-2); border-style: dashed; border-color: var(--hv-border-strong); }
+.tm-logo-empty { text-align: center; font-size: .8rem; color: var(--hv-muted); }
+.tm-logo-empty .bi { font-size: 1.6rem; opacity: .6; }

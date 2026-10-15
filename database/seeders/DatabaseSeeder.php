@@ -14,6 +14,7 @@ use Illuminate\Database\Seeder;
 
 /**
  * Demo-Inhalte für die lokale Entwicklung. Login: admin / havoc-dev
+ * (Band-Manager-Logins siehe BandManagerSeeder)
  */
 class DatabaseSeeder extends Seeder
 {
@@ -40,5 +41,7 @@ class DatabaseSeeder extends Seeder
         TeamMember::factory(3)->create();
         AgencyShow::factory(2)->create();
         Message::factory(2)->create();
+
+        $this->call(BandManagerSeeder::class);
     }
 }

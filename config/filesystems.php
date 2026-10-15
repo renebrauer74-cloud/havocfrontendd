@@ -38,6 +38,14 @@ return [
             'report' => false,
         ],
 
+        // Uploads des Band-Managers (Verträge, Rider, Fotos) – nur über Controller mit Rechteprüfung abrufbar
+        'band-manager' => [
+            'driver' => 'local',
+            'root' => storage_path('app/private/band-manager'),
+            'throw' => false,
+            'report' => false,
+        ],
+
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),
