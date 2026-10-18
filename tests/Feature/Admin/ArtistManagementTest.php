@@ -70,6 +70,49 @@ it('keeps the image when the artist is saved without a new upload', function () 
     expect($artist->refresh()->getFirstMedia(MediaCollectionEnum::Artists->value)->uuid)->toBe($uuid);
 });
 
+it('offers removing the image only when the artist has one', function () {
+    $artist = Artist::factory()->create();
+
+    actingAsAdmin()->get(route('admin.artists.edit', $artist))->assertOk()->assertDontSee('name="remove_image"', false);
+
+    $artist->addMedia(UploadedFile::fake()->image('band.jpg'))->toMediaCollection(MediaCollectionEnum::Artists->value);
+
+    actingAsAdmin()->get(route('admin.artists.edit', $artist))->assertOk()->assertSee('name="remove_image"', false);
+});
+
+it('removes the image when requested', function () {
+    $artist = Artist::factory()->create();
+    $artist->addMedia(UploadedFile::fake()->image('band.jpg'))->toMediaCollection(MediaCollectionEnum::Artists->value);
+    $oldFile = $artist->getFirstMedia(MediaCollectionEnum::Artists->value)->getPathRelativeToRoot();
+
+    actingAsAdmin()
+        ->put(route('admin.artists.update', $artist), [
+            'name' => 'Ohne Bild',
+            'remove_image' => '1',
+        ])
+        ->assertRedirect(route('admin.artists.index'));
+
+    $artist->refresh();
+
+    expect($artist->name)->toBe('Ohne Bild')
+        ->and($artist->getMedia(MediaCollectionEnum::Artists->value))->toHaveCount(0)
+        ->and($artist->getFirstMediaUrl(MediaCollectionEnum::Artists->value))->toBe(asset('assets/img/havoc-logo.jpeg'));
+    Storage::disk('uploads')->assertMissing($oldFile);
+});
+
+it('prefers a new upload over removing the image', function () {
+    $artist = Artist::factory()->create();
+    $artist->addMedia(UploadedFile::fake()->image('alt.jpg'))->toMediaCollection(MediaCollectionEnum::Artists->value);
+
+    actingAsAdmin()->put(route('admin.artists.update', $artist), [
+        'name' => 'Neues Bild',
+        'remove_image' => '1',
+        'image' => UploadedFile::fake()->image('neu.png'),
+    ]);
+
+    expect($artist->refresh()->getFirstMedia(MediaCollectionEnum::Artists->value)->file_name)->toBe('neu.png');
+});
+
 it('rejects uploads that are not images', function () {
     actingAsAdmin()
         ->post(route('admin.artists.store'), [

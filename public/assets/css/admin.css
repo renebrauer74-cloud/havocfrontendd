@@ -57,6 +57,8 @@ h2 { font-weight: 900; font-size: 24px; text-transform: uppercase; letter-spacin
 .drop-zone:hover, .drop-zone.drag-over { border-color: #ffffff; background-color: #18181b; color: #ffffff; }
 .preview-img { max-width: 100%; max-height: 120px; margin-top: 12px; display: block; border: 1px solid #27272a; object-fit: contain; }
 .preview-img[hidden] { display: none; }
+.remove-image { display: inline-flex; align-items: center; gap: 8px; margin: 12px 0 0; cursor: pointer; }
+.remove-image input { width: auto; padding: 0; accent-color: #ef4444; }
 
 .cancel-btn { display: block; width: 100%; background: none; border: 1px solid #3f3f46; color: #a1a1aa; padding: 12px; margin-top: 12px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; cursor: pointer; text-align: center; text-decoration: none; }
 .cancel-btn:hover { color: #ffffff; border-color: #ffffff; }

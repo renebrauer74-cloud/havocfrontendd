@@ -57,12 +57,14 @@ class ArtistController extends Controller
 
     private function save(Artist $artist, ArtistRequest $request): void
     {
-        $artist->fill($request->safe()->except('image'));
+        $artist->fill($request->safe()->except(['image', 'remove_image']));
 
         $artist->save();
 
         if ($request->hasFile('image')) {
             $artist->addMediaFromRequest('image')->toMediaCollection(MediaCollectionEnum::Artists->value);
+        } elseif ($request->boolean('remove_image')) {
+            $artist->clearMediaCollection(MediaCollectionEnum::Artists->value);
         }
     }
 }
