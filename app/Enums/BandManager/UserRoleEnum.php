@@ -50,6 +50,7 @@ enum UserRoleEnum: string
                 BandAreaEnum::Messages->value => AreaAccessEnum::View,
                 BandAreaEnum::Presskit->value => AreaAccessEnum::View,
                 BandAreaEnum::Riders->value => AreaAccessEnum::Edit,
+                BandAreaEnum::Cloud->value => AreaAccessEnum::Edit,
             ],
             self::Team => [
                 BandAreaEnum::Calendar->value => AreaAccessEnum::View,
@@ -57,6 +58,7 @@ enum UserRoleEnum: string
                 BandAreaEnum::Team->value => AreaAccessEnum::View,
                 BandAreaEnum::Documents->value => AreaAccessEnum::View,
                 BandAreaEnum::Riders->value => AreaAccessEnum::View,
+                BandAreaEnum::Cloud->value => AreaAccessEnum::View,
             ],
             self::Photographer => [
                 BandAreaEnum::Team->value => AreaAccessEnum::View,

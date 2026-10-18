@@ -9,4 +9,7 @@ enum MediaConversionEnum: string
 
     /** Verkleinertes PNG (mit Transparenz) für PDFs – z. B. das Bandlogo im Tech Rider */
     case PdfLogo = 'pdf-logo';
+
+    /** Quadratisches JPEG für die Dateiliste im Cloud-Speicher */
+    case Thumbnail = 'thumbnail';
 }

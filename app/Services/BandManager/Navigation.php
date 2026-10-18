@@ -31,6 +31,7 @@ class Navigation
             ['route' => 'band-manager.calendar.index', 'active' => ['band-manager.calendar.*'], 'label' => $user->isAdmin() ? 'Kalender' : 'Mein Kalender', 'icon' => 'calendar3', 'order' => 20, 'visible' => $user->can('availability.view')],
             ['route' => 'band-manager.team.index', 'active' => ['band-manager.team.*'], 'label' => 'Band/Team', 'icon' => 'person-vcard', 'order' => 25, 'visible' => $user->can('team.view')],
             ['route' => 'band-manager.gallery.index', 'active' => ['band-manager.gallery.*'], 'label' => 'Galerie', 'icon' => 'images', 'order' => 27, 'visible' => $user->can('gallery.view')],
+            ['route' => 'band-manager.cloud.index', 'active' => ['band-manager.cloud.*'], 'label' => 'Cloud', 'icon' => 'cloud', 'order' => 28, 'visible' => $user->can('cloud.view')],
             ['route' => 'band-manager.gigs.index', 'active' => ['band-manager.gigs.*'], 'label' => 'Gigs', 'icon' => 'music-note-beamed', 'order' => 30, 'visible' => $user->can('gigs.view')],
             ['route' => 'band-manager.messages.index', 'active' => ['band-manager.messages.*'], 'label' => 'Nachrichten', 'icon' => 'chat-dots', 'order' => 35, 'visible' => $user->can('messages.view'),
                 'badge' => $user->can('messages.view') ? app(CountUnreadThreadsAction::class)->execute($user) : 0],

@@ -46,6 +46,8 @@ return [
             'logins.manage',        // Zugänge für Bandmitglieder, Team und Fotografen
             'riders.view',          // Rider Creator (Tech & Catering Rider, Stage Plot) ansehen & als PDF laden
             'riders.edit',          // Rider Creator bearbeiten
+            'cloud.view',           // Cloud-Speicher ansehen & Dateien herunterladen
+            'cloud.edit',           // hochladen, Ordner anlegen, umbenennen, verschieben, Papierkorb
         ],
 
         // Zugänge einer Band: Rechte kommen aus den freigegebenen Bereichen (App\Enums\BandManager\BandAreaEnum)
@@ -130,6 +132,47 @@ return [
     'documents' => [
         'max_size_mb' => 50,   // Verträge & Rider (PDF)
         // Rider-Arten: App\Enums\BandManager\RiderCategoryEnum
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Cloud-Speicher
+    |--------------------------------------------------------------------------
+    |
+    | Dateien liegen im privaten Bucket "band-manager" unter cloud/<band-id>/.
+    | max_file_mb muss zu upload_max_filesize / post_max_size in public/.user.ini
+    | passen. Dateien im Papierkorb zählen zum Speicherplatz und werden nach
+    | trash_days vom Befehl band-manager:cloud-purge-trash endgültig gelöscht.
+    |
+    */
+
+    'cloud' => [
+        'quota_gb' => 10,           // Speicherplatz pro Band
+        'max_file_mb' => 500,       // pro Datei
+        'trash_days' => 30,
+        'thumbnail_px' => 400,      // Vorschau für Bilder in der Dateiliste
+        'max_megapixels' => 60,     // größere Bilder bekommen keine Vorschau – zu viel RAM
+        'name_max' => 150,          // Zeichen für Ordner- und Dateinamen
+
+        // Ausführbare Dateien – zusätzlich sperrt die Media Library z. B. php, cgi, asp (FileAdder::$defaultDisallowedExtensions)
+        'blocked_extensions' => [
+            'exe', 'msi', 'msp', 'com', 'bat', 'cmd', 'scr', 'pif', 'cpl', 'dll', 'sys', 'lnk', 'reg', 'hta', 'msc',
+            'vbs', 'vbe', 'js', 'jse', 'wsf', 'wsh', 'ps1', 'psm1', 'sh', 'bash', 'csh', 'ksh', 'run', 'bin', 'jar',
+            'apk', 'app', 'gadget', 'scf', 'inf', 'appx', 'msix',
+        ],
+
+        // Vorgegebene Ordner jeder Band – Hauptordner sind gesperrt, Unterordner frei änderbar
+        'default_folders' => [
+            'Fotos' => ['Pressefotos', 'Live', 'Backstage & Tour'],
+            'Musik' => ['Releases (Master)', 'Demos', 'Proberaum-Mitschnitte'],
+            'Recording-Projekte' => ['DAW-Projekte', 'Stems & Spuren', 'Mixe & Bounces', 'Maps & Presets'],
+            'Videos' => ['Musikvideos', 'Live-Mitschnitte', 'Social-Media-Clips'],
+            'Artwork & Design' => ['Logos', 'Cover', 'Merch, Poster & Flyer'],
+            'Texte & Noten' => ['Lyrics', 'Setlists', 'Noten & Tabs'],
+            'Presse & Promo' => [],
+            'Organisation' => [],
+            'Sonstiges' => [],
+        ],
     ],
 
     /*

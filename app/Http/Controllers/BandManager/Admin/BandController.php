@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\BandManager\Admin;
 
+use App\Actions\BandManager\Cloud\CreateDefaultCloudFoldersAction;
 use App\Actions\BandManager\DeleteBandAction;
 use App\Actions\BandManager\RecordActivityAction;
 use App\Http\Controllers\Controller;
@@ -25,10 +26,14 @@ class BandController extends Controller
         return $this->form(new Band);
     }
 
-    public function store(BandRequest $request): RedirectResponse
+    /**
+     * Die vorgegebenen Cloud-Ordner entstehen gleich mit (bestehende Bands bekommen sie beim ersten Öffnen der Cloud).
+     */
+    public function store(BandRequest $request, CreateDefaultCloudFoldersAction $createCloudFolders): RedirectResponse
     {
         $band = Band::query()->create($request->bandAttributes());
         $band->users()->sync($request->userIds());
+        $createCloudFolders->execute($band);
 
         app(RecordActivityAction::class)->execute('band.created', ['band_id' => $band->id]);
 
