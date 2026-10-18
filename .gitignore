@@ -33,3 +33,5 @@ Thumbs.db
 # Alt-Daten aus der JSON-Ablage (Quelle für php artisan havoc:import-json)
 /storage/data/*
 !/storage/data/.gitkeep
+
+PR.md

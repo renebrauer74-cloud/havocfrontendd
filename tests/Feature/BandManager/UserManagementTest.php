@@ -24,9 +24,7 @@ it('shows the user forms', function () {
     actingAsBandManager()->get(route('band-manager.admin.users.edit', $user))->assertSuccessful()->assertSee($user->email);
 });
 
-it('creates a user with bands', function () {
-    $band = Band::factory()->create();
-
+it('creates an artist together with their own band', function () {
     actingAsBandManager()
         ->post(route('band-manager.admin.users.store'), [
             'name' => 'Kim Kitten',
@@ -34,17 +32,71 @@ it('creates a user with bands', function () {
             'password' => 'geheim1234',
             'role' => 'artist',
             'is_active' => '1',
-            'bands' => [$band->id],
+            'band_name' => 'Iron Kittens',
         ])
         ->assertRedirect(route('band-manager.admin.users.index'))
         ->assertSessionHas('success');
 
     $user = User::query()->where('email', 'kim@example.com')->sole();
+    $band = Band::query()->sole();
 
     expect($user->is_active)->toBeTrue()
         ->and(Hash::check('geheim1234', $user->password))->toBeTrue()
+        ->and($band->name)->toBe('Iron Kittens')
+        ->and($band->contact_email)->toBe('kim@example.com')
         ->and($user->bands->modelKeys())->toBe([$band->id])
-        ->and(ActivityLog::query()->where('action', 'user.created')->exists())->toBeTrue();
+        ->and(ActivityLog::query()->where('action', 'user.created')->exists())->toBeTrue()
+        ->and(ActivityLog::query()->where('action', 'band.created')->exists())->toBeTrue();
+});
+
+it('creates an admin without a band', function () {
+    actingAsBandManager()
+        ->post(route('band-manager.admin.users.store'), [
+            'name' => 'Alex Agentur',
+            'email' => 'alex@example.com',
+            'password' => 'geheim1234',
+            'role' => 'admin',
+            'band_name' => 'Wird ignoriert',
+        ])
+        ->assertRedirect(route('band-manager.admin.users.index'));
+
+    $admin = User::query()->where('email', 'alex@example.com')->sole();
+
+    expect($admin->isAdmin())->toBeTrue()
+        ->and($admin->bands)->toBeEmpty()
+        ->and(Band::query()->exists())->toBeFalse();
+});
+
+it('removes band assignments when a user becomes admin', function () {
+    $band = Band::factory()->create();
+    $user = User::factory()->hasAttached($band)->create();
+
+    actingAsBandManager()
+        ->put(route('band-manager.admin.users.update', $user), [
+            'name' => $user->name,
+            'email' => $user->email,
+            'role' => 'admin',
+            'bands' => [$band->id],
+        ])
+        ->assertRedirect(route('band-manager.admin.users.index'));
+
+    expect($user->fresh()->bands)->toBeEmpty();
+});
+
+it('updates the bands of an artist', function () {
+    [$oldBand, $newBand] = Band::factory()->count(2)->create();
+    $user = User::factory()->hasAttached($oldBand)->create();
+
+    actingAsBandManager()
+        ->put(route('band-manager.admin.users.update', $user), [
+            'name' => $user->name,
+            'email' => $user->email,
+            'role' => 'artist',
+            'bands' => [$newBand->id],
+        ])
+        ->assertRedirect(route('band-manager.admin.users.index'));
+
+    expect($user->fresh()->bands->modelKeys())->toBe([$newBand->id]);
 });
 
 it('validates new users', function (array $data, string $field) {
@@ -56,6 +108,7 @@ it('validates new users', function (array $data, string $field) {
             'email' => 'kim@example.com',
             'password' => 'geheim1234',
             'role' => 'artist',
+            'band_name' => 'Iron Kittens',
         ], $data))
         ->assertSessionHasErrors($field);
 })->with([
@@ -65,6 +118,8 @@ it('validates new users', function (array $data, string $field) {
     'short password' => [['password' => 'kurz'], 'password'],
     'missing password' => [['password' => ''], 'password'],
     'unknown role' => [['role' => 'superuser'], 'role'],
+    'missing band name' => [['band_name' => ''], 'band_name'],
+    'too long band name' => [['band_name' => str_repeat('a', 151)], 'band_name'],
     'unknown band' => [['bands' => [999]], 'bands.0'],
 ]);
 
