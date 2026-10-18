@@ -2,7 +2,7 @@
     $count = fn (int $number, string $one, string $many): string => $number === 1 ? "1 {$one}" : "{$number} {$many}";
 @endphp
 <x-band-manager.layout title="Pressekit zusammenstellen">
-    <a href="{{ route('band-manager.exports.index') }}" class="small">&larr; Export</a>
+    <a href="{{ route('band-manager.exports.index') }}" class="hv-back"><i class="bi bi-arrow-left"></i> Export</a>
     <h1 class="h3 mb-1">Pressekit zusammenstellen</h1>
     <p class="text-muted small mb-4" style="max-width:820px">
         Hake an, was ins Pressekit soll. Du bekommst eine <strong>ZIP-Datei</strong> mit einem Ordner: PDFs (Bandinfo, Fotos, Live-Termine),

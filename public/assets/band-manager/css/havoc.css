@@ -343,6 +343,23 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
 .fw-bold { font-weight: 600 !important; }
 
 /* =====================================================================
+   Links – Textlinks in Akzentfarbe, damit sie sich vom Fließtext abheben
+   ===================================================================== */
+.hv-link { font-weight: 500; color: var(--hv-accent-text); }
+.hv-link:hover { color: var(--hv-accent-text); text-decoration: underline; text-underline-offset: 2px; }
+
+/* Zurück-Link über der Seitenüberschrift */
+.hv-back {
+  display: inline-flex; align-items: center; gap: .35rem;
+  margin-bottom: .35rem;
+  font-size: .8rem; font-weight: 500;
+  color: var(--hv-accent-text);
+}
+.hv-back .bi { transition: transform .15s; }
+.hv-back:hover { color: var(--hv-accent-text); text-decoration: underline; text-underline-offset: 2px; }
+.hv-back:hover .bi { transform: translateX(-2px); }
+
+/* =====================================================================
    Karten, Listen, Fenster
    ===================================================================== */
 .card {
@@ -359,8 +376,8 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
   box-shadow: var(--hv-card-shadow);
 }
 .card-header { font-size: .875rem; font-weight: 600; color: var(--hv-heading); }
-.card-header a { font-weight: 500; color: var(--hv-muted); }
-.card-header a:hover { color: var(--hv-heading); }
+.card-header a:not(.btn) { font-weight: 500; color: var(--hv-accent-text); }
+.card-header a:not(.btn):hover { text-decoration: underline; text-underline-offset: 2px; }
 a.card { transition: border-color .15s, transform .15s; }
 a.card:hover { border-color: var(--hv-border-strong); transform: translateY(-1px); }
 .shadow-sm { box-shadow: var(--hv-card-shadow) !important; }

@@ -10,7 +10,7 @@
 
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
         <div>
-            @if ($bands->count() > 1)<a href="{{ route('band-manager.gallery.index') }}" class="small">&larr; Alle Bands</a>@endif
+            @if ($bands->count() > 1)<a href="{{ route('band-manager.gallery.index') }}" class="hv-back"><i class="bi bi-arrow-left"></i> Alle Bands</a>@endif
             <h1 class="h3 mb-0">{{ $band->name }} – Galerie</h1>
         </div>
         <div class="d-flex flex-wrap align-items-center gap-2">

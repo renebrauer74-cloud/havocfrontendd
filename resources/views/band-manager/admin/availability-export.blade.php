@@ -1,5 +1,5 @@
 <x-band-manager.layout title="CSV-Export">
-    <a href="{{ route('band-manager.exports.index') }}" class="small">&larr; Export</a>
+    <a href="{{ route('band-manager.exports.index') }}" class="hv-back"><i class="bi bi-arrow-left"></i> Export</a>
     <h1 class="h3 mb-4">CSV-Export</h1>
     <form method="get" action="{{ route('band-manager.admin.availability-export.download') }}" class="card card-body shadow-sm" style="max-width:520px">
         <div class="mb-3">

@@ -8,10 +8,10 @@
 @endphp
 <x-band-manager.layout :title="'Bandprofil – '.$band->name">
     @push('styles')
-        <link href="{{ asset('assets/band-manager/css/team.css') }}" rel="stylesheet">
+        <link href="{{ asset('assets/band-manager/css/team.css') }}?v=2" rel="stylesheet">
     @endpush
 
-    <a href="{{ $back }}" class="small">&larr; {{ $band->name }} – Band &amp; Team</a>
+    <a href="{{ $back }}" class="hv-back"><i class="bi bi-arrow-left"></i> {{ $band->name }} – Band &amp; Team</a>
     <h1 class="h3 mb-1">Bandprofil bearbeiten</h1>
     <p class="text-muted small mb-4">Logo, Biografie und Links erscheinen im Bandprofil und im <strong>Pressekit</strong>.</p>
 
@@ -41,7 +41,7 @@
                 </div>
                 @if ($logoUrl)
                     <div class="d-flex flex-wrap align-items-center gap-3 mt-2">
-                        <a href="{{ route('band-manager.team.logo', ['band' => $band, 'download' => 1]) }}" class="small"><i class="bi bi-download"></i> Logo herunterladen</a>
+                        <a href="{{ route('band-manager.team.logo', ['band' => $band, 'download' => 1]) }}" class="small hv-link"><i class="bi bi-download"></i> Logo herunterladen</a>
                         <div class="form-check m-0">
                             <input class="form-check-input" type="checkbox" name="remove_logo" value="1" id="remove_logo">
                             <label class="form-check-label small" for="remove_logo">Logo entfernen</label>

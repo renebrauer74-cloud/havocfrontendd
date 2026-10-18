@@ -30,7 +30,7 @@
                     </a>
                     @if ($rider->exists)
                         <div class="card-footer bg-transparent small">
-                            <a href="{{ route('band-manager.tech-riders.pdf', $band) }}"><i class="bi bi-download"></i> PDF herunterladen</a>
+                            <a href="{{ route('band-manager.tech-riders.pdf', $band) }}" class="hv-link"><i class="bi bi-download"></i> PDF herunterladen</a>
                         </div>
                     @endif
                 </div>
