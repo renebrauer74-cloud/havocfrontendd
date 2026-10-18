@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\BandManager\Admin;
 
 use App\Actions\BandManager\RecordActivityAction;
+use App\Actions\BandManager\Users\CreateUserAction;
 use App\Enums\BandManager\UserRoleEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\BandManager\Admin\UserRequest;
@@ -26,10 +27,9 @@ class UserController extends Controller
         return $this->form(new User(['role' => UserRoleEnum::Artist, 'is_active' => true]));
     }
 
-    public function store(UserRequest $request): RedirectResponse
+    public function store(UserRequest $request, CreateUserAction $createUser): RedirectResponse
     {
-        $user = User::query()->create($request->userAttributes());
-        $user->bands()->sync($request->bandIds());
+        $user = $createUser->execute($request->userAttributes(), $request->bandName());
 
         app(RecordActivityAction::class)->execute('user.created', ['user_id' => $user->id]);
 
@@ -44,7 +44,7 @@ class UserController extends Controller
     public function update(UserRequest $request, User $user): RedirectResponse
     {
         $user->update($request->userAttributes());
-        $user->bands()->sync($request->bandIds());
+        $user->bands()->sync($user->isAdmin() ? [] : $request->bandIds());
 
         app(RecordActivityAction::class)->execute('user.updated', ['user_id' => $user->id]);
 

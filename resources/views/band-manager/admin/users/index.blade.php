@@ -13,7 +13,7 @@
                         <td>{{ $user->name }}</td>
                         <td>{{ $user->email }}</td>
                         <td>{{ $user->role->label() }}</td>
-                        <td class="small">{{ $user->bands->pluck('name')->sort()->join(', ') ?: '–' }}</td>
+                        <td class="small">{{ $user->isAdmin() ? 'alle Bands' : ($user->bands->pluck('name')->sort()->join(', ') ?: '–') }}</td>
                         <td>
                             @if ($user->is_active)
                                 <span class="badge text-bg-success">aktiv</span>

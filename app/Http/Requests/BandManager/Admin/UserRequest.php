@@ -42,6 +42,7 @@ class UserRequest extends FormRequest
             'password' => [$this->editedUser() ? 'nullable' : 'required', 'string', 'min:8'],
             'role' => ['required', Rule::enum(UserRoleEnum::class)],
             'is_active' => ['boolean'],
+            'band_name' => [Rule::requiredIf(fn (): bool => $this->isNewArtist()), 'nullable', 'string', 'max:150'],
             'bands' => ['array'],
             'bands.*' => ['integer', Rule::exists('bm_bands', 'id')],
         ];
@@ -54,6 +55,7 @@ class UserRequest extends FormRequest
     {
         return [
             'role' => 'Rolle',
+            'band_name' => 'Band-/Künstlername',
             'bands' => 'Bands',
             'bands.*' => 'Band',
         ];
@@ -87,6 +89,19 @@ class UserRequest extends FormRequest
     public function bandIds(): array
     {
         return array_map('intval', $this->validated('bands', []));
+    }
+
+    /**
+     * Name der Band, die für einen neuen Künstler direkt angelegt wird.
+     */
+    public function bandName(): ?string
+    {
+        return $this->isNewArtist() ? $this->validated('band_name') : null;
+    }
+
+    private function isNewArtist(): bool
+    {
+        return ! $this->editedUser() && $this->enum('role', UserRoleEnum::class) === UserRoleEnum::Artist;
     }
 
     private function editedUser(): ?User
