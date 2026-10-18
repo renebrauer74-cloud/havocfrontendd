@@ -22,6 +22,9 @@
             @if ($bands->count() > 1)
                 <x-band-manager.band-switcher :bands="$bands" :current="$band" route="band-manager.team.band" />
             @endif
+            @can('logins.manage')
+                <a href="{{ route('band-manager.accesses.index', $band) }}" class="btn btn-outline-secondary"><i class="bi bi-key"></i> Zugänge</a>
+            @endcan
             @if ($canEdit)
                 <a href="{{ route('band-manager.team.create', [$band, 'type' => 'member']) }}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Bandmitglied</a>
                 <a href="{{ route('band-manager.team.create', [$band, 'type' => 'crew']) }}" class="btn btn-outline-primary"><i class="bi bi-plus-lg"></i> Teammitglied</a>

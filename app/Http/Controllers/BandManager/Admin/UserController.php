@@ -68,6 +68,8 @@ class UserController extends Controller
     {
         return view('band-manager.admin.users.form', [
             'user' => $user,
+            // Zugänge (Bandmitglied, Team, Fotograf) legt die Band selbst an
+            'roles' => $user->exists ? UserRoleEnum::cases() : [UserRoleEnum::Admin, UserRoleEnum::Artist],
             'bands' => Band::query()->orderBy('name')->get(),
             'selectedBandIds' => $user->exists ? $user->bands()->pluck('id')->all() : [],
         ]);

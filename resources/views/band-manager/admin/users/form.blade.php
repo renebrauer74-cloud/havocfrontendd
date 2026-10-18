@@ -29,7 +29,7 @@
             <div class="col-md-6">
                 <label class="form-label" for="role">Rolle</label>
                 <select name="role" id="role" class="form-select">
-                    @foreach (\App\Enums\BandManager\UserRoleEnum::cases() as $role)
+                    @foreach ($roles as $role)
                         <option value="{{ $role->value }}" @selected(old('role', $user->role?->value) === $role->value)>{{ $role->label() }}</option>
                     @endforeach
                 </select>
