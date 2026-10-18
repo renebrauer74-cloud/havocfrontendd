@@ -38,6 +38,7 @@ class CloudFolder extends Model
 
     /**
      * Vorgegebene Ordner zuerst (in der Reihenfolge der Config), danach eigene Ordner nach Name.
+     * „case when is_preset“ ohne Vergleich mit 1 – PostgreSQL (Live) kennt kein boolean = integer.
      *
      * @param  Builder<CloudFolder>  $query
      */
@@ -45,7 +46,7 @@ class CloudFolder extends Model
     protected function ordered(Builder $query): void
     {
         $query->orderByDesc('is_preset')
-            ->orderByRaw('case when is_preset = 1 then id else 0 end')
+            ->orderByRaw('case when is_preset then id else 0 end')
             ->orderBy('name');
     }
 
