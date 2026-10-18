@@ -1,6 +1,6 @@
 <x-band-manager.layout title="Tech Rider">
     @push('styles')
-        <link href="{{ asset('assets/band-manager/css/riders.css') }}?v=2" rel="stylesheet">
+        <link href="{{ asset('assets/band-manager/css/riders.css') }}?v=3" rel="stylesheet">
     @endpush
 
     <h1 class="h3 mb-1">Tech Rider – Band wählen</h1>

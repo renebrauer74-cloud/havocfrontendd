@@ -2,6 +2,7 @@
 
 namespace App\Services\BandManager;
 
+use App\Actions\BandManager\Team\DescribeTeamMemberAllergyAction;
 use App\Actions\BandManager\Team\DescribeTeamMemberRoleAction;
 use App\Models\BandManager\Gig;
 use App\Models\BandManager\TeamMember;
@@ -11,7 +12,11 @@ use App\Models\BandManager\TeamMember;
  */
 class DaySheet
 {
-    public function __construct(private Pdf $pdf, private DescribeTeamMemberRoleAction $describeRole) {}
+    public function __construct(
+        private Pdf $pdf,
+        private DescribeTeamMemberRoleAction $describeRole,
+        private DescribeTeamMemberAllergyAction $describeAllergy,
+    ) {}
 
     public function render(Gig $gig): string
     {
@@ -49,9 +54,19 @@ class DaySheet
                 'name' => trim($person->first_name.' '.$person->last_name).($person->stage_name ? ' („'.$person->stage_name.'“)' : ''),
                 'role' => $this->describeRole->execute($person),
                 'phone' => (string) $person->phone,
-                'diet' => (string) $person->diet,
+                'diet' => $this->dietWithAllergy($person),
             ])
             ->values()
             ->all();
+    }
+
+    /**
+     * "vegan · Allergie: Gluten" – leere Angaben fallen weg.
+     */
+    private function dietWithAllergy(TeamMember $person): string
+    {
+        $allergy = $this->describeAllergy->execute($person);
+
+        return collect([$person->diet, $allergy !== '' ? 'Allergie: '.$allergy : null])->filter()->join(' · ');
     }
 }

@@ -1,4 +1,4 @@
-// Tech Rider: Zeilen hinzufügen / sortieren / entfernen, Vorlagen einfügen, Hinweis auf ungespeicherte Änderungen
+// Rider Creator (Tech & Catering Rider): Zeilen hinzufügen / sortieren / entfernen, Vorlagen einfügen, Hinweis auf ungespeicherte Änderungen
 (() => {
     const form = document.getElementById('rdForm');
     if (!form) return;
@@ -64,8 +64,13 @@
             const name = preset.dataset.rdPreset;
             const rows = [...listEl(name).querySelectorAll(':scope > [data-rd-row]')];
             const filled = rows.filter(row => !isEmptyRow(row));
-            if (filled.length && !confirm('Die Vorlage wird unten an die vorhandenen Einträge angefügt. Weiter?')) return;
-            rows.filter(isEmptyRow).forEach(row => row.remove());
+            // data-rd-replace: Vorlage ersetzt die Liste (z. B. Reisegruppe neu aus „Band/Team“), sonst wird sie angefügt
+            const replace = preset.hasAttribute('data-rd-replace');
+            const question = replace
+                ? 'Die Liste wird durch die aktuellen Einträge ersetzt – eigene Änderungen gehen verloren. Weiter?'
+                : 'Die Vorlage wird unten an die vorhandenen Einträge angefügt. Weiter?';
+            if (filled.length && !confirm(question)) return;
+            rows.filter(row => replace || isEmptyRow(row)).forEach(row => row.remove());
             (presets[name] || []).forEach(values => addRow(name, values, false));
             refresh(name);
             markDirty();

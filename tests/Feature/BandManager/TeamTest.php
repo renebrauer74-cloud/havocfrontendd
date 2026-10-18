@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\BandManager\AllergyEnum;
 use App\Enums\BandManager\CrewRoleEnum;
 use App\Enums\MediaCollectionEnum;
 use App\Enums\MediaConversionEnum;
@@ -91,8 +92,29 @@ it('validates team members', function (array $data, string $field) {
     'invalid email' => [['email' => 'nope'], 'email'],
     'birth date in the future' => [['birth_date' => '2999-01-01'], 'birth_date'],
     'unknown shirt size' => [['shirt_size' => 'XXXXL'], 'shirt_size'],
+    'unknown allergy' => [['allergy' => 'pollen'], 'allergy'],
+    'other allergy without text' => [['allergy' => 'other'], 'allergy_other'],
     'not an image' => [['photo' => UploadedFile::fake()->create('cv.pdf', 10, 'application/pdf')], 'photo'],
 ]);
+
+it('saves an allergy from the list or as own text and shows it in the profile', function () {
+    $person = TeamMember::factory()->create(['first_name' => 'Kim']);
+
+    actingAsBandManager()->get(route('band-manager.team.edit', $person))
+        ->assertSee('<option value="nuts" >Nüsse / Erdnüsse</option>', false)
+        ->assertSee('Welche Allergie?');
+
+    actingAsBandManager()->put(route('band-manager.team.update', $person), ['first_name' => 'Kim', 'allergy' => 'other', 'allergy_other' => 'Sellerie'])
+        ->assertSessionHasNoErrors();
+
+    expect($person->fresh())->allergy->toBe(AllergyEnum::Other)->allergy_other->toBe('Sellerie');
+
+    actingAsBandManager()->get(route('band-manager.team.show', $person))->assertSeeInOrder(['Allergie', 'Sellerie']);
+
+    actingAsBandManager()->put(route('band-manager.team.update', $person), ['first_name' => 'Kim', 'allergy' => 'gluten', 'allergy_other' => 'Sellerie']);
+
+    expect($person->fresh())->allergy->toBe(AllergyEnum::Gluten)->allergy_other->toBeNull();
+});
 
 it('keeps the custom crew role only for "other"', function () {
     $person = TeamMember::factory()->crew('other')->create(['crew_role_other' => 'Fotograf']);
@@ -207,7 +229,7 @@ it('deletes all band files when a band is deleted', function () {
 
 it('lists the selected travel party on the day sheet', function () {
     $band = Band::factory()->create();
-    $sam = TeamMember::factory()->for($band)->crew()->create(['first_name' => 'Sam', 'last_name' => 'Sound', 'diet' => 'vegan']);
+    $sam = TeamMember::factory()->for($band)->crew()->create(['first_name' => 'Sam', 'last_name' => 'Sound', 'diet' => 'vegan', 'allergy' => AllergyEnum::Gluten]);
     $kim = TeamMember::factory()->for($band)->create(['first_name' => 'Kim', 'last_name' => 'Kitten', 'stage_name' => 'Kitty']);
     TeamMember::factory()->for($band)->create(['first_name' => 'Daheim', 'last_name' => 'Bleiber']);
     $gig = Gig::factory()->for($band)->create();
@@ -223,7 +245,7 @@ it('lists the selected travel party on the day sheet', function () {
 
     expect($html)->toContain('Reisegruppe (2 Personen)')
         ->toContain('Kim Kitten („Kitty“)')
-        ->toContain('vegan')
+        ->toContain('vegan · Allergie: Gluten')
         ->not->toContain('Daheim Bleiber')
         ->and(strpos($html, 'Kim Kitten'))->toBeLessThan(strpos($html, 'Sam Sound'));
 });

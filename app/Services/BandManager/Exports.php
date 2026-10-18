@@ -33,6 +33,14 @@ class Exports
                 'description' => 'Tech Rider mit Kanalliste, Monitoring, Backline und Bühnenplan – als PDF.',
             ],
             [
+                'ability' => 'riders.view',
+                'route' => 'band-manager.catering-rider-export.index',
+                'active' => ['band-manager.catering-rider-export.*'],
+                'icon' => 'cup-hot',
+                'title' => 'Catering Rider',
+                'description' => 'Reisegruppe mit Ernährung, Mahlzeiten, Buyout, Getränke und Garderobe – als PDF.',
+            ],
+            [
                 'ability' => 'export.csv',
                 'route' => 'band-manager.admin.availability-export.index',
                 'active' => ['band-manager.admin.availability-export.*'],

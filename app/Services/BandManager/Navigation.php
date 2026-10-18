@@ -41,6 +41,7 @@ class Navigation
             ['route' => 'band-manager.accesses.index', 'active' => ['band-manager.accesses.*'], 'label' => 'Zugänge', 'icon' => 'key', 'order' => 90, 'visible' => ! $user->isAdmin() && $user->can('logins.manage')],
 
             ['route' => 'band-manager.tech-riders.index', 'active' => ['band-manager.tech-riders.*'], 'label' => 'Tech Rider', 'icon' => 'sliders2-vertical', 'order' => 10, 'section' => 'riders', 'visible' => $user->can('riders.view')],
+            ['route' => 'band-manager.catering-riders.index', 'active' => ['band-manager.catering-riders.*'], 'label' => 'Catering Rider', 'icon' => 'cup-hot', 'order' => 20, 'section' => 'riders', 'visible' => $user->can('riders.view')],
 
             ...$exports,
 

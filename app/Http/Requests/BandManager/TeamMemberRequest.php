@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\BandManager;
 
+use App\Enums\BandManager\AllergyEnum;
 use App\Enums\BandManager\CrewRoleEnum;
 use App\Models\BandManager\Band;
 use App\Models\BandManager\TeamMember;
@@ -59,6 +60,8 @@ class TeamMemberRequest extends FormRequest
             'country' => ['nullable', 'string', 'max:100'],
             'shirt_size' => ['nullable', Rule::in(config('band-manager.team.shirt_sizes'))],
             'diet' => ['nullable', 'string', 'max:255'],
+            'allergy' => ['nullable', Rule::enum(AllergyEnum::class)],
+            'allergy_other' => $this->input('allergy') === AllergyEnum::Other->value ? ['required', 'string', 'max:150'] : ['exclude'],
             'driver_license' => ['nullable', 'string', 'max:50'],
             'emergency_contact' => ['nullable', 'string', 'max:255'],
             'photo' => [
@@ -80,6 +83,8 @@ class TeamMemberRequest extends FormRequest
             'first_name.required' => 'Vorname fehlt.',
             'crew_role.*' => 'Bitte die Aufgabe im Team wählen.',
             'crew_role_other.required' => 'Bitte bei „Sonstiges“ eintragen, welche Aufgabe die Person hat.',
+            'allergy.*' => 'Bitte eine Allergie aus der Liste wählen.',
+            'allergy_other.required' => 'Bitte bei „Sonstiges“ eintragen, welche Allergie die Person hat.',
             'email.email' => 'Ungültige E-Mail-Adresse.',
             'birth_date.*' => 'Ungültiges Geburtsdatum.',
             'photo.max' => "Das Foto ist zu groß (max. {$maxMb} MB).",
@@ -100,6 +105,7 @@ class TeamMemberRequest extends FormRequest
 
         $attributes['crew_role'] ??= null;
         $attributes['crew_role_other'] ??= null;
+        $attributes['allergy_other'] ??= null;
 
         return $attributes;
     }

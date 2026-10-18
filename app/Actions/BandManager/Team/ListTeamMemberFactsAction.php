@@ -10,6 +10,8 @@ use Carbon\CarbonImmutable;
  */
 class ListTeamMemberFactsAction
 {
+    public function __construct(private DescribeTeamMemberAllergyAction $describeAllergy) {}
+
     /**
      * @return list<array{0: string, 1: string, 2: ?string}> [Label, Wert, Link]
      */
@@ -30,7 +32,8 @@ class ListTeamMemberFactsAction
             ['Telefon', $member->phone, $member->phone ? 'tel:'.preg_replace('/[^0-9+]/', '', $member->phone) : null],
             ['Adresse', $address, null],
             ['T-Shirt-Größe', $member->shirt_size, null],
-            ['Ernährung / Allergien', $member->diet, null],
+            ['Ernährung', $member->diet, null],
+            ['Allergie', $this->describeAllergy->execute($member), null],
             ['Führerschein', $member->driver_license, null],
             ['Notfallkontakt', $member->emergency_contact, null],
         ];

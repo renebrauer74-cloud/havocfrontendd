@@ -85,6 +85,33 @@
 .rd-plot-empty { text-align: center; font-size: .8rem; color: var(--hv-muted); }
 .rd-plot-empty .bi { font-size: 1.6rem; opacity: .6; }
 
+/* ---------- Catering: Mahlzeiten & Buyout ---------- */
+.rd-meals { display: flex; flex-direction: column; gap: .5rem; }
+.rd-meal {
+  padding: .65rem .75rem;
+  border: 1px solid var(--hv-border); border-radius: 10px;
+  background: var(--hv-surface-2);
+}
+.rd-meal-head { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem 1rem; }
+.rd-meal-head .form-check { margin: 0; min-width: 220px; font-weight: 600; color: var(--hv-heading); }
+.rd-meal-head .form-check .bi { color: var(--hv-accent); margin-right: .25rem; }
+.rd-meal-head .form-control { flex: 1 1 220px; }
+.rd-meal textarea { margin-top: .5rem; }
+.rd-meal.is-off { opacity: .6; }
+.rd-meal.is-off textarea, .rd-meal.is-off input[type=text] { display: none; }
+
+.rd-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: .5rem; }
+.rd-option {
+  display: flex; gap: .6rem; align-items: flex-start;
+  padding: .7rem .8rem; margin: 0;
+  border: 1px solid var(--hv-border); border-radius: 10px;
+  background: var(--hv-surface-2); cursor: pointer;
+}
+.rd-option .form-check-input { margin: .15rem 0 0; flex-shrink: 0; }
+.rd-option strong { display: block; color: var(--hv-heading); font-size: .9rem; }
+.rd-option span { font-size: .8rem; color: var(--hv-muted); }
+.rd-option:has(:checked) { border-color: var(--hv-accent); box-shadow: 0 0 0 1px var(--hv-accent); }
+
 /* ---------- Speicherleiste ---------- */
 .rd-savebar {
   position: sticky; bottom: 0; z-index: 5;

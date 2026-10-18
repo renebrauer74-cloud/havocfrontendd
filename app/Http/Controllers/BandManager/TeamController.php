@@ -5,6 +5,7 @@ namespace App\Http\Controllers\BandManager;
 use App\Actions\BandManager\Profile\ListProfileLinksAction;
 use App\Actions\BandManager\RecordActivityAction;
 use App\Actions\BandManager\Team\ListTeamMemberFactsAction;
+use App\Enums\BandManager\AllergyEnum;
 use App\Enums\BandManager\CrewRoleEnum;
 use App\Enums\MediaCollectionEnum;
 use App\Enums\MediaConversionEnum;
@@ -160,6 +161,7 @@ class TeamController extends Controller
             'band' => $band,
             'person' => $member,
             'crewRoles' => CrewRoleEnum::cases(),
+            'allergies' => AllergyEnum::cases(),
             'sizes' => config('band-manager.team.shirt_sizes'),
             'maxMb' => (int) config('band-manager.team.max_photo_mb'),
         ]);

@@ -2,6 +2,7 @@
 
 namespace App\Models\BandManager;
 
+use App\Enums\BandManager\AllergyEnum;
 use App\Enums\BandManager\CrewRoleEnum;
 use App\Enums\MediaCollectionEnum;
 use App\Enums\MediaConversionEnum;
@@ -24,7 +25,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 #[Fillable([
     'band_id', 'type', 'first_name', 'last_name', 'stage_name', 'position', 'crew_role', 'crew_role_other', 'bio',
     'birth_date', 'nationality', 'email', 'phone', 'street', 'zip', 'city', 'country',
-    'shirt_size', 'diet', 'driver_license', 'emergency_contact', 'created_by',
+    'shirt_size', 'diet', 'allergy', 'allergy_other', 'driver_license', 'emergency_contact', 'created_by',
 ])]
 class TeamMember extends Model implements HasMedia
 {
@@ -46,6 +47,7 @@ class TeamMember extends Model implements HasMedia
     {
         return [
             'crew_role' => CrewRoleEnum::class,
+            'allergy' => AllergyEnum::class,
         ];
     }
 
