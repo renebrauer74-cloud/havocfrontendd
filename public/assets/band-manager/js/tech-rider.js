@@ -100,6 +100,13 @@
         markDirty();
     });
 
+    // Das PDF zeigt den gespeicherten Stand
+    document.querySelectorAll('[data-rd-pdf]').forEach(link => link.addEventListener('click', e => {
+        if (dirty && !confirm('Ihr habt ungespeicherte Änderungen – das PDF zeigt den zuletzt gespeicherten Stand. Trotzdem herunterladen?')) {
+            e.preventDefault();
+        }
+    }));
+
     form.addEventListener('input', markDirty);
     form.addEventListener('change', markDirty);
     form.addEventListener('submit', () => { dirty = false; });

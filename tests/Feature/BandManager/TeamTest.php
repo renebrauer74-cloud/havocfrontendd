@@ -195,8 +195,9 @@ it('deletes all band files when a band is deleted', function () {
     GalleryImage::factory()->for($band)->withPhoto()->create();
     Document::factory()->for($band)->withFile()->create();
     BandProfile::query()->create(['band_id' => $band->id])->addMedia(UploadedFile::fake()->image('logo.png'))->toMediaCollection(MediaCollectionEnum::BandLogos->value);
+    // 4 Originale + Vorschau (Person, Galerie) + PDF-Logo
     expect(Media::count())->toBe(4)
-        ->and(Storage::disk('band-manager')->allFiles())->toHaveCount(6);
+        ->and(Storage::disk('band-manager')->allFiles())->toHaveCount(7);
 
     actingAsBandManager()->delete(route('band-manager.admin.bands.destroy', $band));
 

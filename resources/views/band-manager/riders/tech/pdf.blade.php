@@ -1,13 +1,21 @@
 {{-- Tech Rider – Vorlage für Dompdf (nur Tabellen + einfaches CSS, kein Flexbox) --}}
 @php
+    use App\Enums\BandManager\BacklineProviderEnum;
     use App\Enums\BandManager\MicStandEnum;
     use App\Enums\BandManager\MonitorTypeEnum;
 
     $lineUp = $rider->line_up ?? [];
     $inputs = $rider->inputs ?? [];
     $monitors = $rider->monitors ?? [];
-    $backline = collect($rider->backline ?? []);
     $customSections = $rider->custom_sections ?? [];
+
+    // Backline: zuerst, was der Veranstalter stellen soll – das ist für ihn das Wichtigste
+    $backline = collect($rider->backline ?? [])->groupBy(fn (array $item): string => (string) ($item['provider'] ?? ''));
+    $backlineGroups = array_filter([
+        BacklineProviderEnum::Venue->value => BacklineProviderEnum::Venue->label(),
+        BacklineProviderEnum::Band->value => BacklineProviderEnum::Band->label(),
+        '' => 'Ohne Zuordnung',
+    ], fn (string $label, string $key): bool => $backline->has($key), ARRAY_FILTER_USE_BOTH);
 
     $times = array_filter([
         'Aufbau' => $rider->setup_minutes,
@@ -16,30 +24,45 @@
         'Abbau' => $rider->teardown_minutes,
     ], fn (?int $minutes): bool => $minutes !== null);
 
-    $stageSize = collect([$rider->stage_width, $rider->stage_depth])->filter(fn ($value): bool => $value !== null)->isNotEmpty()
-        ? ($rider->stage_width !== null ? str_replace('.', ',', (string) (float) $rider->stage_width).' m' : '–')
-            .' × '.($rider->stage_depth !== null ? str_replace('.', ',', (string) (float) $rider->stage_depth).' m' : '–').' (B × T)'
+    $meters = fn (mixed $value): string => $value !== null ? str_replace('.', ',', (string) (float) $value).' m' : '–';
+    $stageSize = $rider->stage_width !== null || $rider->stage_depth !== null
+        ? $meters($rider->stage_width).' breit × '.$meters($rider->stage_depth).' tief'
         : '';
 
-    $engineers = array_filter([
-        $rider->brings_foh_engineer ? 'eigener FOH-Techniker' : null,
-        $rider->brings_monitor_engineer ? 'eigener Monitor-Techniker' : null,
-    ]);
+    $contact = array_filter([
+        'Name' => e((string) $rider->contact_name),
+        'Telefon' => filled($rider->contact_phone) ? '<a href="tel:'.e(preg_replace('/[^0-9+]/', '', $rider->contact_phone)).'">'.e($rider->contact_phone).'</a>' : '',
+        'E-Mail' => filled($rider->contact_email) ? '<a href="mailto:'.e($rider->contact_email).'">'.e($rider->contact_email).'</a>' : '',
+        'FOH-Technik' => $rider->brings_foh_engineer ? 'bringt die Band mit' : '',
+        'Monitor-Technik' => $rider->brings_monitor_engineer ? 'bringt die Band mit' : '',
+    ], fn (string $html): bool => $html !== '');
 
-    $notes = [
+    $textSections = array_filter([
         'PA & FOH' => $rider->pa_notes,
         'Licht' => $rider->lighting_notes,
         'Strom' => $rider->power_notes,
-    ];
+    ], fn (?string $text): bool => filled($text));
+
+    // Nummerierte Abschnitts-Überschrift: 01, 02 …
+    $number = 0;
+    $heading = function (string $title, string $subtitle = '') use (&$number): string {
+        $number++;
+
+        return '<table class="head"><tr><td class="no">'.sprintf('%02d', $number).'</td><td class="ttl">'.e($title)
+            .($subtitle !== '' ? ' <span class="cnt">'.e($subtitle).'</span>' : '').'</td></tr></table>';
+    };
+
+    // Logo höchstens 230 × 80 pt, Seitenverhältnis bleibt
+    $logoScale = $bandLogo ? min(230 / $bandLogo['w'], 80 / $bandLogo['h'], 1) : 1;
 @endphp
 <!DOCTYPE html>
 <html lang="de">
 <head>
 <meta charset="UTF-8">
 <style>
-    @page { margin: 32px 40px 50px 40px; }
-    body  { font-family: "DejaVu Sans", sans-serif; font-size: 9.5px; color: #1e1e24; line-height: 1.45; }
-    a     { color: #1e1e24; text-decoration: none; }
+    @page { margin: 30px 36px 48px 36px; }
+    body  { font-family: "DejaVu Sans", sans-serif; font-size: 9px; color: #1b1b20; line-height: 1.4; }
+    a     { color: #1b1b20; text-decoration: none; }
     table { width: 100%; border-collapse: collapse; }
 
     strong { font-weight: bold; }
@@ -47,130 +70,152 @@
     u      { text-decoration: underline; }
     s      { text-decoration: line-through; }
 
-    .top td     { vertical-align: middle; }
-    .top img    { height: 44px; }
-    .brand      { font-size: 24px; font-weight: bold; letter-spacing: 6px; }
-    .doc        { text-align: right; }
-    .doc .lbl   { font-size: 8px; letter-spacing: 4px; color: #dc2f32; font-weight: bold; }
-    .doc .date  { font-size: 12px; font-weight: bold; color: #0b0b0e; }
-    .rule       { border-top: 3px solid #0b0b0e; margin: 10px 0 14px; }
+    /* Kopf: Bandlogo in der Mitte */
+    .cover       { text-align: center; padding-bottom: 10px; }
+    .cover .band { font-size: 26px; font-weight: bold; letter-spacing: 2px; color: #0b0b0e; }
+    .cover .doc  { margin-top: 8px; font-size: 10px; font-weight: bold; letter-spacing: 6px; color: #0b0b0e; }
+    .cover .meta { margin-top: 2px; font-size: 8px; color: #6b6b77; }
+    .stripe      { height: 4px; background: #0b0b0e; border-bottom: 2px solid #dc2f32; margin-bottom: 12px; }
 
-    .title    { font-size: 20px; font-weight: bold; color: #0b0b0e; }
-    .subtitle { font-size: 11px; color: #6b6b77; margin-top: 2px; }
+    /* Eckdaten */
+    .facts    { border-collapse: separate; border-spacing: 5px 0; margin-left: -5px; width: 101.8%; }
+    .facts td { width: 25%; border: 1px solid #1b1b20; padding: 6px 8px; text-align: center; }
+    .facts .v { font-size: 15px; font-weight: bold; color: #0b0b0e; }
+    .facts .l { font-size: 6.5px; letter-spacing: 1.5px; text-transform: uppercase; color: #6b6b77; }
 
-    .facts       { margin-top: 12px; border-collapse: separate; border-spacing: 4px 0; margin-left: -4px; }
-    .facts td    { background: #f4f4f6; padding: 7px 9px; vertical-align: top; }
-    .lbl-sm      { font-size: 7px; letter-spacing: 1.5px; text-transform: uppercase; color: #6b6b77; }
-    .facts .val  { font-size: 11px; font-weight: bold; color: #0b0b0e; }
+    /* Abschnitts-Überschrift */
+    .head        { margin: 16px 0 6px; }
+    .head td     { background: #0b0b0e; color: #ffffff; padding: 5px 8px; }
+    .head td.no  { width: 22px; background: #dc2f32; font-weight: bold; text-align: center; }
+    .head td.ttl { font-weight: bold; letter-spacing: 2px; text-transform: uppercase; font-size: 8.5px; }
+    .head .cnt   { font-weight: normal; letter-spacing: 0; text-transform: none; color: #b9b9c3; }
+    .block       { page-break-inside: avoid; }
 
-    h2 { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: #dc2f32;
-         border-bottom: 1px solid #e2e2e8; padding-bottom: 3px; margin: 18px 0 6px; }
-    .section { page-break-inside: avoid; }
-
-    .kv td   { padding: 3px 0; vertical-align: top; }
-    .kv td.k { width: 28%; color: #6b6b77; }
-
-    .list th { text-align: left; font-size: 7px; letter-spacing: 1px; text-transform: uppercase; color: #6b6b77;
-               padding: 3px 6px; border-bottom: 1px solid #cdcdd5; font-weight: normal; }
-    .list td { padding: 4px 6px; border-bottom: 1px solid #ececf0; vertical-align: top; }
-    .list td.no { width: 22px; font-weight: bold; color: #0b0b0e; }
-    .list tr.even td { background: #f8f8fa; }
-    .p48 { background: #dc2f32; color: #fff; padding: 0 4px; font-weight: bold; font-size: 7.5px; }
-    .sub { font-size: 8px; font-weight: bold; color: #0b0b0e; margin: 8px 0 3px; }
+    /* Tabellen mit Rahmen */
+    .grid th { background: #2a2a31; color: #ffffff; text-align: left; font-size: 7px; letter-spacing: 1px;
+               text-transform: uppercase; padding: 5px 6px; border: 1px solid #2a2a31; font-weight: bold; }
+    .grid td { border: 1px solid #9d9da8; padding: 5px 6px; vertical-align: top; }
+    .grid tr.alt td { background: #f3f3f6; }
+    .grid td.ch  { width: 26px; text-align: center; font-weight: bold; font-size: 10px; background: #e7e7ec; }
+    .grid td.c   { text-align: center; }
+    .grid td.k   { width: 30%; background: #f3f3f6; font-weight: bold; }
+    .grid tr.group td { background: #e7e7ec; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; font-size: 7.5px; color: #0b0b0e; }
+    .p48  { font-weight: bold; color: #dc2f32; }
     .muted { color: #6b6b77; }
-    .plot  { text-align: center; margin-top: 8px; }
+
+    .text { border: 1px solid #9d9da8; padding: 7px 9px; }
+    .plot { border: 1px solid #9d9da8; padding: 8px; text-align: center; margin-top: 6px; }
+    .split td.half { width: 50%; vertical-align: top; }
 </style>
 </head>
 <body>
 
-<table class="top">
-    <tr>
-        <td>@if ($logo)<img src="{{ $logo }}" alt="Havoc">@else<span class="brand">HAVOC</span>@endif</td>
-        <td class="doc">
-            <div class="lbl">TECHNICAL RIDER</div>
-            <div class="date">Stand {{ $rider->updated_at?->format('d.m.Y') }}</div>
-        </td>
-    </tr>
-</table>
-<div class="rule"></div>
+{{-- ================= Kopf ================= --}}
+<div class="cover">
+    @if ($bandLogo)
+        <img src="{{ $bandLogo['src'] }}" width="{{ (int) round($bandLogo['w'] * $logoScale) }}" height="{{ (int) round($bandLogo['h'] * $logoScale) }}" alt="{{ $band->name }}">
+    @else
+        <div class="band">{{ $band->name }}</div>
+    @endif
+    <div class="doc">TECHNICAL RIDER</div>
+    <div class="meta">{{ $band->name }}@if ($band->genre) · {{ $band->genre }}@endif · Stand {{ $rider->updated_at?->format('d.m.Y') }}</div>
+</div>
+<div class="stripe"></div>
 
-<div class="title">{{ $band->name }}</div>
-<div class="subtitle">Technical Rider @if ($band->genre)· {{ $band->genre }}@endif</div>
-
-@if ($times || $inputs || $monitors)
 <table class="facts">
     <tr>
-        <td><div class="lbl-sm">Kanäle</div><div class="val">{{ count($inputs) ?: '–' }}</div></td>
-        <td><div class="lbl-sm">Monitorwege</div><div class="val">{{ count($monitors) ?: '–' }}</div></td>
-        <td><div class="lbl-sm">Soundcheck</div><div class="val">{{ $rider->soundcheck_minutes !== null ? $rider->soundcheck_minutes.' Min.' : '–' }}</div></td>
-        <td><div class="lbl-sm">Showlänge</div><div class="val">{{ $rider->show_minutes !== null ? $rider->show_minutes.' Min.' : '–' }}</div></td>
+        <td><div class="v">{{ count($inputs) ?: '–' }}</div><div class="l">Kanäle</div></td>
+        <td><div class="v">{{ count($monitors) ?: '–' }}</div><div class="l">Monitorwege</div></td>
+        <td><div class="v">{{ $rider->soundcheck_minutes !== null ? $rider->soundcheck_minutes.' Min.' : '–' }}</div><div class="l">Soundcheck</div></td>
+        <td><div class="v">{{ $rider->show_minutes !== null ? $rider->show_minutes.' Min.' : '–' }}</div><div class="l">Showlänge</div></td>
     </tr>
 </table>
-@endif
 
-@if (filled($rider->contact_name) || filled($rider->contact_phone) || filled($rider->contact_email) || $engineers)
-<div class="section">
-    <h2>Technischer Ansprechpartner</h2>
-    <table class="kv">
-        @if (filled($rider->contact_name))<tr><td class="k">Name</td><td><strong>{{ $rider->contact_name }}</strong></td></tr>@endif
-        @if (filled($rider->contact_phone))<tr><td class="k">Telefon</td><td><a href="tel:{{ preg_replace('/[^0-9+]/', '', $rider->contact_phone) }}">{{ $rider->contact_phone }}</a></td></tr>@endif
-        @if (filled($rider->contact_email))<tr><td class="k">E-Mail</td><td><a href="mailto:{{ $rider->contact_email }}">{{ $rider->contact_email }}</a></td></tr>@endif
-        @if ($engineers)<tr><td class="k">Wir bringen mit</td><td>{{ implode(', ', $engineers) }}</td></tr>@endif
+{{-- ================= Kontakt & Zeiten ================= --}}
+@if ($contact || $times)
+<div class="block">
+    {!! $heading('Kontakt & Zeitbedarf') !!}
+    <table class="split">
+        <tr>
+            <td class="half" style="padding-right:4px;">
+                <table class="grid">
+                    <tr><th colspan="2">Technischer Ansprechpartner</th></tr>
+                    @forelse ($contact as $label => $html)
+                        <tr><td class="k">{{ $label }}</td><td>{!! $html !!}</td></tr>
+                    @empty
+                        <tr><td colspan="2" class="muted">–</td></tr>
+                    @endforelse
+                </table>
+            </td>
+            <td class="half" style="padding-left:4px;">
+                <table class="grid">
+                    <tr><th colspan="2">Zeitbedarf</th></tr>
+                    @forelse ($times as $label => $minutes)
+                        <tr><td class="k">{{ $label }}</td><td>{{ $minutes }} Min.</td></tr>
+                    @empty
+                        <tr><td colspan="2" class="muted">–</td></tr>
+                    @endforelse
+                </table>
+            </td>
+        </tr>
     </table>
 </div>
 @endif
 
+{{-- ================= Besetzung ================= --}}
 @if ($lineUp)
-<div class="section">
-    <h2>Besetzung ({{ count($lineUp) }} Personen)</h2>
-    <table class="list">
-        <tr><th>Name</th><th>Instrument / Funktion</th></tr>
-        @foreach ($lineUp as $person)
-            <tr><td><strong>{{ $person['name'] ?? '' }}</strong></td><td>{{ $person['instrument'] ?? '' }}</td></tr>
-        @endforeach
-    </table>
-</div>
-@endif
-
-@if ($times)
-<div class="section">
-    <h2>Zeitbedarf</h2>
-    <table class="kv">
-        @foreach ($times as $label => $minutes)
-            <tr><td class="k">{{ $label }}</td><td>{{ $minutes }} Min.</td></tr>
-        @endforeach
-    </table>
-</div>
-@endif
-
-@if ($inputs)
-<div>
-    <h2>Kanalliste (Input List)</h2>
-    <table class="list">
-        <tr><th>Nr.</th><th>Instrument / Quelle</th><th>Mikrofon / DI</th><th>Stativ</th><th>+48 V</th><th>Bemerkung</th></tr>
-        @foreach ($inputs as $i => $input)
-            <tr @class(['even' => $i % 2 === 1])>
-                <td class="no">{{ $i + 1 }}</td>
-                <td><strong>{{ $input['source'] ?? '' }}</strong></td>
-                <td>{{ $input['mic'] ?? '' }}</td>
-                <td>{{ MicStandEnum::tryFrom((string) ($input['stand'] ?? ''))?->label() }}</td>
-                <td>@if (! empty($input['phantom']))<span class="p48">48V</span>@endif</td>
-                <td>{{ $input['note'] ?? '' }}</td>
+<div class="block">
+    {!! $heading('Besetzung', count($lineUp).' Personen') !!}
+    <table class="grid">
+        <thead><tr><th style="width:26px">Nr.</th><th style="width:45%">Name</th><th>Instrument / Funktion</th></tr></thead>
+        @foreach ($lineUp as $i => $person)
+            <tr @class(['alt' => $i % 2 === 1])>
+                <td class="ch">{{ $i + 1 }}</td>
+                <td><strong>{{ $person['name'] ?? '' }}</strong></td>
+                <td>{{ $person['instrument'] ?? '' }}</td>
             </tr>
         @endforeach
     </table>
 </div>
 @endif
 
+{{-- ================= Kanalliste ================= --}}
+@if ($inputs)
+    {!! $heading('Kanalliste / Input List', count($inputs).' Kanäle') !!}
+    <table class="grid">
+        <thead>
+            <tr>
+                <th style="width:26px">Ch</th>
+                <th style="width:24%">Instrument / Quelle</th>
+                <th style="width:22%">Mikrofon / DI</th>
+                <th style="width:15%">Stativ</th>
+                <th style="width:34px">+48 V</th>
+                <th>Bemerkung</th>
+            </tr>
+        </thead>
+        @foreach ($inputs as $i => $input)
+            <tr @class(['alt' => $i % 2 === 1])>
+                <td class="ch">{{ $i + 1 }}</td>
+                <td><strong>{{ $input['source'] ?? '' }}</strong></td>
+                <td>{{ $input['mic'] ?? '' }}</td>
+                <td>{{ MicStandEnum::tryFrom((string) ($input['stand'] ?? ''))?->label() }}</td>
+                <td class="c">@if (! empty($input['phantom']))<span class="p48">✓</span>@endif</td>
+                <td>{{ $input['note'] ?? '' }}</td>
+            </tr>
+        @endforeach
+    </table>
+@endif
+
+{{-- ================= Monitoring ================= --}}
 @if ($monitors || filled($rider->monitor_notes))
-<div class="section">
-    <h2>Monitoring</h2>
+<div class="block">
+    {!! $heading('Monitoring', $monitors ? count($monitors).' Wege' : '') !!}
     @if ($monitors)
-        <table class="list">
-            <tr><th>Weg</th><th>Für wen</th><th>Art</th><th>Mix-Wunsch</th></tr>
+        <table class="grid">
+            <thead><tr><th style="width:26px">Weg</th><th style="width:24%">Für wen</th><th style="width:22%">Art</th><th>Mix-Wunsch</th></tr></thead>
             @foreach ($monitors as $i => $monitor)
-                <tr>
-                    <td class="no">{{ $i + 1 }}</td>
+                <tr @class(['alt' => $i % 2 === 1])>
+                    <td class="ch">{{ $i + 1 }}</td>
                     <td><strong>{{ $monitor['who'] ?? '' }}</strong></td>
                     <td>{{ MonitorTypeEnum::tryFrom((string) ($monitor['type'] ?? ''))?->label() }}</td>
                     <td>{{ $monitor['note'] ?? '' }}</td>
@@ -178,31 +223,37 @@
             @endforeach
         </table>
     @endif
-    @if (filled($rider->monitor_notes))<p>{!! md($rider->monitor_notes) !!}</p>@endif
+    @if (filled($rider->monitor_notes))
+        <div class="text" @if ($monitors) style="margin-top:6px" @endif>{!! md($rider->monitor_notes) !!}</div>
+    @endif
 </div>
 @endif
 
-@if ($backline->isNotEmpty())
-<div class="section">
-    <h2>Backline</h2>
-    @php($groups = $backline->groupBy(fn (array $item): string => (string) ($item['provider'] ?? '')))
-    @foreach ([...array_map(fn ($provider) => [$provider->value, $provider->label()], $providers), ['', 'Weitere']] as [$key, $label])
-        @if ($groups->has($key))
-            <div class="sub">{{ $label }}</div>
-            <table class="list">
-                @foreach ($groups[$key] as $item)
-                    <tr><td style="width:60%"><strong>{{ $item['item'] ?? '' }}</strong></td><td class="muted">{{ $item['note'] ?? '' }}</td></tr>
-                @endforeach
-            </table>
-        @endif
-    @endforeach
+{{-- ================= Backline ================= --}}
+@if ($backlineGroups)
+<div class="block">
+    {!! $heading('Backline', $backline->flatten(1)->count().' Positionen') !!}
+    <table class="grid">
+        <thead><tr><th style="width:26px">Nr.</th><th style="width:48%">Gerät</th><th>Bemerkung</th></tr></thead>
+        @foreach ($backlineGroups as $key => $label)
+            <tr class="group"><td colspan="3">{{ $label }}</td></tr>
+            @foreach ($backline[$key] as $i => $item)
+                <tr @class(['alt' => $i % 2 === 1])>
+                    <td class="ch">{{ $i + 1 }}</td>
+                    <td><strong>{{ $item['item'] ?? '' }}</strong></td>
+                    <td>{{ $item['note'] ?? '' }}</td>
+                </tr>
+            @endforeach
+        @endforeach
+    </table>
 </div>
 @endif
 
-@if ($stageSize !== '' || filled($rider->stage_notes) || $stagePlot)
-<div class="section">
-    <h2>Bühne</h2>
-    <table class="kv">
+{{-- ================= Bühne ================= --}}
+@if ($stageSize !== '' || filled($rider->stage_notes))
+<div class="block">
+    {!! $heading('Bühne') !!}
+    <table class="grid">
         @if ($stageSize !== '')<tr><td class="k">Mindestgröße</td><td><strong>{{ $stageSize }}</strong></td></tr>@endif
         @if (filled($rider->stage_notes))<tr><td class="k">Hinweise</td><td>{!! md($rider->stage_notes) !!}</td></tr>@endif
     </table>
@@ -210,33 +261,32 @@
 @endif
 
 @if ($stagePlot)
-<div class="section">
-    <h2>Bühnenplan (Stage Plot)</h2>
-    @php($ratio = min(515 / $stagePlot['w'], 520 / $stagePlot['h'], 1))
-    <div class="plot"><img src="{{ $stagePlot['src'] }}" width="{{ (int) round($stagePlot['w'] * $ratio) }}" height="{{ (int) round($stagePlot['h'] * $ratio) }}" alt="Bühnenplan"></div>
+<div class="block">
+    {!! $heading('Bühnenplan / Stage Plot') !!}
+    @php($plotScale = min(510 / $stagePlot['w'], 500 / $stagePlot['h'], 1))
+    <div class="plot"><img src="{{ $stagePlot['src'] }}" width="{{ (int) round($stagePlot['w'] * $plotScale) }}" height="{{ (int) round($stagePlot['h'] * $plotScale) }}" alt="Bühnenplan"></div>
 </div>
 @endif
 
-@foreach ($notes as $title => $text)
-    @if (filled($text))
-        <div class="section">
-            <h2>{{ $title }}</h2>
-            <p>{!! md($text) !!}</p>
-        </div>
-    @endif
+{{-- ================= Freitexte & eigene Abschnitte ================= --}}
+@foreach ($textSections as $title => $text)
+    <div class="block">
+        {!! $heading($title) !!}
+        <div class="text">{!! md($text) !!}</div>
+    </div>
 @endforeach
 
 @foreach ($customSections as $customSection)
-    <div class="section">
-        <h2>{{ ($customSection['title'] ?? '') ?: 'Weitere Anforderungen' }}</h2>
-        <p>{!! md($customSection['content'] ?? '') !!}</p>
+    <div class="block">
+        {!! $heading(($customSection['title'] ?? '') ?: 'Weitere Anforderungen') !!}
+        <div class="text">{!! md($customSection['content'] ?? '') !!}</div>
     </div>
 @endforeach
 
 @if (filled($rider->notes))
-<div class="section">
-    <h2>Sonstiges</h2>
-    <p>{!! md($rider->notes) !!}</p>
+<div class="block">
+    {!! $heading('Sonstiges') !!}
+    <div class="text">{!! md($rider->notes) !!}</div>
 </div>
 @endif
 

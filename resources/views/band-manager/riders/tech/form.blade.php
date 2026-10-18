@@ -30,7 +30,7 @@
 @endphp
 <x-band-manager.layout :title="'Tech Rider – '.$band->name">
     @push('styles')
-        <link href="{{ asset('assets/band-manager/css/riders.css') }}?v=1" rel="stylesheet">
+        <link href="{{ asset('assets/band-manager/css/riders.css') }}?v=2" rel="stylesheet">
     @endpush
 
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
@@ -50,7 +50,7 @@
                 <x-band-manager.band-switcher :bands="$bands" :current="$band" route="band-manager.tech-riders.band" />
             @endif
             @if ($rider->exists)
-                <a href="{{ route('band-manager.tech-riders.pdf', $band) }}" class="btn btn-outline-secondary"><i class="bi bi-file-earmark-pdf"></i> PDF herunterladen</a>
+                <a href="{{ route('band-manager.tech-riders.pdf', $band) }}" class="btn btn-primary" data-rd-pdf><i class="bi bi-download"></i> Fertigen Rider herunterladen (PDF)</a>
             @endif
         </div>
     </div>
@@ -62,6 +62,7 @@
                 <strong>So geht's:</strong> Füllt aus, was ihr für eure Show braucht – alles andere einfach leer lassen.
                 Mit <strong>„Vorlage einfügen“</strong> bekommt ihr eine typische Band-Besetzung als Startpunkt, die ihr dann anpasst.
                 Über <strong>„+ Zeile“</strong> und <strong>„Eigene Abschnitte“</strong> ergänzt ihr alles, was hier noch fehlt.
+                Nach dem Speichern könnt ihr den fertigen Rider als <strong>PDF herunterladen</strong> – mit eurem Bandlogo aus dem Bandprofil.
             </span>
         </div>
     @endif
@@ -279,6 +280,9 @@
         @if ($canEdit)
             <div class="rd-savebar">
                 <span class="rd-dirty small" id="rdDirty" hidden><i class="bi bi-circle-fill"></i> Ungespeicherte Änderungen</span>
+                @if ($rider->exists)
+                    <a href="{{ route('band-manager.tech-riders.pdf', $band) }}" class="btn btn-outline-secondary" data-rd-pdf><i class="bi bi-download"></i> PDF</a>
+                @endif
                 <button class="btn btn-primary"><i class="bi bi-check-lg"></i> Speichern</button>
             </div>
         @endif
@@ -286,6 +290,6 @@
 
     @push('scripts')
         <script>window.RD_PRESETS = @json($presets);</script>
-        <script src="{{ asset('assets/band-manager/js/tech-rider.js') }}?v=1"></script>
+        <script src="{{ asset('assets/band-manager/js/tech-rider.js') }}?v=2"></script>
     @endpush
 </x-band-manager.layout>

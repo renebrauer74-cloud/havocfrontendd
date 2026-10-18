@@ -1,11 +1,13 @@
 <?php
 
 use App\Actions\BandManager\DeleteBandAction;
+use App\Actions\MediaLibrary\CreatePdfImageAction;
 use App\Enums\BandManager\BacklineProviderEnum;
 use App\Enums\BandManager\MicStandEnum;
 use App\Enums\BandManager\MonitorTypeEnum;
 use App\Enums\BandManager\UserRoleEnum;
 use App\Enums\MediaCollectionEnum;
+use App\Enums\MediaConversionEnum;
 use App\Models\BandManager\ActivityLog;
 use App\Models\BandManager\Band;
 use App\Models\BandManager\TeamMember;
@@ -147,6 +149,48 @@ it('downloads the tech rider as pdf once it is saved', function () {
 
     expect(substr((string) $response->getContent(), 0, 4))->toBe('%PDF')
         ->and(ActivityLog::query()->where('action', 'tech_rider.pdf')->exists())->toBeTrue();
+});
+
+it('shows the band logo centered at the top of the pdf', function () {
+    $band = Band::factory()->create(['name' => 'Iron Kittens']);
+    $band->profile->fill(['band_id' => $band->id])->save();
+    $band->profile->addMedia(UploadedFile::fake()->image('logo.webp', 1200, 400))->toMediaCollection(MediaCollectionEnum::BandLogos->value);
+    $rider = TechRider::factory()->for($band)->create();
+
+    $logo = $band->profile->getFirstMedia(MediaCollectionEnum::BandLogos->value);
+    $html = view('band-manager.riders.tech.pdf', [
+        'rider' => $rider,
+        'band' => $band,
+        'bandLogo' => app(CreatePdfImageAction::class)->execute($logo, MediaConversionEnum::PdfLogo->value),
+        'stagePlot' => null,
+        'providers' => BacklineProviderEnum::cases(),
+    ])->render();
+
+    expect($logo->hasGeneratedConversion(MediaConversionEnum::PdfLogo->value))->toBeTrue()
+        ->and($html)->toContain('<img src="data:image/png;base64,')
+        ->and($html)->toContain('width="230" height="77"')
+        ->and($html)->toContain('TECHNICAL RIDER');
+
+    actingAsBandManager()->get(route('band-manager.tech-riders.pdf', $band))->assertSuccessful()->assertDownload('TechRider_Iron-Kittens.pdf');
+});
+
+it('shows the band name instead of a logo when there is none', function () {
+    $rider = TechRider::factory()->create();
+
+    $html = view('band-manager.riders.tech.pdf', ['rider' => $rider, 'band' => $rider->band, 'bandLogo' => null, 'stagePlot' => null, 'providers' => BacklineProviderEnum::cases()])->render();
+
+    expect($html)->toContain('<div class="band">'.e($rider->band->name).'</div>')
+        ->and($html)->toContain('Stellt der Veranstalter');
+});
+
+it('offers the pdf download in the overview once the rider is saved', function () {
+    $saved = TechRider::factory()->create();
+    $new = Band::factory()->create();
+
+    actingAsBandManager()
+        ->get(route('band-manager.tech-riders.index'))
+        ->assertSee(route('band-manager.tech-riders.pdf', $saved->band))
+        ->assertDontSee(route('band-manager.tech-riders.pdf', $new));
 });
 
 it('keeps tech riders of other bands private', function () {
