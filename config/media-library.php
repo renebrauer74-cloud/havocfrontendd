@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\BandManager\CloudFile;
+use App\Services\MediaLibrary\CloudPathGenerator;
 use App\Services\MediaLibrary\CollectionPathGenerator;
 use Spatie\ImageOptimizer\Optimizers\Avifenc;
 use Spatie\ImageOptimizer\Optimizers\Cwebp;
@@ -155,9 +157,8 @@ return [
      * Here you can specify which path generator should be used for the given class.
      */
     'custom_path_generators' => [
-        // Model::class => PathGenerator::class
-        // or
-        // 'model_morph_alias' => PathGenerator::class
+        // HAVOC: Cloud-Speicher der Bands je Band in eigenem Ordner (cloud/<band-id>/<uuid>/datei)
+        CloudFile::class => CloudPathGenerator::class,
     ],
 
     /*

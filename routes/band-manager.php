@@ -8,6 +8,10 @@ use App\Http\Controllers\BandManager\BandProfileController;
 use App\Http\Controllers\BandManager\CalendarController;
 use App\Http\Controllers\BandManager\CateringRiderController;
 use App\Http\Controllers\BandManager\CateringRiderExportController;
+use App\Http\Controllers\BandManager\CloudController;
+use App\Http\Controllers\BandManager\CloudFileController;
+use App\Http\Controllers\BandManager\CloudFolderController;
+use App\Http\Controllers\BandManager\CloudTrashController;
 use App\Http\Controllers\BandManager\DocumentController;
 use App\Http\Controllers\BandManager\ExportController;
 use App\Http\Controllers\BandManager\GalleryController;
@@ -108,6 +112,31 @@ Route::middleware(['auth:band-manager', EnsureBandManagerUserIsActive::class])->
             Route::put('{image}', [GalleryController::class, 'update'])->name('update');
             Route::post('{image}/main', [GalleryController::class, 'makeMain'])->name('main');
             Route::delete('{image}', [GalleryController::class, 'destroy'])->name('destroy');
+        });
+    });
+
+    // Cloud-Speicher – Band-Zugriff prüfen die Controller, Papierkorb-Routen binden auch gelöschte Einträge
+    Route::middleware('can:cloud.view')->prefix('cloud')->name('cloud.')->group(function () {
+        Route::get('/', [CloudController::class, 'index'])->name('index');
+        Route::get('band/{band}', [CloudController::class, 'band'])->name('band');
+        Route::get('folders/{folder}', [CloudController::class, 'folder'])->name('folder');
+        Route::get('files/{file}', [CloudFileController::class, 'show'])->name('files.show');
+        Route::get('files/{file}/thumbnail', [CloudFileController::class, 'thumbnail'])->name('files.thumbnail');
+        Route::get('band/{band}/trash', [CloudTrashController::class, 'index'])->name('trash');
+
+        Route::middleware('can:cloud.edit')->group(function () {
+            Route::post('band/{band}/folders', [CloudFolderController::class, 'store'])->name('folders.store');
+            Route::put('folders/{folder}', [CloudFolderController::class, 'update'])->name('folders.update');
+            Route::delete('folders/{folder}', [CloudFolderController::class, 'destroy'])->name('folders.destroy');
+            Route::post('band/{band}/files', [CloudFileController::class, 'store'])->name('files.store');
+            Route::put('files/{file}', [CloudFileController::class, 'update'])->name('files.update');
+            Route::delete('files/{file}', [CloudFileController::class, 'destroy'])->name('files.destroy');
+
+            Route::post('trash/folders/{folder}/restore', [CloudTrashController::class, 'restoreFolder'])->withTrashed()->name('trash.folders.restore');
+            Route::post('trash/files/{file}/restore', [CloudTrashController::class, 'restoreFile'])->withTrashed()->name('trash.files.restore');
+            Route::delete('trash/folders/{folder}', [CloudTrashController::class, 'destroyFolder'])->withTrashed()->name('trash.folders.destroy');
+            Route::delete('trash/files/{file}', [CloudTrashController::class, 'destroyFile'])->withTrashed()->name('trash.files.destroy');
+            Route::delete('band/{band}/trash', [CloudTrashController::class, 'empty'])->name('trash.empty');
         });
     });
 

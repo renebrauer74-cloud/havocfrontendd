@@ -88,6 +88,26 @@ class Band extends Model
     }
 
     /**
+     * Ordner im Cloud-Speicher (alle Ebenen).
+     *
+     * @return HasMany<CloudFolder, $this>
+     */
+    public function cloudFolders(): HasMany
+    {
+        return $this->hasMany(CloudFolder::class);
+    }
+
+    /**
+     * Dateien im Cloud-Speicher (alle Ordner).
+     *
+     * @return HasMany<CloudFile, $this>
+     */
+    public function cloudFiles(): HasMany
+    {
+        return $this->hasMany(CloudFile::class);
+    }
+
+    /**
      * @return HasOne<BandProfile, $this>
      */
     public function profile(): HasOne
