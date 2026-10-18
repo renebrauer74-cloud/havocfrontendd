@@ -204,6 +204,18 @@ code { color: var(--hv-accent-text); }
 .hv-side-section { margin-top: 1rem; padding-top: .5rem; border-top: 1px solid var(--hv-border); }
 .hv-side-section .hv-side-label { color: var(--hv-accent); }
 
+/* Export: hervorgehobener Menüpunkt (grau hinterlegt) zur Kachel-Seite */
+.hv-side-link--export {
+  margin-top: .25rem;
+  background: var(--hv-surface-2);
+  border: 1px solid var(--hv-border-strong);
+  font-weight: 600;
+  color: var(--hv-heading);
+}
+.hv-side-link--export i { color: var(--hv-accent); opacity: 1; }
+.hv-side-link--export:hover { border-color: var(--hv-accent); background: var(--hv-surface-2); }
+.hv-side-link--export.active { border-color: var(--hv-accent); }
+
 /* ---------- Hell/Dunkel-Schalter ---------- */
 .hv-side-theme { padding: .85rem 1rem 0; border-top: 1px solid var(--hv-border); }
 .hv-theme-switch {

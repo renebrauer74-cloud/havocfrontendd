@@ -9,7 +9,7 @@ use App\Models\BandManager\User;
 /**
  * Menü der Seitenleiste (Icons: https://icons.getbootstrap.com).
  * Einträge mit section "riders" landen unter der Überschrift "Rider Creator",
- * die Exporte (section "exports") unter der Überschrift "Export",
+ * der hervorgehobene Punkt "Export" (section "exports") führt zur Kachel-Seite mit allen Exporten,
  * Einträge mit section "admin" im abgetrennten Bereich "Administration".
  */
 class Navigation
@@ -21,11 +21,9 @@ class Navigation
      */
     public function for(User $user): array
     {
-        // Reihenfolge wie auf der Export-Seite
-        $exports = array_map(fn (array $export): array => [
-            'route' => $export['route'], 'active' => $export['active'], 'label' => $export['title'], 'icon' => $export['icon'],
-            'order' => 0, 'section' => 'exports', 'visible' => true,
-        ], $this->exports->availableFor($user));
+        // Ein Menüpunkt für die Export-Seite – aktiv auch auf den einzelnen Exporten
+        $exports = $this->exports->availableFor($user);
+        $exportActive = ['band-manager.exports.*', ...array_merge(...array_column($exports, 'active'))];
 
         $items = [
             ['route' => 'band-manager.admin.dashboard', 'label' => 'Dashboard', 'icon' => 'grid-1x2', 'order' => 10, 'visible' => $user->isAdmin()],
@@ -44,7 +42,7 @@ class Navigation
             ['route' => 'band-manager.catering-riders.index', 'active' => ['band-manager.catering-riders.*'], 'label' => 'Catering Rider', 'icon' => 'cup-hot', 'order' => 20, 'section' => 'riders', 'visible' => $user->can('riders.view')],
             ['route' => 'band-manager.stage-plots.index', 'active' => ['band-manager.stage-plots.*'], 'label' => 'Stage Plot Designer', 'icon' => 'easel2', 'order' => 30, 'section' => 'riders', 'visible' => $user->can('riders.view')],
 
-            ...$exports,
+            ['route' => 'band-manager.exports.index', 'active' => $exportActive, 'label' => 'Export', 'icon' => 'box-arrow-down', 'order' => 10, 'section' => 'exports', 'visible' => $exports !== []],
 
             ['route' => 'band-manager.admin.bands.index', 'active' => ['band-manager.admin.bands.*'], 'label' => 'Bands', 'icon' => 'people', 'order' => 40, 'section' => 'admin', 'visible' => $user->isAdmin()],
             ['route' => 'band-manager.admin.users.index', 'active' => ['band-manager.admin.users.*'], 'label' => 'Benutzer', 'icon' => 'person-gear', 'order' => 50, 'section' => 'admin', 'visible' => $user->isAdmin()],

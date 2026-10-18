@@ -51,13 +51,13 @@ it('sends artists with one band straight to their catering rider', function () {
 
 it('prefills the travel party with diets and allergies from band and team', function () {
     $band = Band::factory()->create();
-    TeamMember::factory()->for($band)->crew()->create(['first_name' => 'Sam', 'last_name' => 'Sound', 'stage_name' => null, 'crew_role' => CrewRoleEnum::Sound, 'position' => null, 'diet' => '', 'allergy' => AllergyEnum::Other, 'allergy_other' => 'Sellerie']);
-    TeamMember::factory()->for($band)->create(['type' => TeamMember::TYPE_MEMBER, 'first_name' => 'Lena', 'last_name' => 'Loud', 'stage_name' => null, 'position' => 'Gesang', 'diet' => 'vegan', 'allergy' => AllergyEnum::Nuts]);
+    TeamMember::factory()->for($band)->crew()->create(['first_name' => 'Sam', 'last_name' => 'Sound', 'stage_name' => null, 'crew_role' => CrewRoleEnum::Sound, 'position' => null, 'diet' => '', 'allergies' => [AllergyEnum::Gluten, AllergyEnum::Other], 'allergy_other' => 'Sellerie']);
+    TeamMember::factory()->for($band)->create(['type' => TeamMember::TYPE_MEMBER, 'first_name' => 'Lena', 'last_name' => 'Loud', 'stage_name' => null, 'position' => 'Gesang', 'diet' => 'vegan', 'allergies' => [AllergyEnum::Nuts]]);
 
     actingAsBandManager()
         ->get(route('band-manager.catering-riders.band', $band))
         ->assertSuccessful()
-        ->assertSeeInOrder(['value="Lena Loud"', 'value="Gesang"', 'value="vegan"', 'value="Nüsse / Erdnüsse"', 'value="Sam Sound"', 'value="Tontechnik"', 'value="Sellerie"'], false)
+        ->assertSeeInOrder(['value="Lena Loud"', 'value="Gesang"', 'value="vegan"', 'value="Nüsse / Erdnüsse"', 'value="Sam Sound"', 'value="Tontechnik"', 'value="Gluten, Sellerie"'], false)
         ->assertSee('<option value="Gluten">', false)
         ->assertSee('Neu aus „Band/Team“ übernehmen')
         ->assertSee('Buyout gewünscht')
@@ -66,8 +66,8 @@ it('prefills the travel party with diets and allergies from band and team', func
 
 it('fills empty diets and allergies of a saved rider from band and team but keeps own entries', function () {
     $band = Band::factory()->create();
-    TeamMember::factory()->for($band)->create(['first_name' => 'Lena', 'last_name' => 'Loud', 'stage_name' => null, 'diet' => 'vegan', 'allergy' => AllergyEnum::Gluten]);
-    TeamMember::factory()->for($band)->create(['first_name' => 'Max', 'last_name' => 'Bass', 'stage_name' => null, 'diet' => 'vegetarisch', 'allergy' => AllergyEnum::Lactose]);
+    TeamMember::factory()->for($band)->create(['first_name' => 'Lena', 'last_name' => 'Loud', 'stage_name' => null, 'diet' => 'vegan', 'allergies' => [AllergyEnum::Gluten]]);
+    TeamMember::factory()->for($band)->create(['first_name' => 'Max', 'last_name' => 'Bass', 'stage_name' => null, 'diet' => 'vegetarisch', 'allergies' => [AllergyEnum::Lactose]]);
     $rider = CateringRider::factory()->for($band)->create(['people' => [
         ['name' => 'Lena Loud', 'role' => 'Gesang', 'diet' => '', 'allergy' => ''],
         ['name' => 'Max Bass', 'role' => 'Bass', 'diet' => 'pescetarisch', 'allergy' => 'Laktose, Sellerie'],

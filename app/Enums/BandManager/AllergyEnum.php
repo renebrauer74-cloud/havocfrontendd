@@ -3,7 +3,7 @@
 namespace App\Enums\BandManager;
 
 /**
- * Allergie einer Person unter „Band/Team“ – die drei häufigsten plus „Sonstiges“ mit eigenem Text.
+ * Allergien einer Person unter „Band/Team“ (mehrere möglich) – die drei häufigsten plus „Sonstiges“ mit eigenem Text.
  */
 enum AllergyEnum: string
 {

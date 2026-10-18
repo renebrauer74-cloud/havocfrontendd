@@ -5,8 +5,8 @@ namespace App\Services\BandManager;
 use App\Models\BandManager\User;
 
 /**
- * Alle Exporte – als Kacheln der Export-Seite und als Menüpunkte unter der Überschrift "Export",
- * jeweils nur, wenn der Benutzer das nötige Recht hat. Gibt es keinen, erscheint auch die Überschrift nicht.
+ * Alle Exporte – als Kacheln der Export-Seite, jeweils nur, wenn der Benutzer das nötige Recht hat.
+ * Gibt es keinen, erscheint auch der Menüpunkt "Export" nicht.
  */
 class Exports
 {

@@ -33,7 +33,7 @@ class ListTeamMemberFactsAction
             ['Adresse', $address, null],
             ['T-Shirt-Größe', $member->shirt_size, null],
             ['Ernährung', $member->diet, null],
-            ['Allergie', $this->describeAllergy->execute($member), null],
+            ['Allergien', $this->describeAllergy->execute($member), null],
             ['Führerschein', $member->driver_license, null],
             ['Notfallkontakt', $member->emergency_contact, null],
         ];
