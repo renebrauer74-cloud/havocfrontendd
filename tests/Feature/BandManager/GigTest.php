@@ -5,6 +5,7 @@ use App\Models\BandManager\ActivityLog;
 use App\Models\BandManager\Availability;
 use App\Models\BandManager\Band;
 use App\Models\BandManager\Gig;
+use App\Models\BandManager\TeamMember;
 use App\Models\BandManager\User;
 
 /**
@@ -225,6 +226,56 @@ it('lets bands edit only their own shows', function () {
 it('shows the gig forms', function () {
     actingAsBandManager()->get(route('band-manager.gigs.create', ['date' => '2026-12-05']))->assertSuccessful()->assertSee('2026-12-05');
     actingAsBandManager()->get(route('band-manager.gigs.edit', Gig::factory()->create(['time_show' => '21:00:00'])))->assertSuccessful()->assertSee('21:00');
+});
+
+it('saves who travels with the band', function () {
+    $band = Band::factory()->create();
+    $member = TeamMember::factory()->for($band)->create();
+    $crew = TeamMember::factory()->for($band)->crew()->create();
+    TeamMember::factory()->for($band)->create();
+
+    actingAsBandManager()
+        ->post(route('band-manager.gigs.store'), gigData($band, ['travelers' => [$member->id, $crew->id]]))
+        ->assertSessionHas('success');
+
+    $gig = Gig::sole();
+    expect($gig->travelers()->pluck('bm_team_members.id')->sort()->values()->all())->toBe([$member->id, $crew->id]);
+
+    actingAsBandManager()
+        ->put(route('band-manager.gigs.update', $gig), gigData($band, ['date' => $gig->date, 'travelers' => [$crew->id]]))
+        ->assertRedirect(route('band-manager.gigs.index'));
+
+    expect($gig->travelers()->pluck('bm_team_members.id')->all())->toBe([$crew->id]);
+
+    actingAsBandManager()->put(route('band-manager.gigs.update', $gig), gigData($band, ['date' => $gig->date]));
+
+    expect($gig->travelers()->count())->toBe(0);
+});
+
+it('rejects travelers from another band', function () {
+    $foreigner = TeamMember::factory()->create();
+
+    actingAsBandManager()
+        ->post(route('band-manager.gigs.store'), gigData(Band::factory()->create(), ['travelers' => [$foreigner->id]]))
+        ->assertSessionHasErrors('travelers.0');
+
+    expect(Gig::count())->toBe(0);
+});
+
+it('offers band and crew as travelers in the gig form', function () {
+    $band = Band::factory()->create();
+    $member = TeamMember::factory()->for($band)->create(['first_name' => 'Kim', 'last_name' => 'Kitten']);
+    TeamMember::factory()->for($band)->crew()->create(['first_name' => 'Sam', 'last_name' => 'Sound']);
+    $gig = Gig::factory()->for($band)->create();
+    $gig->travelers()->attach($member);
+
+    actingAsBandManager()
+        ->get(route('band-manager.gigs.edit', $gig))
+        ->assertSuccessful()
+        ->assertSee('Reisegruppe')
+        ->assertSee('Kim Kitten')
+        ->assertSee('Sam Sound')
+        ->assertSee('id="traveler'.$member->id.'" checked', false);
 });
 
 it('downloads the day sheet as pdf', function () {

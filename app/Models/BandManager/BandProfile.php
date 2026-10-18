@@ -3,13 +3,16 @@
 namespace App\Models\BandManager;
 
 use App\Enums\MediaCollectionEnum;
+use App\Enums\MediaConversionEnum;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Attributes\WithoutIncrementing;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Spatie\Image\Enums\Fit;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 /**
  * Biografie (DE/EN), Social-Media-/Streaming-Links und Bandlogo – ein Datensatz pro Band.
@@ -54,5 +57,17 @@ class BandProfile extends Model implements HasMedia
             ->singleFile()
             ->useDisk('band-manager')
             ->acceptsMimeTypes(array_keys(self::LOGO_TYPES));
+    }
+
+    /**
+     * Kleines PNG für PDFs (Dompdf kann kein WebP) – die Transparenz bleibt erhalten.
+     */
+    public function registerMediaConversions(?Media $media = null): void
+    {
+        $this->addMediaConversion(MediaConversionEnum::PdfLogo->value)
+            ->performOnCollections(MediaCollectionEnum::BandLogos->value)
+            ->fit(Fit::Max, 800, 800)
+            ->format('png')
+            ->nonQueued();
     }
 }

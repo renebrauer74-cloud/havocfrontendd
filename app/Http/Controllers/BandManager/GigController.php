@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\BandManager\GigRequest;
 use App\Models\BandManager\Band;
 use App\Models\BandManager\Gig;
+use App\Models\BandManager\TeamMember;
 use App\Services\BandManager\DaySheet;
 use App\Services\BandManager\GigConflicts;
 use Illuminate\Http\RedirectResponse;
@@ -80,6 +81,7 @@ class GigController extends Controller
             'created_by' => $user->id,
             'booked_by' => $user->can('gigs.manage') ? Gig::BOOKED_BY_AGENCY : Gig::BOOKED_BY_BAND,
         ]);
+        $gig->travelers()->sync($request->travelerIds());
 
         app(BlockCalendarDayForGigAction::class)->execute($gig);
 
@@ -119,6 +121,7 @@ class GigController extends Controller
         }
 
         $gig->update($attributes);
+        $gig->travelers()->sync($request->travelerIds());
         app(BlockCalendarDayForGigAction::class)->execute($gig);
 
         $this->logSaved('gig.updated', $gig, $conflicts['blocking'] !== []);
@@ -162,10 +165,19 @@ class GigController extends Controller
     private function form(Request $request, Gig $gig): View
     {
         $user = $request->user();
+        $bands = Band::query()->accessibleBy($user)->orderBy('name')->get();
 
         return view('band-manager.gigs.form', [
             'gig' => $gig,
-            'bands' => Band::query()->accessibleBy($user)->orderBy('name')->get(),
+            'bands' => $bands,
+            'teamByBand' => TeamMember::query()
+                ->whereIn('band_id', $bands->modelKeys())
+                ->orderByRaw('type = ?', [TeamMember::TYPE_CREW])
+                ->orderBy('first_name')
+                ->orderBy('last_name')
+                ->get()
+                ->groupBy('band_id'),
+            'travelerIds' => array_map('intval', (array) old('travelers', $gig->exists ? $gig->travelers()->pluck('bm_team_members.id')->all() : [])),
             'statuses' => GigStatusEnum::cases(),
             'cateringOptions' => config('band-manager.gigs.catering_options'),
             'canManage' => $user->can('gigs.manage'),

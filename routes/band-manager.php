@@ -15,6 +15,7 @@ use App\Http\Controllers\BandManager\ImpersonationController;
 use App\Http\Controllers\BandManager\MessageController;
 use App\Http\Controllers\BandManager\PresskitController;
 use App\Http\Controllers\BandManager\TeamController;
+use App\Http\Controllers\BandManager\TechRiderController;
 use App\Http\Controllers\BandManager\ThemeController;
 use App\Http\Middleware\EnsureBandManagerUserIsActive;
 use Illuminate\Support\Facades\Route;
@@ -117,6 +118,15 @@ Route::middleware(['auth:band-manager', EnsureBandManagerUserIsActive::class])->
         Route::delete('messages/{thread}/messages/{message}', [MessageController::class, 'destroyMessage'])
             ->name('messages.messages.destroy')
             ->scopeBindings();
+    });
+
+    // Rider Creator – Band-Zugriff prüfen Controller bzw. Form-Request
+    Route::middleware('can:riders.view')->prefix('riders/tech')->name('tech-riders.')->group(function () {
+        Route::get('/', [TechRiderController::class, 'index'])->name('index');
+        Route::get('band/{band}', [TechRiderController::class, 'band'])->name('band');
+        Route::get('band/{band}/pdf', [TechRiderController::class, 'pdf'])->name('pdf');
+        Route::get('band/{band}/stage-plot', [TechRiderController::class, 'stagePlot'])->name('stage-plot');
+        Route::put('band/{band}', [TechRiderController::class, 'update'])->middleware('can:riders.edit')->name('update');
     });
 
     Route::get('export', [ExportController::class, 'index'])->name('exports.index');

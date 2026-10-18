@@ -19,6 +19,7 @@ class DeleteBandAction
             $band->galleryImages->each->delete();
             $band->documents->each->delete();
             $band->profile?->delete();
+            $band->techRider?->delete();
 
             $band->delete();
         });
