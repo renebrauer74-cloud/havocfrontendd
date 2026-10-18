@@ -50,6 +50,19 @@ it('prefills the line-up of a new rider from the band members', function () {
         ->assertSee('Vorlage einfügen (Rockband)');
 });
 
+it('offers an own lighting engineer and further technical contacts in the form', function () {
+    $rider = TechRider::factory()->create([
+        'contacts' => [['role' => 'Backline / Roadie', 'name' => 'Ben Backline', 'phone' => '', 'email' => '']],
+    ]);
+
+    actingAsBandManager()
+        ->get(route('band-manager.tech-riders.band', $rider->band))
+        ->assertSuccessful()
+        ->assertSee('Wir bringen eigenen Lichttechniker mit')
+        ->assertSee('name="contacts[0][name]" value="Ben Backline"', false)
+        ->assertSee('<option value="Lichttechnik">', false);
+});
+
 it('saves the rider, keeps the order and drops empty rows', function () {
     $band = Band::factory()->create();
 
@@ -58,6 +71,11 @@ it('saves the rider, keeps the order and drops empty rows', function () {
             'contact_name' => 'Tom Technik',
             'contact_phone' => '+49 170 1234567',
             'brings_foh_engineer' => '1',
+            'brings_lighting_engineer' => '1',
+            'contacts' => [
+                ['role' => 'Lichttechnik', 'name' => 'Lisa Licht', 'phone' => '+49 171 7654321', 'email' => 'lisa@example.com'],
+                ['role' => 'Backline / Roadie', 'name' => '', 'phone' => '', 'email' => ''],
+            ],
             'soundcheck_minutes' => '45',
             'stage_width' => '8.5',
             'line_up' => [['name' => 'Lena', 'instrument' => 'Gesang'], ['name' => '', 'instrument' => '']],
@@ -79,6 +97,8 @@ it('saves the rider, keeps the order and drops empty rows', function () {
     expect($rider->contact_name)->toBe('Tom Technik')
         ->and($rider->brings_foh_engineer)->toBeTrue()
         ->and($rider->brings_monitor_engineer)->toBeFalse()
+        ->and($rider->brings_lighting_engineer)->toBeTrue()
+        ->and($rider->contacts)->toBe([['role' => 'Lichttechnik', 'name' => 'Lisa Licht', 'phone' => '+49 171 7654321', 'email' => 'lisa@example.com']])
         ->and($rider->soundcheck_minutes)->toBe(45)
         ->and($rider->stage_width)->toBe('8.5')
         ->and($rider->line_up)->toBe([['name' => 'Lena', 'instrument' => 'Gesang']])
@@ -100,8 +120,9 @@ it('rejects unknown stands, monitor types and providers', function () {
             'inputs' => [['source' => 'Kick', 'stand' => 'gaffa']],
             'monitors' => [['who' => 'Drums', 'type' => 'laut']],
             'backline' => [['item' => 'Amp', 'provider' => 'nachbar']],
+            'contacts' => [['name' => 'Lisa', 'email' => 'keine-mail']],
         ])
-        ->assertSessionHasErrors(['inputs.0.stand', 'monitors.0.type', 'backline.0.provider']);
+        ->assertSessionHasErrors(['inputs.0.stand', 'monitors.0.type', 'backline.0.provider', 'contacts.0.email']);
 
     expect(TechRider::query()->count())->toBe(0);
 });
@@ -172,6 +193,21 @@ it('shows the band logo centered at the top of the pdf', function () {
         ->and($html)->toContain('TECHNICAL RIDER');
 
     actingAsBandManager()->get(route('band-manager.tech-riders.pdf', $band))->assertSuccessful()->assertDownload('TechRider_Iron-Kittens.pdf');
+});
+
+it('lists the lighting engineer and further technical contacts in the pdf', function () {
+    $rider = TechRider::factory()->create([
+        'brings_lighting_engineer' => true,
+        'contacts' => [['role' => 'Lichttechnik', 'name' => 'Lisa Licht', 'phone' => '+49 171 7654321', 'email' => 'lisa@example.com']],
+    ]);
+
+    $html = view('band-manager.riders.tech.pdf', ['rider' => $rider, 'band' => $rider->band, 'bandLogo' => null, 'stagePlot' => null, 'providers' => BacklineProviderEnum::cases()])->render();
+
+    expect($html)->toContain('Weitere Ansprechpartner')
+        ->and($html)->toContain('Lisa Licht')
+        ->and($html)->toContain('href="tel:+491717654321"')
+        ->and($html)->toContain('href="mailto:lisa@example.com"')
+        ->and($html)->toContain('<td class="k">Lichttechnik</td><td>bringt die Band mit</td>');
 });
 
 it('shows the band name instead of a logo when there is none', function () {

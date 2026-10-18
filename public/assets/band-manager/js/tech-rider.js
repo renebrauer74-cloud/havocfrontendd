@@ -48,7 +48,7 @@
         return row;
     };
 
-    const isEmptyRow = row => [...row.querySelectorAll('input[type=text], textarea')].every(input => input.value.trim() === '');
+    const isEmptyRow = row => [...row.querySelectorAll('input[type=text], input[type=tel], input[type=email], textarea')].every(input => input.value.trim() === '');
 
     form.addEventListener('click', e => {
         const add = e.target.closest('[data-rd-add]');

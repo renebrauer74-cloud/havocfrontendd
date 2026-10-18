@@ -20,7 +20,8 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 #[Table('bm_tech_riders', key: 'band_id')]
 #[WithoutIncrementing]
 #[Fillable([
-    'band_id', 'contact_name', 'contact_phone', 'contact_email', 'brings_foh_engineer', 'brings_monitor_engineer',
+    'band_id', 'contact_name', 'contact_phone', 'contact_email', 'contacts',
+    'brings_foh_engineer', 'brings_monitor_engineer', 'brings_lighting_engineer',
     'setup_minutes', 'soundcheck_minutes', 'show_minutes', 'teardown_minutes',
     'line_up', 'inputs', 'monitors', 'backline', 'custom_sections',
     'pa_notes', 'monitor_notes', 'stage_width', 'stage_depth', 'stage_notes', 'lighting_notes', 'power_notes', 'notes',
@@ -44,6 +45,8 @@ class TechRider extends Model implements HasMedia
         return [
             'brings_foh_engineer' => 'boolean',
             'brings_monitor_engineer' => 'boolean',
+            'brings_lighting_engineer' => 'boolean',
+            'contacts' => 'array',
             'line_up' => 'array',
             'inputs' => 'array',
             'monitors' => 'array',

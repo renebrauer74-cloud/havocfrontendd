@@ -7,6 +7,7 @@ use App\Actions\BandManager\Riders\RenderTechRiderPdfAction;
 use App\Actions\BandManager\Riders\SaveTechRiderAction;
 use App\Actions\BandManager\Riders\SuggestTechRiderLineUpAction;
 use App\Enums\BandManager\BacklineProviderEnum;
+use App\Enums\BandManager\CrewRoleEnum;
 use App\Enums\BandManager\MicStandEnum;
 use App\Enums\BandManager\MonitorTypeEnum;
 use App\Enums\MediaCollectionEnum;
@@ -55,6 +56,7 @@ class TechRiderController extends Controller
             'canEdit' => $request->user()->can('riders.edit'),
             'suggestedLineUp' => $suggestLineUp->execute($band),
             'hasStagePlot' => $rider->exists && $rider->hasMedia(MediaCollectionEnum::StagePlots->value),
+            'contactRoles' => [CrewRoleEnum::Sound, CrewRoleEnum::Monitor, CrewRoleEnum::Light, CrewRoleEnum::Backline, CrewRoleEnum::TourManager],
             'stands' => MicStandEnum::cases(),
             'monitorTypes' => MonitorTypeEnum::cases(),
             'providers' => BacklineProviderEnum::cases(),

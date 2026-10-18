@@ -10,6 +10,13 @@
 
     <div class="rd-fields">
         @switch($list)
+            @case('contacts')
+                <input type="text" name="{{ $name('role') }}" value="{{ $value('role') }}" class="form-control rd-f-md" maxlength="150" list="rdContactRoles" placeholder="Bereich, z. B. Lichttechnik" aria-label="Bereich">
+                <input type="text" name="{{ $name('name') }}" value="{{ $value('name') }}" class="form-control rd-f-md" maxlength="150" placeholder="Name" aria-label="Name">
+                <input type="tel" name="{{ $name('phone') }}" value="{{ $value('phone') }}" class="form-control rd-f-md" maxlength="50" placeholder="Telefon" aria-label="Telefon">
+                <input type="email" name="{{ $name('email') }}" value="{{ $value('email') }}" class="form-control rd-f-md" maxlength="190" placeholder="E-Mail" aria-label="E-Mail">
+                @break
+
             @case('line_up')
                 <input type="text" name="{{ $name('name') }}" value="{{ $value('name') }}" class="form-control rd-f-lg" maxlength="150" placeholder="Name" aria-label="Name">
                 <input type="text" name="{{ $name('instrument') }}" value="{{ $value('instrument') }}" class="form-control rd-f-lg" maxlength="150" placeholder="Instrument / Funktion, z. B. Gesang, Gitarre" aria-label="Instrument">
