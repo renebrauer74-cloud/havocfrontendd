@@ -9,6 +9,7 @@ use App\Models\BandManager\User;
 /**
  * Menü der Seitenleiste (Icons: https://icons.getbootstrap.com).
  * Einträge mit section "riders" landen unter der Überschrift "Rider Creator",
+ * darunter steht die farbig hervorgehobene "Cloud" (section "cloud") für sich,
  * der hervorgehobene Punkt "Export" (section "exports") führt zur Kachel-Seite mit allen Exporten,
  * Einträge mit section "admin" im abgetrennten Bereich "Administration".
  */
@@ -30,9 +31,8 @@ class Navigation
             ['route' => 'band-manager.home', 'label' => 'Start', 'icon' => 'house', 'order' => 10, 'visible' => app(ResolveHomeUrlAction::class)->execute($user) === route('band-manager.home')],
             ['route' => 'band-manager.calendar.index', 'active' => ['band-manager.calendar.*'], 'label' => $user->isAdmin() ? 'Kalender' : 'Mein Kalender', 'icon' => 'calendar3', 'order' => 20, 'visible' => $user->can('availability.view')],
             ['route' => 'band-manager.team.index', 'active' => ['band-manager.team.*'], 'label' => 'Band/Team', 'icon' => 'person-vcard', 'order' => 25, 'visible' => $user->can('team.view')],
-            ['route' => 'band-manager.gallery.index', 'active' => ['band-manager.gallery.*'], 'label' => 'Galerie', 'icon' => 'images', 'order' => 27, 'visible' => $user->can('gallery.view')],
-            ['route' => 'band-manager.cloud.index', 'active' => ['band-manager.cloud.*'], 'label' => 'Cloud', 'icon' => 'cloud', 'order' => 28, 'visible' => $user->can('cloud.view')],
             ['route' => 'band-manager.gigs.index', 'active' => ['band-manager.gigs.*'], 'label' => 'Gigs', 'icon' => 'music-note-beamed', 'order' => 30, 'visible' => $user->can('gigs.view')],
+            ['route' => 'band-manager.gallery.index', 'active' => ['band-manager.gallery.*'], 'label' => 'Galerie', 'icon' => 'images', 'order' => 32, 'visible' => $user->can('gallery.view')],
             ['route' => 'band-manager.messages.index', 'active' => ['band-manager.messages.*'], 'label' => 'Nachrichten', 'icon' => 'chat-dots', 'order' => 35, 'visible' => $user->can('messages.view'),
                 'badge' => $user->can('messages.view') ? app(CountUnreadThreadsAction::class)->execute($user) : 0],
             ['route' => 'band-manager.documents.index', 'active' => ['band-manager.documents.*'], 'label' => 'Dokumente', 'icon' => 'file-earmark-text', 'order' => 40, 'visible' => $user->can('documents.view')],
@@ -42,6 +42,8 @@ class Navigation
             ['route' => 'band-manager.tech-riders.index', 'active' => ['band-manager.tech-riders.*'], 'label' => 'Tech Rider', 'icon' => 'sliders2-vertical', 'order' => 10, 'section' => 'riders', 'visible' => $user->can('riders.view')],
             ['route' => 'band-manager.catering-riders.index', 'active' => ['band-manager.catering-riders.*'], 'label' => 'Catering Rider', 'icon' => 'cup-hot', 'order' => 20, 'section' => 'riders', 'visible' => $user->can('riders.view')],
             ['route' => 'band-manager.stage-plots.index', 'active' => ['band-manager.stage-plots.*'], 'label' => 'Stage Plot Designer', 'icon' => 'easel2', 'order' => 30, 'section' => 'riders', 'visible' => $user->can('riders.view')],
+
+            ['route' => 'band-manager.cloud.index', 'active' => ['band-manager.cloud.*'], 'label' => 'Cloud', 'icon' => 'cloud', 'order' => 10, 'section' => 'cloud', 'visible' => $user->can('cloud.view')],
 
             ['route' => 'band-manager.exports.index', 'active' => $exportActive, 'label' => 'Export', 'icon' => 'box-arrow-down', 'order' => 10, 'section' => 'exports', 'visible' => $exports !== []],
 
