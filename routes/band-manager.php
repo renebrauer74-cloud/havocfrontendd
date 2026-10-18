@@ -78,13 +78,17 @@ Route::middleware(['auth:band-manager', EnsureBandManagerUserIsActive::class])->
     });
 
     // Zugänge einer Band (Bandmitglied, Team, Fotograf) – Band-Zugriff prüfen Controller bzw. Form-Request
-    Route::middleware('can:logins.manage')->prefix('accesses/band/{band}')->name('accesses.')->scopeBindings()->group(function () {
+    Route::middleware('can:logins.manage')->prefix('accesses')->name('accesses.')->group(function () {
         Route::get('/', [BandAccessController::class, 'index'])->name('index');
-        Route::get('create', [BandAccessController::class, 'create'])->name('create');
-        Route::post('/', [BandAccessController::class, 'store'])->name('store');
-        Route::get('{user}/edit', [BandAccessController::class, 'edit'])->name('edit');
-        Route::put('{user}', [BandAccessController::class, 'update'])->name('update');
-        Route::delete('{user}', [BandAccessController::class, 'destroy'])->name('destroy');
+
+        Route::prefix('band/{band}')->scopeBindings()->group(function () {
+            Route::get('/', [BandAccessController::class, 'band'])->name('band');
+            Route::get('create', [BandAccessController::class, 'create'])->name('create');
+            Route::post('/', [BandAccessController::class, 'store'])->name('store');
+            Route::get('{user}/edit', [BandAccessController::class, 'edit'])->name('edit');
+            Route::put('{user}', [BandAccessController::class, 'update'])->name('update');
+            Route::delete('{user}', [BandAccessController::class, 'destroy'])->name('destroy');
+        });
     });
 
     // Bildergalerie

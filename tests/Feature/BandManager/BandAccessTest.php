@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Hash;
 
 /**
- * Band mit Haupt-Login (Rolle „artist“).
+ * Band mit Haupt-Login (Rolle â€žartistâ€œ).
  *
  * @return array{0: Band, 1: User}
  */
@@ -25,7 +25,7 @@ it('lists the accesses of a band', function () {
     User::factory()->bandAccess()->hasAttached(Band::factory())->create(['name' => 'Fremder Zugang']);
 
     actingAsBandManager($owner)
-        ->get(route('band-manager.accesses.index', $band))
+        ->get(route('band-manager.accesses.band', $band))
         ->assertSuccessful()
         ->assertSee('Pia Photo')
         ->assertSee('Fotograf')
@@ -34,12 +34,36 @@ it('lists the accesses of a band', function () {
         ->assertDontSee($owner->email);
 });
 
-it('links the accesses on the band page for the band owner only', function () {
+it('shows the accesses in the main menu for the band owner only', function () {
     [$band, $owner] = bandWithOwner();
     $member = User::factory()->bandAccess(areaAccess: ['team' => 'view'])->hasAttached($band)->create();
+    $accessesUrl = route('band-manager.accesses.index');
 
-    actingAsBandManager($owner)->get(route('band-manager.team.band', $band))->assertSee(route('band-manager.accesses.index', $band));
-    actingAsBandManager($member)->get(route('band-manager.team.band', $band))->assertDontSee(route('band-manager.accesses.index', $band));
+    actingAsBandManager($owner)->get(route('band-manager.team.band', $band))->assertSee($accessesUrl);
+    actingAsBandManager($member)->get(route('band-manager.team.band', $band))->assertDontSee($accessesUrl);
+    actingAsBandManager()->get(route('band-manager.admin.dashboard'))->assertDontSee($accessesUrl);
+});
+
+it('sends band owners with one band straight to its accesses', function () {
+    [$band, $owner] = bandWithOwner();
+
+    actingAsBandManager($owner)
+        ->get(route('band-manager.accesses.index'))
+        ->assertRedirect(route('band-manager.accesses.band', $band));
+});
+
+it('lets band owners with several bands choose a band', function () {
+    [$band, $owner] = bandWithOwner();
+    $secondBand = Band::factory()->hasAttached($owner)->create(['name' => 'Zweite Band']);
+    User::factory()->bandAccess()->hasAttached($secondBand)->create();
+
+    actingAsBandManager($owner)
+        ->get(route('band-manager.accesses.index'))
+        ->assertSuccessful()
+        ->assertSee($band->name)
+        ->assertSee('Zweite Band')
+        ->assertSee('1 Zugang')
+        ->assertSee(route('band-manager.accesses.band', $secondBand));
 });
 
 it('shows the access form with the role presets', function () {
@@ -65,7 +89,7 @@ it('creates an access with selected areas', function () {
             'is_active' => '1',
             'areas' => ['gallery' => 'edit', 'gigs' => 'view', 'calendar' => '', 'messages' => 'edit'],
         ])
-        ->assertRedirect(route('band-manager.accesses.index', $band))
+        ->assertRedirect(route('band-manager.accesses.band', $band))
         ->assertSessionHas('success');
 
     $access = User::query()->where('email', 'pia@example.com')->sole();
@@ -112,7 +136,7 @@ it('updates an access and keeps the password when the field stays empty', functi
             'role' => 'team',
             'areas' => ['calendar' => 'view'],
         ])
-        ->assertRedirect(route('band-manager.accesses.index', $band));
+        ->assertRedirect(route('band-manager.accesses.band', $band));
 
     $access->refresh();
 
@@ -129,7 +153,7 @@ it('deletes an access', function () {
 
     actingAsBandManager($owner)
         ->delete(route('band-manager.accesses.destroy', [$band, $access]))
-        ->assertRedirect(route('band-manager.accesses.index', $band));
+        ->assertRedirect(route('band-manager.accesses.band', $band));
 
     $this->assertModelMissing($access);
 });
@@ -139,7 +163,7 @@ it('does not let bands manage logins of other bands', function () {
     $otherBand = Band::factory()->create();
     $otherAccess = User::factory()->bandAccess()->hasAttached($otherBand)->create();
 
-    actingAsBandManager($owner)->get(route('band-manager.accesses.index', $otherBand))->assertForbidden();
+    actingAsBandManager($owner)->get(route('band-manager.accesses.band', $otherBand))->assertForbidden();
     actingAsBandManager($owner)->delete(route('band-manager.accesses.destroy', [$otherBand, $otherAccess]))->assertForbidden();
 
     $this->assertModelExists($otherAccess);
@@ -166,7 +190,7 @@ it('does not let accesses manage logins', function () {
     [$band] = bandWithOwner();
     $member = User::factory()->bandAccess(areaAccess: ['team' => 'edit', 'calendar' => 'edit'])->hasAttached($band)->create();
 
-    actingAsBandManager($member)->get(route('band-manager.accesses.index', $band))->assertForbidden();
+    actingAsBandManager($member)->get(route('band-manager.accesses.band', $band))->assertForbidden();
     actingAsBandManager($member)->post(route('band-manager.accesses.store', $band), [])->assertForbidden();
 });
 
