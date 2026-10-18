@@ -29,6 +29,7 @@ it('exports the availabilities of a month as csv', function () {
     $nails = Band::factory()->create(['name' => 'Rusty Nails']);
     Availability::factory()->for($kittens)->create(['date' => '2026-11-03', 'status' => 'red', 'note' => 'Urlaub']);
     Availability::factory()->for($nails)->create(['date' => '2026-11-01', 'status' => 'green']);
+    Availability::factory()->for($nails)->create(['date' => '2026-11-04', 'status' => 'pink', 'title' => 'Fotoshooting', 'start_time' => '10:00', 'end_time' => '14:00']);
     Availability::factory()->for($nails)->create(['date' => '2026-12-01', 'status' => 'green']);
 
     $response = actingAsBandManager()
@@ -38,9 +39,10 @@ it('exports the availabilities of a month as csv', function () {
 
     expect($response->streamedContent())->toBe(
         "\xEF\xBB\xBF"
-        ."Band;Datum;Status;Notiz\n"
-        ."\"Iron Kittens\";03.11.2026;\"Termin nicht möglich\";Urlaub\n"
-        ."\"Rusty Nails\";01.11.2026;Verfügbar;\n"
+        ."Band;Datum;Status;Titel;Uhrzeit;Notiz\n"
+        ."\"Iron Kittens\";03.11.2026;\"Termin nicht möglich\";;ganztägig;Urlaub\n"
+        ."\"Rusty Nails\";01.11.2026;Verfügbar;;ganztägig;\n"
+        ."\"Rusty Nails\";04.11.2026;Sonstiges;Fotoshooting;10:00–14:00;\n"
     );
 });
 

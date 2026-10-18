@@ -51,9 +51,31 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch (e) { failure(e); }
         },
 
+        // Kalendereinträge: Uhrzeit + Titel direkt im Kästchen
+        eventContent: info => {
+            const p = info.event.extendedProps;
+            if (p.type !== 'availability') return true;
+
+            const box = document.createElement('div');
+            box.className = 'hv-av-label';
+            if (p.time) {
+                const time = document.createElement('span');
+                time.className = 'hv-av-time';
+                time.textContent = p.time;
+                box.append(time);
+            }
+            const text = document.createElement('span');
+            text.className = 'hv-av-text';
+            text.textContent = info.event.title;
+            box.append(text);
+            return { domNodes: [box] };
+        },
+
         eventDidMount: info => {
             const p = info.event.extendedProps;
-            const tip = [p.gigStatus, p.note].filter(Boolean).join(' – ');
+            const tip = p.type === 'availability'
+                ? [p.statusLabel, p.time || 'ganztägig', p.title, p.note].filter(Boolean).join(' – ')
+                : [p.gigStatus, p.note].filter(Boolean).join(' – ');
             if (tip) info.el.title = tip;
         },
 
@@ -67,6 +89,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!modal) return;
 
+    const allDay = form.elements.all_day;
+    const times = document.getElementById('statusTimes');
+    const titleHint = document.getElementById('statusTitleHint');
+
+    // „Ganztägig“ blendet die Uhrzeiten aus, „Sonstiges“ verlangt einen Titel
+    function syncForm() {
+        times.classList.toggle('d-none', allDay.checked);
+        form.elements.start_time.required = !allDay.checked;
+
+        const needsTitle = !!form.querySelector('input[name="status"]:checked')?.hasAttribute('data-requires-title');
+        form.elements.title.required = needsTitle;
+        titleHint.textContent = needsTitle ? '*' : '(optional)';
+    }
+    allDay.addEventListener('change', () => {
+        syncForm();
+        if (!allDay.checked) form.elements.start_time.focus();
+    });
+    form.querySelectorAll('input[name="status"]').forEach(radio => radio.addEventListener('change', syncForm));
+
     function openModal(from, to) {
         current = { from, to };
         rangeLabel.textContent = from === to ? human(from) : `${human(from)} – ${human(to)}`;
@@ -74,10 +115,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const existing = from === to ? entries[from] : null;
         if (existing) {
-            const radio = form.querySelector(`input[name="status"][value="${existing.extendedProps.status}"]`);
+            const p = existing.extendedProps;
+            const radio = form.querySelector(`input[name="status"][value="${p.status}"]`);
             if (radio) radio.checked = true;
-            form.elements.note.value = existing.extendedProps.note || '';
+            form.elements.title.value = p.title || '';
+            form.elements.note.value = p.note || '';
+            allDay.checked = !p.startTime;
+            form.elements.start_time.value = p.startTime || '';
+            form.elements.end_time.value = p.endTime || '';
         }
+        syncForm();
         modal.show();
     }
 
@@ -91,7 +138,15 @@ document.addEventListener('DOMContentLoaded', () => {
         ev.preventDefault();
         const fd = new FormData(form);
         try {
-            const data = await send('POST', { ...current, status: fd.get('status'), note: fd.get('note') });
+            const data = await send('POST', {
+                ...current,
+                status: fd.get('status'),
+                title: fd.get('title'),
+                all_day: allDay.checked,
+                start_time: allDay.checked ? null : fd.get('start_time'),
+                end_time: allDay.checked ? null : fd.get('end_time'),
+                note: fd.get('note'),
+            });
             done();
             if (data.warnings && data.warnings.length) alert('⚠️ ' + data.warnings.join('\n'));
         } catch (e) { alert(e.message); }
