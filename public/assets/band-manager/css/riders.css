@@ -112,6 +112,57 @@
 .rd-option span { font-size: .8rem; color: var(--hv-muted); }
 .rd-option:has(:checked) { border-color: var(--hv-accent); box-shadow: 0 0 0 1px var(--hv-accent); }
 
+/* ---------- Stage Plot Designer ---------- */
+.sp-designer { display: grid; grid-template-columns: 230px minmax(0, 1fr); gap: 1rem; align-items: start; margin-bottom: 1rem; }
+.sp-readonly .sp-designer { grid-template-columns: minmax(0, 1fr); }
+.sp-form fieldset { min-width: 0; }
+.sp-palette { position: sticky; top: 1rem; max-height: calc(100vh - 2rem); overflow-y: auto; padding: .75rem; }
+.sp-group-title { margin: .9rem 0 .35rem; font-size: .7rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--hv-muted); }
+.sp-tools { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .35rem; }
+.sp-tool {
+  display: flex; flex-direction: column; align-items: center; gap: .25rem;
+  padding: .35rem .25rem;
+  border: 1px solid var(--hv-border); border-radius: 10px;
+  background: var(--hv-surface-2); color: var(--hv-text);
+  font-size: .7rem; line-height: 1.15; text-align: center;
+  cursor: grab; transition: border-color .15s;
+}
+.sp-tool:hover, .sp-tool:focus-visible { border-color: var(--hv-accent); color: var(--hv-accent-text); }
+.sp-tool svg, .sp-tool .bi {
+  display: flex; align-items: center; justify-content: center;
+  width: 100%; height: 40px; padding: 3px;
+  border-radius: 6px; background: #fff; color: #1d1d1b; font-size: 1.4rem;
+}
+.sp-main { min-width: 0; }
+.sp-toolbar { display: flex; flex-wrap: wrap; align-items: flex-end; gap: .75rem 1rem; margin-bottom: .75rem; }
+.sp-toolbar .input-group { width: 130px; }
+.sp-canvas { overflow: hidden; border: 1px solid var(--hv-border-strong); border-radius: 12px; background: #fff; }
+#spStage { display: block; width: 100%; height: auto; touch-action: none; user-select: none; -webkit-user-select: none; outline: none; }
+#spStage:focus-visible { box-shadow: inset 0 0 0 2px var(--hv-accent); }
+.sp-item { cursor: move; }
+.sp-readonly .sp-item { cursor: default; }
+.sp-hint { margin-top: .5rem; font-size: .78rem; color: var(--hv-muted); }
+.sp-hint kbd { font-size: .7rem; padding: .05rem .3rem; }
+.sp-props {
+  display: flex; flex-wrap: wrap; align-items: flex-end; gap: .75rem 1.25rem;
+  margin-top: .75rem; padding: .75rem;
+  border: 1px solid var(--hv-accent); border-radius: 12px;
+  background: var(--hv-surface-2);
+}
+.sp-props[hidden], .sp-props [hidden] { display: none !important; }
+.sp-props-title { flex-basis: 100%; font-size: .85rem; font-weight: 600; color: var(--hv-heading); }
+.sp-props-title .bi { color: var(--hv-accent); }
+.sp-prop-label { flex: 1 1 220px; }
+.sp-props .form-range { width: 140px; }
+.sp-riser-size { width: 110px; }
+.sp-prop-actions { display: flex; gap: .25rem; margin-left: auto; }
+
+@media (max-width: 991.98px) {
+  .sp-designer { grid-template-columns: minmax(0, 1fr); }
+  .sp-palette { position: static; max-height: none; }
+  .sp-tools { grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); }
+}
+
 /* ---------- Speicherleiste ---------- */
 .rd-savebar {
   position: sticky; bottom: 0; z-index: 5;

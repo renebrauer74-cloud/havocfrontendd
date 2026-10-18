@@ -12,9 +12,9 @@ use Illuminate\Support\Str;
 class Pdf
 {
     /**
-     * $footer darf {PAGE_NUM} und {PAGE_COUNT} enthalten.
+     * $footer darf {PAGE_NUM} und {PAGE_COUNT} enthalten, $orientation ist "portrait" oder "landscape".
      */
-    public function render(string $html, string $footer = ''): string
+    public function render(string $html, string $footer = '', string $orientation = 'portrait'): string
     {
         $options = new Options;
         $options->set('defaultFont', 'DejaVu Sans');
@@ -22,12 +22,13 @@ class Pdf
 
         $pdf = new Dompdf($options);
         $pdf->loadHtml($html, 'UTF-8');
-        $pdf->setPaper('A4', 'portrait');
+        $pdf->setPaper('A4', $orientation);
         $pdf->render();
 
         if ($footer !== '') {
             $font = $pdf->getFontMetrics()->getFont('DejaVu Sans');
-            $pdf->getCanvas()->page_text(40, 812, $footer, $font, 7, [0.42, 0.42, 0.47]);
+            $canvas = $pdf->getCanvas();
+            $canvas->page_text(40, $canvas->get_height() - 30, $footer, $font, 7, [0.42, 0.42, 0.47]);
         }
 
         return (string) $pdf->output();
