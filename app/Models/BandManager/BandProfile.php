@@ -52,7 +52,7 @@ class BandProfile extends Model implements HasMedia
     {
         $this->addMediaCollection(MediaCollectionEnum::BandLogos->value)
             ->singleFile()
-            ->useDisk(config('havoc.uploads.band_manager_disk'))
+            ->useDisk('band-manager')
             ->acceptsMimeTypes(array_keys(self::LOGO_TYPES));
     }
 }

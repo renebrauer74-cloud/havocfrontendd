@@ -48,20 +48,14 @@ return [
         ],
 
         /*
-         * Alle Uploads (Media Library) landen auf zwei Disks, die sich einen Speicher teilen:
+         * Uploads (Media Library) – je Bereich eine Disk und auf Laravel Cloud ein eigener Bucket:
          *
-         *   uploads       Website-Bilder aus dem Admin       <collection>/<uuid>/datei
-         *   band-manager  Verträge, Rider, Fotos, Logos      band-manager/<collection>/<uuid>/datei
+         *   uploads       Website-Bilder aus dem Admin     öffentlicher Bucket   <collection>/<uuid>/datei
+         *   band-manager  Verträge, Rider, Fotos, Logos    privater Bucket       <collection>/<uuid>/datei
          *
-         * Lokal liegt alles unter public/uploads/. Auf Laravel Cloud ersetzt der angehängte öffentliche
-         * Bucket mit dem Disk-Namen "uploads" die Disk "uploads" (LARAVEL_CLOUD_DISK_CONFIG) – das
-         * Dateisystem dort ist flüchtig. "band-manager" ist nur ein Unterordner davon.
-         *
-         * Die Band-Manager-Dateien werden nur über Controller mit Rechteprüfung ausgeliefert. Im öffentlichen
-         * Bucket sind sie über ihre (unratbare) direkte URL trotzdem erreichbar. Umzug auf einen privaten Bucket:
-         *   1. Privaten Bucket in Cloud mit dem Disk-Namen "band-manager-private" anhängen (nicht default)
-         *   2. BAND_MANAGER_DISK=band-manager-private setzen, deployen – neue Uploads landen dort
-         *   3. php artisan havoc:move-media band-manager band-manager-private
+         * Auf Laravel Cloud ersetzt ein angehängter Bucket die Disk mit demselben Disk-Namen
+         * (LARAVEL_CLOUD_DISK_CONFIG) – das Dateisystem dort ist flüchtig. Lokal: public/uploads/ bzw.
+         * storage/app/private/band-manager/. Band-Manager-Dateien liefern nur Controller mit Rechteprüfung aus.
          */
         'uploads' => [
             'driver' => 'local',
@@ -73,9 +67,10 @@ return [
         ],
 
         'band-manager' => [
-            'driver' => 'scoped',
-            'disk' => 'uploads',
-            'prefix' => 'band-manager',
+            'driver' => 'local',
+            'root' => storage_path('app/private/band-manager'),
+            'throw' => false,
+            'report' => false,
         ],
 
         's3' => [

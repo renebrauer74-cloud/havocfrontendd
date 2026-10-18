@@ -6,7 +6,7 @@
 Fachlogik, die über ein paar Zeilen Controller-Code hinausgeht, gehört in eine Action – nicht ins Model und nicht in einen Helper.
 
 - Ablage unter `app/Actions/<Bereich>/`, z. B. `app/Actions/BandManager/DeleteBandAction.php`
-- Klassenname endet auf `Action` und beschreibt, was passiert: `DeleteBandAction`, `MoveMediaToDiskAction`
+- Klassenname endet auf `Action` und beschreibt, was passiert: `DeleteBandAction`, `SendMessageAction`
 - Die öffentliche Methode heißt **immer** `execute()` – bei unterschiedlichen Fällen lieber zwei Actions als `executeForX()`
 - Actions werden per Dependency Injection geholt (Controller-Methode, Command `handle()`, Konstruktor) und mit `->execute(...)` aufgerufen
 - Commands und Controller bleiben dünn: Eingaben prüfen, Action aufrufen, Ergebnis ausgeben
@@ -59,11 +59,11 @@ Alle Uploads laufen über die Spatie Media Library – mit ihrer Standard-API, o
 - Speichern: `$model->addMediaFromRequest('image')->toMediaCollection(MediaCollectionEnum::X->value)` (bei einem Bild pro Datensatz `singleFile()` an der Collection)
 - Verkleinern/Vorschauen: `registerMediaConversions()` mit `->nonQueued()` – kein eigener GD-Code
 - Öffentliche Bilder (Disk `uploads`): `getFirstMediaUrl()`; Platzhalter über `useFallbackUrl()` an der Collection
-- Geschützte Dateien (Band-Manager, Disk aus `havoc.uploads.band_manager_disk`): Controller mit Rechteprüfung, dann `$media->toInlineResponse($request, $conversion)` bzw. `$media->toResponse($request)` für Downloads
+- Geschützte Dateien (Band-Manager, Disk `band-manager`, privater Bucket): Controller mit Rechteprüfung, dann `$media->toInlineResponse($request, $conversion)` bzw. `$media->toResponse($request)` für Downloads
 - Datei-Inhalte lesen: `$media->stream($conversion)` – nie `$disk->path()`, das gibt es im Bucket (S3/R2) nicht
 - Größe für die Anzeige: `$media->human_readable_size`; zusätzliche Metadaten über `withCustomProperties()`
-- Ablage: `<collection>/<uuid>/datei` (`App\Services\MediaLibrary\CollectionPathGenerator`), auf Laravel Cloud im Bucket mit dem Disk-Namen `uploads`
-- Media auf eine andere Disk umziehen: `php artisan havoc:move-media {from} {to}`
+- Ablage: `<collection>/<uuid>/datei` (`App\Services\MediaLibrary\CollectionPathGenerator`)
+- Laravel Cloud: je Disk ein Bucket mit gleichem Disk-Namen – `uploads` öffentlich, `band-manager` privat, beide nicht „Default“
 
 === .ai/models rules ===
 

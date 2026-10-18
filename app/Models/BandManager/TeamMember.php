@@ -66,7 +66,7 @@ class TeamMember extends Model implements HasMedia
     {
         $this->addMediaCollection(MediaCollectionEnum::MemberPhotos->value)
             ->singleFile()
-            ->useDisk(config('havoc.uploads.band_manager_disk'))
+            ->useDisk('band-manager')
             ->acceptsMimeTypes(array_keys(self::PHOTO_TYPES));
     }
 

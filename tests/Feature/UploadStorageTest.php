@@ -55,30 +55,18 @@ it('serves website images from the bucket attached as uploads disk', function ()
         ->assertSee("https://havoc-uploads.example.r2.dev/team/{$uuid}/profil.jpg");
 });
 
-it('keeps band manager files in their own subfolder of the uploads disk', function () {
-    expect(config('filesystems.disks.band-manager'))->toMatchArray(['driver' => 'scoped', 'disk' => 'uploads', 'prefix' => 'band-manager'])
-        ->and(config('havoc.uploads.band_manager_disk'))->toBe('band-manager');
+it('keeps band manager files on their own private disk', function () {
+    expect(config('filesystems.disks.band-manager'))->toMatchArray(['driver' => 'local', 'root' => storage_path('app/private/band-manager')])
+        ->and(config('filesystems.disks.band-manager'))->not->toHaveKey('url');
 });
 
-it('moves media to another disk and keeps serving it', function () {
+it('stores band manager files in the bucket attached as band-manager disk and still serves them via controller', function () {
     Storage::fake('band-manager');
-    config(['filesystems.disks.band-manager-private' => ['driver' => 'local', 'root' => storage_path('framework/testing/disks/band-manager-private')]]);
-    Storage::fake('band-manager-private');
-
     $document = Document::factory()->withFile('%PDF-1.4 Vertrag')->create();
-    $path = $document->getFirstMedia(MediaCollectionEnum::Documents->value)->getPathRelativeToRoot();
+    $media = $document->getFirstMedia(MediaCollectionEnum::Documents->value);
 
-    $this->artisan('havoc:move-media', ['from' => 'band-manager', 'to' => 'band-manager-private'])
-        ->expectsOutputToContain('1 Datei(en)')
-        ->assertSuccessful();
-
-    expect($document->fresh()->getFirstMedia(MediaCollectionEnum::Documents->value)->disk)->toBe('band-manager-private');
-    Storage::disk('band-manager')->assertMissing($path);
-    expect(Storage::disk('band-manager-private')->get($path))->toBe('%PDF-1.4 Vertrag');
+    expect($media->disk)->toBe('band-manager')
+        ->and($media->getPathRelativeToRoot())->toBe("documents/{$media->uuid}/rider.pdf");
 
     actingAsBandManager()->get(route('band-manager.documents.show', $document))->assertSuccessful()->assertStreamedContent('%PDF-1.4 Vertrag');
-});
-
-it('refuses to move media to an unknown disk', function () {
-    $this->artisan('havoc:move-media', ['from' => 'band-manager', 'to' => 'gibt-es-nicht'])->assertFailed();
 });
