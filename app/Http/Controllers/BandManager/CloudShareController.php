@@ -6,6 +6,7 @@ use App\Actions\BandManager\Cloud\BuildCloudZipAction;
 use App\Actions\BandManager\Cloud\CheckCloudLinkAccessAction;
 use App\Actions\BandManager\Cloud\ListCloudFolderPathAction;
 use App\Actions\BandManager\Cloud\RespondWithCloudFileAction;
+use App\Actions\BandManager\Cloud\SummarizeCloudFoldersAction;
 use App\Enums\MediaCollectionEnum;
 use App\Enums\MediaConversionEnum;
 use App\Http\Controllers\Controller;
@@ -87,7 +88,8 @@ class CloudShareController extends Controller
             'folder' => $folder,
             // Pfad nur ab dem freigegebenen Ordner – was darüber liegt, bleibt verborgen
             'path' => $folder ? app(ListCloudFolderPathAction::class)->execute($folder)->skipUntil(fn (CloudFolder $crumb): bool => $crumb->is($link->folder))->values() : collect(),
-            'folders' => $folder ? $folder->children()->withCount(['children', 'files'])->ordered()->get() : collect(),
+            'folders' => $folder ? $folder->children()->ordered()->get() : collect(),
+            'summary' => $folder ? app(SummarizeCloudFoldersAction::class)->execute($link->band) : [],
             'files' => $folder
                 ? $folder->files()->with('media')->latest()->latest('id')->get()
                 : CloudFile::query()->whereKey($link->file_id)->with('media')->get(),

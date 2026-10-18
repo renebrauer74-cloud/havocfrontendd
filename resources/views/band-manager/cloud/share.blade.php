@@ -82,7 +82,7 @@
                                     <span class="cl-icon cl-icon--folder"><i class="bi bi-folder-fill"></i></span>
                                     <span>
                                         {{ $child->name }}
-                                        <small class="d-block text-muted">{{ $child->children_count }} Ordner · {{ $child->files_count }} {{ $child->files_count === 1 ? 'Datei' : 'Dateien' }}</small>
+                                        <x-band-manager.cloud-folder-summary :summary="$summary[$child->id] ?? null" with-size class="d-block small text-muted" />
                                     </span>
                                 </a>
                             </td>
