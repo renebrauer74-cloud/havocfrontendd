@@ -40,7 +40,9 @@ class UserRequest extends FormRequest
             'name' => ['required', 'string', 'max:150'],
             'email' => ['required', 'string', 'email', 'max:190', Rule::unique('bm_users')->ignore($this->editedUser())],
             'password' => [$this->editedUser() ? 'nullable' : 'required', 'string', 'min:8'],
-            'role' => ['required', Rule::enum(UserRoleEnum::class)],
+            'role' => ['required', $this->editedUser()
+                ? Rule::enum(UserRoleEnum::class)
+                : Rule::enum(UserRoleEnum::class)->only([UserRoleEnum::Admin, UserRoleEnum::Artist])],
             'is_active' => ['boolean'],
             'band_name' => [Rule::requiredIf(fn (): bool => $this->isNewArtist()), 'nullable', 'string', 'max:150'],
             'bands' => ['array'],

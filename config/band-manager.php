@@ -43,7 +43,13 @@ return [
             'gallery.view',
             'gallery.edit',         // Bilder hochladen, Hauptbild festlegen
             'presskit.create',      // Pressekit für die eigene Band
+            'logins.manage',        // Zugänge für Bandmitglieder, Team und Fotografen
         ],
+
+        // Zugänge einer Band: Rechte kommen aus den freigegebenen Bereichen (App\Enums\BandManager\BandAreaEnum)
+        'band_member' => [],
+        'team' => [],
+        'photographer' => [],
     ],
 
     /*

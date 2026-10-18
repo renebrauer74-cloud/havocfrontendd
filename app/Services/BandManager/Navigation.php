@@ -3,6 +3,7 @@
 namespace App\Services\BandManager;
 
 use App\Actions\BandManager\Messages\CountUnreadThreadsAction;
+use App\Actions\BandManager\Users\ResolveHomeUrlAction;
 use App\Models\BandManager\User;
 
 /**
@@ -20,7 +21,7 @@ class Navigation
     {
         $items = [
             ['route' => 'band-manager.admin.dashboard', 'label' => 'Dashboard', 'icon' => 'grid-1x2', 'order' => 10, 'visible' => $user->isAdmin()],
-            ['route' => 'band-manager.home', 'label' => 'Start', 'icon' => 'house', 'order' => 10, 'visible' => ! $user->isAdmin() && ! $user->can('availability.view')],
+            ['route' => 'band-manager.home', 'label' => 'Start', 'icon' => 'house', 'order' => 10, 'visible' => app(ResolveHomeUrlAction::class)->execute($user) === route('band-manager.home')],
             ['route' => 'band-manager.calendar.index', 'active' => ['band-manager.calendar.*'], 'label' => $user->isAdmin() ? 'Kalender' : 'Mein Kalender', 'icon' => 'calendar3', 'order' => 20, 'visible' => $user->can('availability.view')],
             ['route' => 'band-manager.team.index', 'active' => ['band-manager.team.*'], 'label' => 'Band/Team', 'icon' => 'person-vcard', 'order' => 25, 'visible' => $user->can('team.view')],
             ['route' => 'band-manager.gallery.index', 'active' => ['band-manager.gallery.*'], 'label' => 'Galerie', 'icon' => 'images', 'order' => 27, 'visible' => $user->can('gallery.view')],

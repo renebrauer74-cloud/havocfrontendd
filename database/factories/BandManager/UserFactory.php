@@ -38,6 +38,16 @@ class UserFactory extends Factory
         return $this->state(fn (): array => ['role' => UserRoleEnum::Admin]);
     }
 
+    /**
+     * Zugang einer Band mit freigegebenen Bereichen, z. B. ['gallery' => 'edit'].
+     *
+     * @param  array<string, string>  $areaAccess
+     */
+    public function bandAccess(UserRoleEnum $role = UserRoleEnum::BandMember, array $areaAccess = []): static
+    {
+        return $this->state(fn (): array => ['role' => $role, 'area_access' => $areaAccess]);
+    }
+
     public function inactive(): static
     {
         return $this->state(fn (): array => ['is_active' => false]);

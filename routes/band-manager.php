@@ -3,6 +3,7 @@
 use App\Http\Controllers\BandManager\Admin;
 use App\Http\Controllers\BandManager\Api;
 use App\Http\Controllers\BandManager\Auth\LoginController;
+use App\Http\Controllers\BandManager\BandAccessController;
 use App\Http\Controllers\BandManager\BandProfileController;
 use App\Http\Controllers\BandManager\CalendarController;
 use App\Http\Controllers\BandManager\DocumentController;
@@ -74,6 +75,16 @@ Route::middleware(['auth:band-manager', EnsureBandManagerUserIsActive::class])->
             Route::put('{member}', [TeamController::class, 'update'])->name('update');
             Route::delete('{member}', [TeamController::class, 'destroy'])->name('destroy');
         });
+    });
+
+    // Zugänge einer Band (Bandmitglied, Team, Fotograf) – Band-Zugriff prüfen Controller bzw. Form-Request
+    Route::middleware('can:logins.manage')->prefix('accesses/band/{band}')->name('accesses.')->scopeBindings()->group(function () {
+        Route::get('/', [BandAccessController::class, 'index'])->name('index');
+        Route::get('create', [BandAccessController::class, 'create'])->name('create');
+        Route::post('/', [BandAccessController::class, 'store'])->name('store');
+        Route::get('{user}/edit', [BandAccessController::class, 'edit'])->name('edit');
+        Route::put('{user}', [BandAccessController::class, 'update'])->name('update');
+        Route::delete('{user}', [BandAccessController::class, 'destroy'])->name('destroy');
     });
 
     // Bildergalerie
