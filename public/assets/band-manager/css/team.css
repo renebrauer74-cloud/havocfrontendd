@@ -93,3 +93,7 @@
 .tm-logo--empty { background: var(--hv-surface-2); border-style: dashed; border-color: var(--hv-border-strong); }
 .tm-logo-empty { text-align: center; font-size: .8rem; color: var(--hv-muted); }
 .tm-logo-empty .bi { font-size: 1.6rem; opacity: .6; }
+a.tm-logo--empty { background: var(--hv-accent-soft); border-color: rgba(var(--hv-accent-rgb), .55); text-decoration: none; }
+a.tm-logo--empty:hover { border-color: var(--hv-accent); }
+a.tm-logo--empty .tm-logo-empty { color: var(--hv-accent-text); font-weight: 600; }
+a.tm-logo--empty .tm-logo-empty .bi { opacity: 1; }

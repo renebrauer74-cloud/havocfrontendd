@@ -406,6 +406,24 @@ a.card:hover { border-color: var(--hv-border-strong); transform: translateY(-1px
   border-color: var(--hv-accent);
   box-shadow: 0 0 0 3px rgba(var(--hv-accent-rgb), .18);
 }
+/* Datei-Auswahl: Feld und „Datei auswählen“-Button deutlich in Akzentfarbe */
+.form-control[type="file"] {
+  background-color: var(--hv-accent-soft);
+  border: 1px dashed rgba(var(--hv-accent-rgb), .55);
+  cursor: pointer;
+}
+.form-control[type="file"]:hover:not(:disabled) { border-color: var(--hv-accent); }
+.form-control::file-selector-button {
+  padding: .55rem 1rem;
+  margin: -.55rem -.8rem;
+  margin-inline-end: .8rem;
+  background-color: var(--hv-accent);
+  color: #fff;
+  font-weight: 600;
+  border-inline-end: 0;
+  cursor: pointer;
+}
+.form-control:hover:not(:disabled):not([readonly])::file-selector-button { background-color: var(--hv-accent-hover); }
 .form-check-input { background-color: var(--hv-input-bg); border-color: var(--hv-border-strong); }
 .form-check-input:checked { background-color: var(--hv-accent); border-color: var(--hv-accent); }
 .form-check-input:focus { border-color: var(--hv-accent); box-shadow: 0 0 0 3px rgba(var(--hv-accent-rgb), .18); }

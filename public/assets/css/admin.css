@@ -52,8 +52,9 @@ h2 { font-weight: 900; font-size: 24px; text-transform: uppercase; letter-spacin
 .subtitle { color: #52525b; font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 32px; }
 .dashboard-box > h2 + form, .dashboard-box > h2 + .management-list, .dashboard-box > h2 + .gallery-grid { margin-top: 24px; }
 
-.drop-zone { width: 100%; border: 2px dashed #3f3f46; padding: 32px; text-align: center; background-color: #000000; cursor: pointer; color: #71717a; font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; transition: all 0.2s ease; }
-.drop-zone.drag-over { border-color: #ffffff; background-color: #18181b; color: #ffffff; }
+.drop-zone { width: 100%; border: 2px dashed #ef4444; padding: 32px; text-align: center; background-color: rgba(69, 10, 10, 0.25); cursor: pointer; color: #ffffff; font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; transition: all 0.2s ease; }
+.drop-zone-button { display: block; width: max-content; margin: 0 auto 12px; background-color: #ef4444; color: #ffffff; padding: 8px 16px; font-weight: 900; font-size: 11px; letter-spacing: 0.15em; }
+.drop-zone:hover, .drop-zone.drag-over { border-color: #ffffff; background-color: #18181b; color: #ffffff; }
 .preview-img { max-width: 100%; max-height: 120px; margin-top: 12px; display: block; border: 1px solid #27272a; object-fit: contain; }
 .preview-img[hidden] { display: none; }
 
