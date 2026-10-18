@@ -12,6 +12,7 @@ use App\Http\Controllers\Controller;
 use App\Models\BandManager\CloudFile;
 use App\Models\BandManager\CloudFolder;
 use App\Models\BandManager\CloudLink;
+use App\Services\BandManager\Images;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -90,6 +91,7 @@ class CloudShareController extends Controller
             'files' => $folder
                 ? $folder->files()->with('media')->latest()->latest('id')->get()
                 : CloudFile::query()->whereKey($link->file_id)->with('media')->get(),
+            'maxBytes' => app(Images::class)->maxUploadKilobytes((int) config('band-manager.cloud.max_file_mb')) * 1024,
         ]);
     }
 

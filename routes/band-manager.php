@@ -13,6 +13,7 @@ use App\Http\Controllers\BandManager\CloudFileController;
 use App\Http\Controllers\BandManager\CloudFolderController;
 use App\Http\Controllers\BandManager\CloudLinkController;
 use App\Http\Controllers\BandManager\CloudShareController;
+use App\Http\Controllers\BandManager\CloudShareUploadController;
 use App\Http\Controllers\BandManager\CloudTrashController;
 use App\Http\Controllers\BandManager\CloudZipController;
 use App\Http\Controllers\BandManager\DocumentController;
@@ -55,6 +56,7 @@ Route::middleware('throttle:120,1')->prefix('s/{link:token}')->name('share.')->g
     Route::get('folders/{folder}/zip', [CloudShareController::class, 'zip'])->name('folder.zip');
     Route::get('files/{file}', [CloudShareController::class, 'file'])->name('file');
     Route::get('files/{file}/thumbnail', [CloudShareController::class, 'thumbnail'])->name('thumbnail');
+    Route::post('files', [CloudShareUploadController::class, 'store'])->middleware('throttle:cloud-link-uploads')->name('upload');
 });
 
 Route::middleware(['auth:band-manager', EnsureBandManagerUserIsActive::class])->group(function () {

@@ -156,6 +156,8 @@ return [
         'name_max' => 150,          // Zeichen für Ordner- und Dateinamen
         'zip_max_gb' => 4,          // größere Ordner bitte in Teilen herunterladen – der Download läuft durch PHP
         'link_expiry_days' => [7, 30, 90],  // Auswahl beim Freigabe-Link, dazu „unbegrenzt“; vorgewählt der mittlere Wert
+        'link_uploads_per_hour' => 300,     // Uploads pro Stunde und Besucher über einen Upload-Link (Schutz vor Missbrauch)
+        'link_upload_types' => ['image/*', 'video/*'],   // Upload-Links ohne „alle Dateitypen“: nur Fotos & Videos
 
         // Ausführbare Dateien – zusätzlich sperrt die Media Library z. B. php, cgi, asp (FileAdder::$defaultDisallowedExtensions)
         'blocked_extensions' => [

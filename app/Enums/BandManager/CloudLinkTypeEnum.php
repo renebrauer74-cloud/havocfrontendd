@@ -8,11 +8,13 @@ namespace App\Enums\BandManager;
 enum CloudLinkTypeEnum: string
 {
     case Read = 'read';
+    case Upload = 'upload';
 
     public function label(): string
     {
         return match ($this) {
             self::Read => 'Ansehen & herunterladen',
+            self::Upload => 'Hochladen, ansehen & herunterladen',
         };
     }
 
@@ -20,6 +22,12 @@ enum CloudLinkTypeEnum: string
     {
         return match ($this) {
             self::Read => 'eye',
+            self::Upload => 'cloud-arrow-up',
         };
+    }
+
+    public function allowsUpload(): bool
+    {
+        return $this === self::Upload;
     }
 }
