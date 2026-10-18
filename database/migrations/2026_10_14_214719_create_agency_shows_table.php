@@ -25,7 +25,6 @@ return new class extends Migration
             $table->string('venue')->default('');
             $table->string('ticket_url', 1024)->default('');
             $table->text('info_text')->nullable();
-            $table->string('image_url', 1024)->default('');
             $table->timestamps();
         });
     }

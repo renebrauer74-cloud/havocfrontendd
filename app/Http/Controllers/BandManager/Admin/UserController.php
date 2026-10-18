@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers\BandManager\Admin;
 
+use App\Actions\BandManager\RecordActivityAction;
+use App\Enums\BandManager\UserRoleEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\BandManager\Admin\UserRequest;
-use App\Models\BandManager\ActivityLog;
 use App\Models\BandManager\Band;
 use App\Models\BandManager\User;
 use Illuminate\Http\RedirectResponse;
@@ -22,7 +23,7 @@ class UserController extends Controller
 
     public function create(): View
     {
-        return $this->form(new User(['role' => User::ROLE_ARTIST, 'is_active' => true]));
+        return $this->form(new User(['role' => UserRoleEnum::Artist, 'is_active' => true]));
     }
 
     public function store(UserRequest $request): RedirectResponse
@@ -30,7 +31,7 @@ class UserController extends Controller
         $user = User::query()->create($request->userAttributes());
         $user->bands()->sync($request->bandIds());
 
-        ActivityLog::record('user.created', ['user_id' => $user->id]);
+        app(RecordActivityAction::class)->execute('user.created', ['user_id' => $user->id]);
 
         return to_route('band-manager.admin.users.index')->with('success', 'Benutzer wurde angelegt.');
     }
@@ -45,7 +46,7 @@ class UserController extends Controller
         $user->update($request->userAttributes());
         $user->bands()->sync($request->bandIds());
 
-        ActivityLog::record('user.updated', ['user_id' => $user->id]);
+        app(RecordActivityAction::class)->execute('user.updated', ['user_id' => $user->id]);
 
         return to_route('band-manager.admin.users.index')->with('success', 'Benutzer wurde gespeichert.');
     }
@@ -58,7 +59,7 @@ class UserController extends Controller
 
         $user->delete();
 
-        ActivityLog::record('user.deleted', ['user_id' => $user->id]);
+        app(RecordActivityAction::class)->execute('user.deleted', ['user_id' => $user->id]);
 
         return to_route('band-manager.admin.users.index')->with('success', 'Benutzer wurde gelöscht.');
     }

@@ -8,7 +8,7 @@
         </div>
         <div class="d-flex flex-wrap gap-3 small">
             @foreach ($statuses as $status)
-                <span><span class="status-dot" style="background:{{ $status['color'] }}"></span>{{ $status['label'] }}</span>
+                <span><span class="status-dot" style="background:{{ $status->color() }}"></span>{{ $status->label() }}</span>
             @endforeach
         </div>
     </div>
@@ -39,10 +39,10 @@
                     <div class="modal-body">
                         <p class="fw-semibold" id="statusRange"></p>
                         <div class="d-grid gap-2 mb-3">
-                            @foreach ($statuses as $key => $status)
-                                <input type="radio" class="btn-check" name="status" id="st-{{ $key }}" value="{{ $key }}" required>
-                                <label class="btn btn-outline-secondary text-start" for="st-{{ $key }}">
-                                    <span class="status-dot" style="background:{{ $status['color'] }}"></span>{{ $status['label'] }}
+                            @foreach ($statuses as $status)
+                                <input type="radio" class="btn-check" name="status" id="st-{{ $status->value }}" value="{{ $status->value }}" required>
+                                <label class="btn btn-outline-secondary text-start" for="st-{{ $status->value }}">
+                                    <span class="status-dot" style="background:{{ $status->color() }}"></span>{{ $status->label() }}
                                 </label>
                             @endforeach
                         </div>

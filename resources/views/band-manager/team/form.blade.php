@@ -3,16 +3,16 @@
     $isCrew = $person->isCrew();
     $what = $isCrew ? 'Teammitglied' : 'Bandmitglied';
     $back = $isEdit ? route('band-manager.team.show', $person) : route('band-manager.team.band', $band);
-    $crewRole = old('crew_role', $person->crew_role);
-    $isOther = $crewRole === 'other';
+    $crewRole = old('crew_role', $person->crew_role?->value);
+    $isOther = $crewRole === \App\Enums\BandManager\CrewRoleEnum::Other->value;
 @endphp
-<x-band-manager.layout :title="$isEdit ? $person->fullName().' bearbeiten' : 'Neues '.$what">
+<x-band-manager.layout :title="$isEdit ? trim($person->first_name.' '.$person->last_name).' bearbeiten' : 'Neues '.$what">
     @push('styles')
         <link href="{{ asset('assets/band-manager/css/team.css') }}" rel="stylesheet">
     @endpush
 
     <a href="{{ $back }}" class="small">&larr; Zurück</a>
-    <h1 class="h3 mb-1">{{ $isEdit ? $person->fullName().' bearbeiten' : 'Neues '.$what }}</h1>
+    <h1 class="h3 mb-1">{{ $isEdit ? trim($person->first_name.' '.$person->last_name).' bearbeiten' : 'Neues '.$what }}</h1>
     <p class="text-muted small mb-4">{{ $band->name }} · {{ $what }}</p>
 
     <form method="post" action="{{ $isEdit ? route('band-manager.team.update', $person) : route('band-manager.team.store', $band) }}"
@@ -27,11 +27,11 @@
         <div class="row g-4">
             <div class="col-md-4">
                 <div class="tm-photo tm-photo--form" id="tmPhotoPreview">
-                    @if ($person->photoUrl())<img src="{{ $person->photoUrl() }}" alt="">@else<i class="bi bi-person"></i>@endif
+                    @if ($person->hasMedia(\App\Enums\MediaCollectionEnum::MemberPhotos->value))<img src="{{ route('band-manager.team.photo', $person) }}" alt="">@else<i class="bi bi-person"></i>@endif
                 </div>
                 <input type="file" name="photo" id="tmPhotoInput" class="form-control form-control-sm mt-2" accept="image/jpeg,image/png,image/webp" aria-label="Foto">
                 <div class="form-text">JPG, PNG oder WebP · max. {{ $maxMb }} MB</div>
-                @if ($person->photoUrl())
+                @if ($person->hasMedia(\App\Enums\MediaCollectionEnum::MemberPhotos->value))
                     <div class="form-check mt-1">
                         <input class="form-check-input" type="checkbox" name="remove_photo" value="1" id="remove_photo">
                         <label class="form-check-label small" for="remove_photo">Foto entfernen</label>
@@ -48,8 +48,8 @@
                             <label class="form-label" for="tmCrewRole">Aufgabe *</label>
                             <select name="crew_role" id="tmCrewRole" class="form-select" required>
                                 <option value="">– bitte wählen –</option>
-                                @foreach ($crewRoles as $key => $label)
-                                    <option value="{{ $key }}" @selected($crewRole === $key)>{{ $label }}</option>
+                                @foreach ($crewRoles as $role)
+                                    <option value="{{ $role->value }}" @selected($crewRole === $role->value)>{{ $role->label() }}</option>
                                 @endforeach
                             </select>
                         </div>

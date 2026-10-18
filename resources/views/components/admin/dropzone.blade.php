@@ -8,7 +8,7 @@
 </div>
 <input type="file" name="image" accept="image/jpeg,image/png,image/gif,image/webp" hidden data-drop-input>
 @if ($current)
-<img class="preview-img" alt="Vorschau" data-drop-preview src="{{ media_url($current) }}">
+<img class="preview-img" alt="Vorschau" data-drop-preview src="{{ $current }}">
 @else
 <img class="preview-img" alt="Vorschau" data-drop-preview hidden>
 @endif

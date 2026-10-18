@@ -24,7 +24,6 @@ return new class extends Migration
             $table->string('email')->default('');
             $table->text('hobbies')->nullable();
             $table->text('bio')->nullable();
-            $table->string('image_url', 1024)->default('');
             $table->timestamps();
         });
     }

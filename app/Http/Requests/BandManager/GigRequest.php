@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\BandManager;
 
+use App\Enums\BandManager\GigStatusEnum;
 use App\Models\BandManager\Band;
 use App\Models\BandManager\Gig;
 use Closure;
@@ -69,7 +70,7 @@ class GigRequest extends FormRequest
             'venue' => ['nullable', 'string', 'max:190'],
             'city' => ['nullable', 'string', 'max:120'],
             'fee' => ['nullable', 'numeric', 'min:0', 'max:99999999'],
-            'status' => ['required', Rule::in(array_keys(Gig::statuses()))],
+            'status' => ['required', Rule::enum(GigStatusEnum::class)],
             'notes' => ['nullable', 'string', 'max:65000'],
             'set_length' => ['nullable', 'integer', 'min:1', 'max:600'],
             'catering' => ['nullable', Rule::in(array_keys(config('band-manager.gigs.catering_options')))],
@@ -121,7 +122,7 @@ class GigRequest extends FormRequest
     }
 
     /**
-     * Felder für das Model – Uhrzeiten als HH:MM, Buy-out nur bei passender Verpflegung.
+     * Felder für das Model – Buy-out nur bei passender Verpflegung.
      *
      * @return array<string, mixed>
      */
@@ -130,7 +131,7 @@ class GigRequest extends FormRequest
         $attributes = $this->safe()->except(Gig::TIME_FIELDS) + ['buyout_amount' => null];
 
         foreach (Gig::TIME_FIELDS as $field) {
-            $attributes[$field] = $this->validated($field) ? substr($this->validated($field), 0, 5) : null;
+            $attributes[$field] = $this->validated($field);
         }
 
         return $attributes;

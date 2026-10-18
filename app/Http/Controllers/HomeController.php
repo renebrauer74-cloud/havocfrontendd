@@ -14,10 +14,10 @@ class HomeController extends Controller
      */
     public function __invoke(): View
     {
-        $news = News::query()->latest('id')->get();
+        $news = News::query()->with('media')->latest('id')->get();
 
         return view('pages.home', [
-            'roster' => Artist::query()->orderBy('id')->get(),
+            'roster' => Artist::query()->with('media')->orderBy('id')->get(),
             'latestNews' => $news->take(2),
             'archiveNews' => $news->slice(2),
             'upcomingDates' => TourDate::query()->with('artist')->get()->sortByShowDate()->take(4),

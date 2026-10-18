@@ -20,7 +20,6 @@ return new class extends Migration
         Schema::create('gallery', function (Blueprint $table) {
             $table->id();
             $table->foreignId('artist_id')->constrained()->cascadeOnDelete();
-            $table->string('image_url', 1024);
             $table->timestamps();
         });
     }

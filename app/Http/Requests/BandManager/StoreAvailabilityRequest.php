@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests\BandManager;
 
-use App\Models\BandManager\Availability;
+use App\Enums\BandManager\AvailabilityStatusEnum;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Validation\Rule;
 
@@ -16,7 +16,7 @@ class StoreAvailabilityRequest extends AvailabilityRangeRequest
     public function rules(): array
     {
         return parent::rules() + [
-            'status' => ['required', Rule::in(array_keys(Availability::statuses()))],
+            'status' => ['required', Rule::enum(AvailabilityStatusEnum::class)],
             'note' => ['nullable', 'string', 'max:500'],
         ];
     }

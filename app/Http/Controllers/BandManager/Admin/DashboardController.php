@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers\BandManager\Admin;
 
+use App\Actions\BandManager\Availability\SummarizeAvailabilityAction;
+use App\Actions\BandManager\Messages\CountUnreadThreadsAction;
+use App\Enums\BandManager\AvailabilityStatusEnum;
 use App\Http\Controllers\Controller;
 use App\Models\BandManager\ActivityLog;
-use App\Models\BandManager\Availability;
 use App\Models\BandManager\Band;
 use App\Models\BandManager\Document;
 use App\Models\BandManager\Gig;
@@ -34,13 +36,13 @@ class DashboardController extends Controller
                 ['label' => 'Bands', 'value' => $bands->count(), 'url' => route('band-manager.admin.bands.index')],
                 ['label' => 'Benutzer', 'value' => User::query()->count(), 'url' => route('band-manager.admin.users.index')],
                 ['label' => 'Kommende Gigs', 'value' => Gig::query()->upcoming()->notCancelled()->count(), 'url' => route('band-manager.gigs.index')],
-                ['label' => 'Ungelesene Nachrichten', 'value' => MessageThread::unreadCountFor($user), 'url' => route('band-manager.messages.index')],
+                ['label' => 'Ungelesene Nachrichten', 'value' => app(CountUnreadThreadsAction::class)->execute($user), 'url' => route('band-manager.messages.index')],
             ],
             'activities' => ActivityLog::query()->with('user')->latest('id')->limit(15)->get(),
             'bands' => $bands,
-            'statuses' => Availability::statuses(),
+            'statuses' => AvailabilityStatusEnum::cases(),
             'summaryDays' => $summaryDays,
-            'summary' => Availability::summary($summaryDays),
+            'summary' => app(SummarizeAvailabilityAction::class)->execute($summaryDays),
             'availabilityDate' => $date,
             'upcomingGigs' => Gig::query()->with('band')->upcoming()->notCancelled()->orderBy('date')->limit(8)->get(),
             'latestDocuments' => Document::query()->with('band')->latest()->latest('id')->limit(8)->get(),

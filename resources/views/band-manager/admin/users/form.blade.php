@@ -28,8 +28,8 @@
             <div class="col-md-6">
                 <label class="form-label" for="role">Rolle</label>
                 <select name="role" id="role" class="form-select">
-                    @foreach (config('band-manager.roles') as $key => $label)
-                        <option value="{{ $key }}" @selected(old('role', $user->role) === $key)>{{ $label }}</option>
+                    @foreach (\App\Enums\BandManager\UserRoleEnum::cases() as $role)
+                        <option value="{{ $role->value }}" @selected(old('role', $user->role?->value) === $role->value)>{{ $role->label() }}</option>
                     @endforeach
                 </select>
             </div>

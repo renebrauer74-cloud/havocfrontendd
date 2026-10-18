@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers\BandManager\Auth;
 
+use App\Actions\BandManager\RecordActivityAction;
+use App\Actions\BandManager\Users\ResolveHomeUrlAction;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\BandManager\LoginRequest;
-use App\Models\BandManager\ActivityLog;
 use App\Services\BandManager\Impersonation;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -26,9 +27,9 @@ class LoginController extends Controller
         $user = $request->user('band-manager');
         $user->forceFill(['last_login_at' => now()])->save();
 
-        ActivityLog::record('auth.login');
+        app(RecordActivityAction::class)->execute('auth.login');
 
-        return redirect()->intended($user->homeUrl());
+        return redirect()->intended(app(ResolveHomeUrlAction::class)->execute($user));
     }
 
     /**

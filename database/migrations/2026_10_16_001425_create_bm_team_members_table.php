@@ -24,7 +24,6 @@ return new class extends Migration
             $table->string('crew_role', 30)->nullable();          // nur bei Crew
             $table->string('crew_role_other', 100)->nullable();   // Aufgabe bei "Sonstiges"
             $table->text('bio')->nullable();
-            $table->string('photo', 64)->nullable();
             $table->date('birth_date')->nullable();
             $table->string('nationality', 100)->nullable();
             $table->string('email', 190)->nullable();

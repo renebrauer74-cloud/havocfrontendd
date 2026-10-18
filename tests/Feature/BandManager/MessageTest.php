@@ -1,5 +1,7 @@
 <?php
 
+use App\Actions\BandManager\Messages\CountUnreadThreadsAction;
+use App\Actions\BandManager\Messages\SendMessageAction;
 use App\Models\BandManager\ActivityLog;
 use App\Models\BandManager\Band;
 use App\Models\BandManager\Message;
@@ -17,7 +19,7 @@ function threadFromAgency(): array
     $artist = User::factory()->create();
     $band = Band::factory()->hasAttached($artist)->create();
     $thread = MessageThread::factory()->for($band)->create(['subject' => 'Neue Show']);
-    $thread->send($admin, 'Hallo **Band**');
+    app(SendMessageAction::class)->execute($thread, $admin, 'Hallo **Band**');
 
     return [$admin, $artist, $band, $thread];
 }
@@ -35,7 +37,7 @@ it('lets the agency start a thread with a band', function () {
 
     expect($thread->subject)->toBe('Tour 2027')
         ->and($thread->messages()->sole()->body)->toBe('Hallo!')
-        ->and(MessageThread::unreadCountFor($admin))->toBe(0)
+        ->and(app(CountUnreadThreadsAction::class)->execute($admin))->toBe(0)
         ->and(ActivityLog::query()->where('action', 'message.sent')->exists())->toBeTrue();
 });
 
@@ -67,7 +69,7 @@ it('lets bands write only to their own bands', function () {
 it('tracks unread messages per user', function () {
     [$admin, $artist, , $thread] = threadFromAgency();
 
-    expect(MessageThread::unreadCountFor($artist))->toBe(1);
+    expect(app(CountUnreadThreadsAction::class)->execute($artist))->toBe(1);
 
     actingAsBandManager($artist)
         ->get(route('band-manager.messages.index'))
@@ -81,13 +83,13 @@ it('tracks unread messages per user', function () {
         ->assertSee('Hallo <strong>Band</strong>', false)
         ->assertSee('Agentur');
 
-    expect(MessageThread::unreadCountFor($artist))->toBe(0);
+    expect(app(CountUnreadThreadsAction::class)->execute($artist))->toBe(0);
 
     actingAsBandManager($artist)->post(route('band-manager.messages.reply', $thread), ['body' => 'Danke!'])
         ->assertRedirect(route('band-manager.messages.show', $thread).'#antwort');
 
-    expect(MessageThread::unreadCountFor($admin))->toBe(1)
-        ->and(MessageThread::unreadCountFor($artist))->toBe(0);
+    expect(app(CountUnreadThreadsAction::class)->execute($admin))->toBe(1)
+        ->and(app(CountUnreadThreadsAction::class)->execute($artist))->toBe(0);
 });
 
 it('shows the unread badge and the calendar hint for bands', function () {
@@ -105,7 +107,7 @@ it('does not mark messages as read while impersonating', function () {
     actingAsBandManager($admin)->post(route('band-manager.admin.users.impersonation.store', $artist));
     $this->get(route('band-manager.messages.show', $thread))->assertSuccessful();
 
-    expect(MessageThread::unreadCountFor($artist))->toBe(1);
+    expect(app(CountUnreadThreadsAction::class)->execute($artist))->toBe(1);
 });
 
 it('lets bands hide a thread until a new message arrives', function () {
@@ -118,7 +120,7 @@ it('lets bands hide a thread until a new message arrives', function () {
     $this->assertModelExists($thread);
     actingAsBandManager($artist)->get(route('band-manager.messages.index'))->assertDontSee('Neue Show');
 
-    $thread->send($admin, 'Noch was');
+    app(SendMessageAction::class)->execute($thread, $admin, 'Noch was');
 
     actingAsBandManager($artist)->get(route('band-manager.messages.index'))->assertSee('Neue Show');
 });
@@ -137,7 +139,7 @@ it('lets the agency delete a thread for everyone', function () {
 it('lets users delete only their own messages', function () {
     [$admin, $artist, , $thread] = threadFromAgency();
     $agencyMessage = $thread->messages()->sole();
-    $reply = $thread->send($artist, 'Antwort');
+    $reply = app(SendMessageAction::class)->execute($thread, $artist, 'Antwort');
 
     actingAsBandManager($artist)->delete(route('band-manager.messages.messages.destroy', [$thread, $agencyMessage]))->assertForbidden();
     actingAsBandManager($artist)->delete(route('band-manager.messages.messages.destroy', [$thread, $reply]))->assertSessionHas('success', 'Nachricht wurde gelöscht.');
@@ -169,7 +171,7 @@ it('rejects messages of other threads', function () {
 
 it('shows messages on the dashboard', function () {
     [$admin, $artist, , $thread] = threadFromAgency();
-    $thread->send($artist, 'Antwort');
+    app(SendMessageAction::class)->execute($thread, $artist, 'Antwort');
 
     actingAsBandManager($admin)
         ->get(route('band-manager.admin.dashboard'))

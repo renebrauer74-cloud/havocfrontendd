@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\BandManager\AvailabilityStatusEnum;
 use App\Models\BandManager\ActivityLog;
 use App\Models\BandManager\Availability;
 use App\Models\BandManager\Band;
@@ -148,7 +149,7 @@ it('blocks the calendar day of a confirmed gig', function () {
 
     expect(Availability::sole())
         ->date->toBe('2026-12-05')
-        ->status->toBe('red')
+        ->status->toBe(AvailabilityStatusEnum::Red)
         ->note->toBe('Gig: Festival');
 });
 

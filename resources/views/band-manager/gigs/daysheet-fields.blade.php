@@ -19,16 +19,16 @@
                          placeholder="z.B. Ladezone im Hinterhof, Sprinter-Parkplatz am Bühneneingang …" />
 
 {!! $heading('clock', 'Zeitplan') !!}
-<x-band-manager.field name="time_get_in" label="Get In" :value="$gig->time('time_get_in')" col="col-6 col-md-3" type="time" />
-<x-band-manager.field name="time_soundcheck" label="Soundcheck" :value="$gig->time('time_soundcheck')" col="col-6 col-md-3" type="time" />
-<x-band-manager.field name="time_dinner" label="Dinner" :value="$gig->time('time_dinner')" col="col-6 col-md-3" type="time" />
-<x-band-manager.field name="time_doors" label="Einlass (Doors)" :value="$gig->time('time_doors')" col="col-6 col-md-3" type="time" />
-<x-band-manager.field name="time_show" label="Showtime" :value="$gig->time('time_show')" col="col-6 col-md-3" type="time" />
+<x-band-manager.field name="time_get_in" label="Get In" :value="$gig->time_get_in" col="col-6 col-md-3" type="time" />
+<x-band-manager.field name="time_soundcheck" label="Soundcheck" :value="$gig->time_soundcheck" col="col-6 col-md-3" type="time" />
+<x-band-manager.field name="time_dinner" label="Dinner" :value="$gig->time_dinner" col="col-6 col-md-3" type="time" />
+<x-band-manager.field name="time_doors" label="Einlass (Doors)" :value="$gig->time_doors" col="col-6 col-md-3" type="time" />
+<x-band-manager.field name="time_show" label="Showtime" :value="$gig->time_show" col="col-6 col-md-3" type="time" />
 <div class="col-6 col-md-3">
     <label class="form-label" for="set_length">Spielzeit (Min.)</label>
     <input type="number" name="set_length" id="set_length" class="form-control" min="1" max="600" placeholder="z.B. 60" value="{{ old('set_length', $gig->set_length) }}">
 </div>
-<x-band-manager.field name="time_curfew" label="Curfew" :value="$gig->time('time_curfew')" col="col-6 col-md-3" type="time" />
+<x-band-manager.field name="time_curfew" label="Curfew" :value="$gig->time_curfew" col="col-6 col-md-3" type="time" />
 <x-band-manager.textarea name="schedule_notes" label="Weitere Zeiten" :value="$gig->schedule_notes"
                          placeholder="z.B. Support 20:00, Changeover 15 Min., Load-Out bis 00:30, Abfahrt Hotel 10:00 …" />
 
@@ -36,8 +36,8 @@
 <x-band-manager.field name="hotel_name" label="Hotel / Unterkunft" :value="$gig->hotel_name" />
 <x-band-manager.field name="hotel_phone" label="Telefon" :value="$gig->hotel_phone" type="tel" :max="50" />
 <x-band-manager.field name="hotel_address" label="Adresse" :value="$gig->hotel_address" col="col-12" placeholder="Straße, PLZ Ort" :max="255" />
-<x-band-manager.field name="hotel_checkin" label="Check-in ab" :value="$gig->time('hotel_checkin')" col="col-6 col-md-3" type="time" />
-<x-band-manager.field name="hotel_checkout" label="Check-out bis" :value="$gig->time('hotel_checkout')" col="col-6 col-md-3" type="time" />
+<x-band-manager.field name="hotel_checkin" label="Check-in ab" :value="$gig->hotel_checkin" col="col-6 col-md-3" type="time" />
+<x-band-manager.field name="hotel_checkout" label="Check-out bis" :value="$gig->hotel_checkout" col="col-6 col-md-3" type="time" />
 <x-band-manager.textarea name="hotel_notes" label="Hinweise" :value="$gig->hotel_notes"
                          placeholder="z.B. Buchungsnr., 3 DZ + 1 EZ, Frühstück inklusive, Parkplatz am Hotel …" />
 

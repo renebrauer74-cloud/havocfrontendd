@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\MediaCollectionEnum;
 use App\Models\Artist;
 use App\Models\GalleryImage;
 use App\Models\User;
@@ -28,7 +29,7 @@ it('refuses hashes that are not bcrypt', function () {
     expect(User::count())->toBe(0);
 });
 
-it('imports the json data of the old version and keeps the ids', function () {
+it('imports the json data of the old version and keeps the ids but no images', function () {
     $directory = sys_get_temp_dir().'/havoc-import-'.uniqid();
     mkdir($directory);
     file_put_contents($directory.'/artists.json', json_encode(['next_id' => 6, 'rows' => [
@@ -43,7 +44,8 @@ it('imports the json data of the old version and keeps the ids', function () {
     $artist = Artist::sole();
     expect($artist->id)->toBe(5)
         ->and($artist->created_at->format('Y-m-d H:i'))->toBe('2026-10-13 22:49')
-        ->and(GalleryImage::sole()->artist->is($artist))->toBeTrue();
+        ->and($artist->hasMedia(MediaCollectionEnum::Artists->value))->toBeFalse()
+        ->and(GalleryImage::count())->toBe(0);
 
     array_map(unlink(...), glob($directory.'/*.json'));
     rmdir($directory);

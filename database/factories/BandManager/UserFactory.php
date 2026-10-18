@@ -2,6 +2,7 @@
 
 namespace Database\Factories\BandManager;
 
+use App\Enums\BandManager\UserRoleEnum;
 use App\Models\BandManager\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
@@ -27,14 +28,14 @@ class UserFactory extends Factory
             'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
             'password' => static::$password ??= Hash::make('password'),
-            'role' => User::ROLE_ARTIST,
+            'role' => UserRoleEnum::Artist,
             'is_active' => true,
         ];
     }
 
     public function admin(): static
     {
-        return $this->state(fn (): array => ['role' => User::ROLE_ADMIN]);
+        return $this->state(fn (): array => ['role' => UserRoleEnum::Admin]);
     }
 
     public function inactive(): static

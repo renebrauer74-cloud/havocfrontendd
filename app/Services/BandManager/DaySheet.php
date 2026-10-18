@@ -2,6 +2,7 @@
 
 namespace App\Services\BandManager;
 
+use App\Actions\BandManager\Team\DescribeTeamMemberRoleAction;
 use App\Models\BandManager\Gig;
 use App\Models\BandManager\TeamMember;
 
@@ -10,7 +11,7 @@ use App\Models\BandManager\TeamMember;
  */
 class DaySheet
 {
-    public function __construct(private Pdf $pdf) {}
+    public function __construct(private Pdf $pdf, private DescribeTeamMemberRoleAction $describeRole) {}
 
     public function render(Gig $gig): string
     {
@@ -45,8 +46,8 @@ class DaySheet
             ->sortBy(fn (TeamMember $person): int => $person->isCrew() ? 1 : 0)
             ->map(fn (TeamMember $person): array => [
                 'crew' => $person->isCrew(),
-                'name' => $person->fullName().($person->stage_name ? ' („'.$person->stage_name.'“)' : ''),
-                'role' => $person->roleLabel(),
+                'name' => trim($person->first_name.' '.$person->last_name).($person->stage_name ? ' („'.$person->stage_name.'“)' : ''),
+                'role' => $this->describeRole->execute($person),
                 'phone' => (string) $person->phone,
                 'diet' => (string) $person->diet,
             ])

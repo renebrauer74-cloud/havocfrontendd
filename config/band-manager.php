@@ -27,11 +27,7 @@ return [
     |
     */
 
-    'roles' => [
-        'admin' => 'Administrator / Agentur',
-        'artist' => 'Künstler / Band',
-    ],
-
+    // Rollen: App\Enums\BandManager\UserRoleEnum – Schlüssel von 'permissions'
     'permissions' => [
         'admin' => ['*'],
         'artist' => [
@@ -57,12 +53,7 @@ return [
     */
 
     'availability' => [
-        // Status-Schlüssel max. 20 Zeichen
-        'statuses' => [
-            'green' => ['label' => 'Verfügbar', 'color' => '#22c55e'],
-            'orange' => ['label' => 'Muss besprochen werden', 'color' => '#f59e0b'],
-            'red' => ['label' => 'Termin nicht möglich', 'color' => '#ef4444'],
-        ],
+        // Status: App\Enums\BandManager\AvailabilityStatusEnum
         'max_range_days' => 366,   // max. Zeitraum pro Speichervorgang
         'summary_days' => 90,      // Zeitraum für die Dashboard-Übersicht
     ],
@@ -74,13 +65,8 @@ return [
     */
 
     'gigs' => [
-        'statuses' => [
-            'request' => ['label' => 'Anfrage', 'color' => '#8b5cf6'],
-            'confirmed' => ['label' => 'Bestätigt', 'color' => '#2563eb'],
-            'cancelled' => ['label' => 'Abgesagt', 'color' => '#6b7280'],
-        ],
-        'block_availability' => true,   // bestätigte Gigs setzen den Tag im Kalender automatisch …
-        'block_status' => 'red',        // … auf diesen Ampel-Status
+        // Status: App\Enums\BandManager\GigStatusEnum
+        'block_availability' => true,   // bestätigte Gigs setzen den Tag im Kalender automatisch auf Rot
 
         'catering_options' => [
             'none' => 'Keine Verpflegung vor Ort',
@@ -104,36 +90,13 @@ return [
         'max_photo_mb' => 50,   // Personenfotos (werden auf 800 px verkleinert)
         'max_logo_mb' => 20,    // Bandlogo (wird unverändert gespeichert)
         'photo_px' => 800,
+        'max_megapixels' => 60, // größere Fotos werden abgelehnt – die Verkleinerung braucht sonst zu viel RAM
         'bio_max' => 10000,     // Zeichen pro Sprache im Bandprofil
 
-        'crew_roles' => [
-            'merch' => 'Merchandise',
-            'sound' => 'Tontechnik',
-            'monitor' => 'Monitortechnik',
-            'light' => 'Lichttechnik',
-            'tour_manager' => 'Tourmanagement',
-            'driver' => 'Fahrer',
-            'backline' => 'Backline / Roadie',
-            'other' => 'Sonstiges',
-        ],
+        // Crew-Aufgaben: App\Enums\BandManager\CrewRoleEnum
         'shirt_sizes' => ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL'],
 
-        // Social Media & Streaming – icon = Bootstrap-Icon-Name, handle = Vorlage für "@name"
-        'platforms' => [
-            'website' => ['label' => 'Website', 'icon' => 'globe2', 'color' => '#6b7280', 'placeholder' => 'https://www.bandname.de'],
-            'instagram' => ['label' => 'Instagram', 'icon' => 'instagram', 'color' => '#E4405F', 'placeholder' => '@bandname', 'handle' => 'https://www.instagram.com/%s/'],
-            'facebook' => ['label' => 'Facebook', 'icon' => 'facebook', 'color' => '#1877F2', 'placeholder' => 'https://facebook.com/bandname', 'handle' => 'https://www.facebook.com/%s'],
-            'tiktok' => ['label' => 'TikTok', 'icon' => 'tiktok', 'color' => '#111111', 'placeholder' => '@bandname', 'handle' => 'https://www.tiktok.com/@%s'],
-            'youtube' => ['label' => 'YouTube', 'icon' => 'youtube', 'color' => '#FF0000', 'placeholder' => '@bandname', 'handle' => 'https://www.youtube.com/@%s'],
-            'spotify' => ['label' => 'Spotify', 'icon' => 'spotify', 'color' => '#1DB954', 'placeholder' => 'https://open.spotify.com/artist/…'],
-            'apple_music' => ['label' => 'Apple Music', 'icon' => 'apple', 'color' => '#FA243C', 'placeholder' => 'https://music.apple.com/…'],
-            'amazon_music' => ['label' => 'Amazon Music', 'icon' => 'amazon', 'color' => '#00A8E1', 'placeholder' => 'https://music.amazon.de/artists/…'],
-            'deezer' => ['label' => 'Deezer', 'icon' => 'soundwave', 'color' => '#A238FF', 'placeholder' => 'https://www.deezer.com/artist/…'],
-            'soundcloud' => ['label' => 'SoundCloud', 'icon' => 'cloud-fill', 'color' => '#FF5500', 'placeholder' => 'https://soundcloud.com/bandname'],
-            'bandcamp' => ['label' => 'Bandcamp', 'icon' => 'vinyl-fill', 'color' => '#1DA0C3', 'placeholder' => 'https://bandname.bandcamp.com'],
-            'x' => ['label' => 'X (Twitter)', 'icon' => 'twitter-x', 'color' => '#111111', 'placeholder' => '@bandname', 'handle' => 'https://x.com/%s'],
-            'threads' => ['label' => 'Threads', 'icon' => 'threads', 'color' => '#111111', 'placeholder' => '@bandname', 'handle' => 'https://www.threads.net/@%s'],
-        ],
+        // Social Media & Streaming: App\Enums\BandManager\PlatformEnum
     ],
 
     /*
@@ -145,14 +108,9 @@ return [
     'gallery' => [
         'max_images' => 8,          // Bilder pro Band
         'max_photo_mb' => 50,       // pro Bild
-        'max_preview_mp' => 150,    // bis 150 Megapixel wird eine Vorschau erzeugt (braucht viel RAM)
+        'max_megapixels' => 60,     // größere Fotos werden abgelehnt – die Vorschau braucht sonst zu viel RAM
         'preview_px' => 1600,       // Vorschau (Web + PDF), das Original bleibt erhalten
-        'categories' => [
-            'band' => 'Bandfoto',
-            'live' => 'Live / Gig',
-            'video' => 'Musikvideo (Standbild)',
-            'other' => 'Sonstiges',
-        ],
+        // Arten: App\Enums\BandManager\GalleryCategoryEnum
     ],
 
     /*
@@ -163,12 +121,7 @@ return [
 
     'documents' => [
         'max_size_mb' => 50,   // Verträge & Rider (PDF)
-        'rider_categories' => [
-            'technical' => 'Technical Rider',
-            'catering' => 'Catering Rider',
-            'stageplot' => 'Stageplot / Inputliste',
-            'other' => 'Sonstiges',
-        ],
+        // Rider-Arten: App\Enums\BandManager\RiderCategoryEnum
     ],
 
     /*

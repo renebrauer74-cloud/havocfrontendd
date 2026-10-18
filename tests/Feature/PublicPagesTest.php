@@ -1,11 +1,13 @@
 <?php
 
+use App\Enums\MediaCollectionEnum;
 use App\Models\AgencyShow;
 use App\Models\Artist;
 use App\Models\GalleryImage;
 use App\Models\News;
 use App\Models\TeamMember;
 use App\Models\TourDate;
+use Illuminate\Support\Facades\Storage;
 
 it('renders every public page while the database is empty', function (string $routeName) {
     $this->get(route($routeName))->assertOk();
@@ -40,7 +42,8 @@ it('shows an artist profile with links, gallery and dates', function () {
         'spotify_url' => 'open.spotify.com/artist/abc',
         'youtube_url' => 'javascript:alert(1)',
     ]);
-    GalleryImage::factory()->for($artist)->create(['image_url' => 'uploads/gallery/live.jpg']);
+    Storage::fake('uploads');
+    $photo = GalleryImage::factory()->for($artist)->withImage()->create();
     TourDate::factory()->for($artist)->create(['venue' => 'Zeche Bochum']);
 
     $this->get(route('artists.show', $artist))
@@ -49,7 +52,7 @@ it('shows an artist profile with links, gallery and dates', function () {
         ->assertSee('Zeile eins<br>', false)
         ->assertSee('href="https://open.spotify.com/artist/abc"', false)
         ->assertDontSee('javascript:alert(1)')
-        ->assertSee('uploads/gallery/live.jpg')
+        ->assertSee($photo->getFirstMediaUrl(MediaCollectionEnum::Gallery->value))
         ->assertSee('Zeche Bochum');
 });
 
@@ -69,7 +72,7 @@ it('only lists artists with tour dates in the calendar, alphabetically', functio
 });
 
 it('shows agency shows and their detail page', function () {
-    $show = AgencyShow::factory()->create(['title' => 'Havoc Fest', 'info_text' => '', 'image_url' => '']);
+    $show = AgencyShow::factory()->create(['title' => 'Havoc Fest', 'info_text' => '']);
 
     $this->get(route('shows.index'))->assertSee('Havoc Fest');
     $this->get(route('shows.show', $show))

@@ -21,9 +21,6 @@ return new class extends Migration
             $table->string('type', 20);             // 'contract' | 'rider'
             $table->string('category', 30)->nullable();   // nur bei Ridern
             $table->string('title', 190);
-            $table->string('original_name', 255);
-            $table->string('stored_name', 64);
-            $table->unsignedInteger('size_bytes');
             $table->foreignId('uploaded_by')->nullable()->constrained('bm_users')->nullOnDelete();
             $table->timestamps();
 

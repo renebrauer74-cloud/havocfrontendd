@@ -2,8 +2,9 @@
 
 namespace App\Http\Controllers\BandManager;
 
+use App\Actions\BandManager\RecordActivityAction;
+use App\Actions\BandManager\Users\ResolveHomeUrlAction;
 use App\Http\Controllers\Controller;
-use App\Models\BandManager\ActivityLog;
 use App\Models\BandManager\User;
 use App\Services\BandManager\Impersonation;
 use Illuminate\Http\RedirectResponse;
@@ -22,11 +23,11 @@ class ImpersonationController extends Controller
             return to_route('band-manager.admin.users.index')->with('error', 'Admin-Accounts können nicht übernommen werden.');
         }
 
-        ActivityLog::record('user.impersonated', ['user_id' => $user->id]);
+        app(RecordActivityAction::class)->execute('user.impersonated', ['user_id' => $user->id]);
 
         $this->impersonation->start($request->user(), $user);
 
-        return redirect($user->homeUrl());
+        return redirect(app(ResolveHomeUrlAction::class)->execute($user));
     }
 
     public function destroy(): RedirectResponse

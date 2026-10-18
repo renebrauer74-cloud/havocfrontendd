@@ -2,11 +2,11 @@
 
 namespace App\Models\BandManager;
 
+use App\Enums\BandManager\UserRoleEnum;
 use Database\Factories\BandManager\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Attributes\Table;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -23,10 +23,6 @@ class User extends Authenticatable
     /** @use HasFactory<UserFactory> */
     use HasFactory;
 
-    public const ROLE_ADMIN = 'admin';
-
-    public const ROLE_ARTIST = 'artist';
-
     public const THEMES = ['light', 'dark'];
 
     /**
@@ -38,6 +34,7 @@ class User extends Authenticatable
     {
         return [
             'password' => 'hashed',
+            'role' => UserRoleEnum::class,
             'is_active' => 'boolean',
             'last_login_at' => 'datetime',
         ];
@@ -53,53 +50,6 @@ class User extends Authenticatable
 
     public function isAdmin(): bool
     {
-        return $this->role === self::ROLE_ADMIN;
-    }
-
-    public function roleLabel(): string
-    {
-        return config('band-manager.roles.'.$this->role, $this->role);
-    }
-
-    /**
-     * Recht laut config('band-manager.permissions') – unterstützt '*' und Wildcards wie 'gigs.*'.
-     */
-    public function hasPermission(string $permission): bool
-    {
-        foreach ((array) config('band-manager.permissions.'.$this->role, []) as $granted) {
-            if ($granted === '*' || $granted === $permission) {
-                return true;
-            }
-
-            if (str_ends_with($granted, '.*') && str_starts_with($permission, substr($granted, 0, -1))) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * Bands, die dieser Login sehen darf: Agentur alle, Bands nur die eigenen.
-     *
-     * @return Builder<Band>
-     */
-    public function accessibleBands(): Builder
-    {
-        return $this->isAdmin()
-            ? Band::query()
-            : Band::query()->whereHas('users', fn (Builder $query) => $query->whereKey($this->getKey()));
-    }
-
-    /**
-     * Startseite nach dem Login: Agentur → Dashboard, Bands → Kalender (sonst eigene Startseite).
-     */
-    public function homeUrl(): string
-    {
-        if ($this->isAdmin()) {
-            return route('band-manager.admin.dashboard');
-        }
-
-        return $this->hasPermission('availability.view') ? route('band-manager.calendar.index') : route('band-manager.home');
+        return $this->role === UserRoleEnum::Admin;
     }
 }

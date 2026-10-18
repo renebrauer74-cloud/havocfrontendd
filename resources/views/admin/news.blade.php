@@ -11,7 +11,7 @@
         <div class="form-group"><label for="newsText">Inhalt *</label><textarea id="newsText" name="text" rows="6" required>{{ old('text', $editing?->text) }}</textarea></div>
         <div class="form-group">
             <label>News-Bild (Optional)</label>
-            <x-admin.dropzone label="News-Bild ablegen oder klicken" :current="$editing?->image_url" />
+            <x-admin.dropzone label="News-Bild ablegen oder klicken" :current="$editing?->getFirstMedia(\App\Enums\MediaCollectionEnum::News->value)?->getUrl()" />
         </div>
 
         <button type="submit" class="submit-btn">{{ $editing ? 'ÄNDERUNGEN SPEICHERN' : 'NEWS VERÖFFENTLICHEN' }}</button>

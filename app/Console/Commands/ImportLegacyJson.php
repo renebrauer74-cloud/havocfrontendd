@@ -16,11 +16,14 @@ use Throwable;
 class ImportLegacyJson extends Command
 {
     /**
-     * Reihenfolge wegen Fremdschlüsseln: artists vor tour_dates und gallery.
+     * Reihenfolge wegen Fremdschlüsseln: artists vor tour_dates.
+     *
+     * Bilder werden nicht übernommen (sie liegen jetzt in der Media Library und werden neu hochgeladen),
+     * daher fehlt auch "gallery" – ein Galerie-Eintrag ohne Bild ergibt keinen Sinn.
      *
      * @var list<string>
      */
-    private const TABLES = ['artists', 'tour_dates', 'gallery', 'news', 'team', 'agency_shows', 'messages'];
+    private const TABLES = ['artists', 'tour_dates', 'news', 'team', 'agency_shows', 'messages'];
 
     /**
      * Execute the console command.

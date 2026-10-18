@@ -1,5 +1,6 @@
 <?php
 
+use App\Actions\BandManager\RecordActivityAction;
 use App\Models\BandManager\ActivityLog;
 use App\Models\BandManager\User;
 
@@ -29,7 +30,7 @@ it('logs actions during impersonation with the admin behind them', function () {
     $artist = User::factory()->create();
 
     actingAsBandManager($admin)->post(route('band-manager.admin.users.impersonation.store', $artist));
-    ActivityLog::record('test.action');
+    app(RecordActivityAction::class)->execute('test.action');
 
     expect(ActivityLog::query()->latest('id')->first())
         ->user_id->toBe($artist->id)

@@ -1,5 +1,7 @@
 <?php
 
+use App\Enums\BandManager\RiderCategoryEnum;
+use App\Enums\MediaCollectionEnum;
 use App\Models\BandManager\ActivityLog;
 use App\Models\BandManager\Band;
 use App\Models\BandManager\Document;
@@ -14,7 +16,7 @@ beforeEach(function () {
 
 function pdf(string $name = 'vertrag.pdf'): UploadedFile
 {
-    return UploadedFile::fake()->create($name, 120, 'application/pdf');
+    return UploadedFile::fake()->createWithContent($name, "%PDF-1.4\n%Test\n");
 }
 
 it('lets the agency upload a contract linked to a gig', function () {
@@ -40,7 +42,8 @@ it('lets the agency upload a contract linked to a gig', function () {
         ->category->toBeNull()
         ->and(ActivityLog::query()->where('action', 'document.uploaded')->exists())->toBeTrue();
 
-    Storage::disk('band-manager')->assertExists($document->storagePath());
+    expect($document->getFirstMedia(MediaCollectionEnum::Documents->value)->getPathRelativeToRoot())->toStartWith('documents/')->toEndWith('.pdf');
+    Storage::disk('band-manager')->assertExists($document->getFirstMedia(MediaCollectionEnum::Documents->value)->getPathRelativeToRoot());
 });
 
 it('lets bands upload riders for their own band only', function () {
@@ -55,7 +58,7 @@ it('lets bands upload riders for their own band only', function () {
         ->post(route('band-manager.documents.store'), ['type' => 'rider', 'band_id' => Band::factory()->create()->id, 'category' => 'technical', 'file' => pdf()])
         ->assertSessionHasErrors(['band_id' => 'Bitte eine Band wählen.']);
 
-    expect(Document::sole())->type->toBe('rider')->category->toBe('technical')->title->toBe('Tech Rider');
+    expect(Document::sole())->type->toBe('rider')->category->toBe(RiderCategoryEnum::Technical)->title->toBe('Tech Rider');
 });
 
 it('keeps contracts for the agency', function () {
@@ -113,8 +116,7 @@ it('lists contracts and riders of the own bands only', function () {
 });
 
 it('shows and downloads the pdf', function () {
-    $document = Document::factory()->create(['original_name' => 'Tech Rider.pdf']);
-    Storage::disk('band-manager')->put($document->storagePath(), '%PDF-1.4');
+    $document = Document::factory()->withFile('%PDF-1.4')->create();
 
     actingAsBandManager()
         ->get(route('band-manager.documents.show', $document))
@@ -124,7 +126,7 @@ it('shows and downloads the pdf', function () {
 
     actingAsBandManager()
         ->get(route('band-manager.documents.show', [$document, 'download' => 1]))
-        ->assertDownload('Tech Rider.pdf');
+        ->assertDownload('rider.pdf');
 });
 
 it('keeps documents of other bands private', function () {
@@ -137,15 +139,15 @@ it('lets bands delete riders but not contracts', function () {
     $artist = User::factory()->create();
     $band = Band::factory()->hasAttached($artist)->create();
     $contract = Document::factory()->for($band)->contract()->create();
-    $rider = Document::factory()->for($band)->create();
-    Storage::disk('band-manager')->put($rider->storagePath(), 'x');
+    $rider = Document::factory()->for($band)->withFile()->create();
+    $riderFile = $rider->getFirstMedia(MediaCollectionEnum::Documents->value)->getPathRelativeToRoot();
 
     actingAsBandManager($artist)->delete(route('band-manager.documents.destroy', $contract))->assertForbidden();
     actingAsBandManager($artist)->delete(route('band-manager.documents.destroy', $rider))->assertSessionHas('success', 'Dokument wurde gelöscht.');
 
     $this->assertModelExists($contract);
     $this->assertModelMissing($rider);
-    Storage::disk('band-manager')->assertMissing($rider->storagePath());
+    Storage::disk('band-manager')->assertMissing($riderFile);
 });
 
 it('keeps the contract when its gig is deleted', function () {

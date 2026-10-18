@@ -2,16 +2,16 @@
 
 namespace App\Http\Controllers\BandManager;
 
+use App\Actions\BandManager\RecordActivityAction;
+use App\Enums\BandManager\PlatformEnum;
+use App\Enums\MediaCollectionEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\BandManager\BandProfileRequest;
-use App\Models\BandManager\ActivityLog;
 use App\Models\BandManager\Band;
-use App\Models\BandManager\BandProfile;
 use App\Services\BandManager\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -26,17 +26,16 @@ class BandProfileController extends Controller
 
         return view('band-manager.team.profile', [
             'band' => $band,
-            'profile' => $band->profileOrNew(),
-            'platforms' => BandProfile::platforms(),
+            'profile' => $band->profile,
+            'platforms' => PlatformEnum::cases(),
             'bioMax' => (int) config('band-manager.team.bio_max'),
             'logoMaxMb' => (int) config('band-manager.team.max_logo_mb'),
         ]);
     }
 
-    public function update(BandProfileRequest $request, Band $band): RedirectResponse
+    public function update(BandProfileRequest $request, Band $band, Pdf $pdf): RedirectResponse
     {
-        $profile = $band->profileOrNew();
-        $oldLogo = $profile->logoPath();
+        $profile = $band->profile;
 
         $profile->fill([
             'bio_de' => $request->validated('bio_de'),
@@ -45,21 +44,18 @@ class BandProfileController extends Controller
             'updated_by' => $request->user()->id,
         ]);
 
-        // Logo-Datei zuerst speichern – schlägt das fehl, bleibt alles unverändert
-        if ($request->hasFile('logo')) {
-            $profile->logo = BandProfile::storeLogo($request->file('logo'), $band->id);
-        } elseif ($request->boolean('remove_logo')) {
-            $profile->logo = null;
-        }
-
         $profile->save();
 
-        // Altes Logo erst jetzt löschen
-        if ($oldLogo !== null && $oldLogo !== $profile->logoPath()) {
-            Storage::disk('band-manager')->delete($oldLogo);
+        // Ein neues Logo ersetzt das alte erst, wenn es sicher gespeichert ist (singleFile)
+        if ($request->hasFile('logo')) {
+            $profile->addMediaFromRequest('logo')
+                ->usingFileName('Logo_'.($pdf->fileSlug($band->name) ?: 'Band').'.'.$request->file('logo')->extension())
+                ->toMediaCollection(MediaCollectionEnum::BandLogos->value);
+        } elseif ($request->boolean('remove_logo')) {
+            $profile->clearMediaCollection(MediaCollectionEnum::BandLogos->value);
         }
 
-        ActivityLog::record('team.profile_saved', ['band_id' => $band->id]);
+        app(RecordActivityAction::class)->execute('team.profile_saved', ['band_id' => $band->id]);
 
         return to_route('band-manager.team.band', $band)->with('success', 'Bandprofil wurde gespeichert.');
     }
@@ -67,22 +63,13 @@ class BandProfileController extends Controller
     /**
      * Bandlogo ausliefern – mit ?download=1 als Download.
      */
-    public function logo(Request $request, Band $band, Pdf $pdf): StreamedResponse
+    public function logo(Request $request, Band $band): StreamedResponse
     {
         Gate::authorize('access', $band);
 
-        $path = $band->profile?->logoPath();
-        $disk = Storage::disk('band-manager');
-        abort_if($path === null || ! $disk->exists($path), 404);
+        $media = $band->profile?->getFirstMedia(MediaCollectionEnum::BandLogos->value);
+        abort_if($media === null, 404);
 
-        $headers = ['X-Content-Type-Options' => 'nosniff', 'Cache-Control' => 'private, max-age=86400'];
-
-        if ($request->boolean('download')) {
-            $name = 'Logo_'.($pdf->fileSlug($band->name) ?: 'Band').'.'.pathinfo($path, PATHINFO_EXTENSION);
-
-            return $disk->download($path, $name, $headers);
-        }
-
-        return $disk->response($path, null, $headers);
+        return $request->boolean('download') ? $media->toResponse($request) : $media->toInlineResponse($request);
     }
 }

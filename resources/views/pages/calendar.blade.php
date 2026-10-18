@@ -7,7 +7,7 @@
         <div class="artist-block">
             <div class="artist-block-header">
                 <a href="{{ route('artists.show', $artist) }}">{{ $artist->name }}</a>
-                <span class="artist-block-genre">{{ $artist->displayGenre() }}</span>
+                <span class="artist-block-genre">{{ $artist->genre ?: 'Alternative' }}</span>
             </div>
             <div class="calendar-table">
 @foreach ($artist->tourDates->sortByShowDate() as $date)

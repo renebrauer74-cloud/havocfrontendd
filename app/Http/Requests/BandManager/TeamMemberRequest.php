@@ -2,8 +2,10 @@
 
 namespace App\Http\Requests\BandManager;
 
+use App\Enums\BandManager\CrewRoleEnum;
 use App\Models\BandManager\Band;
 use App\Models\BandManager\TeamMember;
+use App\Rules\MaxMegapixelsRule;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
@@ -44,8 +46,8 @@ class TeamMemberRequest extends FormRequest
             'last_name' => ['nullable', 'string', 'max:100'],
             'stage_name' => ['nullable', 'string', 'max:100'],
             'position' => ['nullable', 'string', 'max:150'],
-            'crew_role' => $isCrew ? ['required', Rule::in(array_keys(config('band-manager.team.crew_roles')))] : ['exclude'],
-            'crew_role_other' => $isCrew && $this->input('crew_role') === 'other' ? ['required', 'string', 'max:100'] : ['exclude'],
+            'crew_role' => $isCrew ? ['required', Rule::enum(CrewRoleEnum::class)] : ['exclude'],
+            'crew_role_other' => $isCrew && $this->input('crew_role') === CrewRoleEnum::Other->value ? ['required', 'string', 'max:100'] : ['exclude'],
             'bio' => ['nullable', 'string', 'max:3000'],
             'birth_date' => ['nullable', 'date_format:Y-m-d', 'before_or_equal:today'],
             'nationality' => ['nullable', 'string', 'max:100'],
@@ -59,7 +61,10 @@ class TeamMemberRequest extends FormRequest
             'diet' => ['nullable', 'string', 'max:255'],
             'driver_license' => ['nullable', 'string', 'max:50'],
             'emergency_contact' => ['nullable', 'string', 'max:255'],
-            'photo' => ['nullable', 'file', 'mimetypes:'.implode(',', array_keys(TeamMember::PHOTO_TYPES)), 'image', 'max:'.$this->maxPhotoMb() * 1024],
+            'photo' => [
+                'nullable', 'file', 'mimetypes:'.implode(',', array_keys(TeamMember::PHOTO_TYPES)), 'image', 'max:'.$this->maxPhotoMb() * 1024,
+                new MaxMegapixelsRule((int) config('band-manager.team.max_megapixels')),
+            ],
             'remove_photo' => ['boolean'],
         ];
     }

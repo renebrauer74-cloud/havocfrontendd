@@ -2,22 +2,26 @@
 
 namespace App\Models;
 
-use App\Models\Concerns\HasUploadedImage;
+use App\Enums\MediaCollectionEnum;
 use Database\Factories\TeamMemberFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
 
 #[Table('team')]
 #[Fillable(['name', 'phone', 'email', 'hobbies', 'bio'])]
-class TeamMember extends Model
+class TeamMember extends Model implements HasMedia
 {
     /** @use HasFactory<TeamMemberFactory> */
-    use HasFactory, HasUploadedImage;
+    use HasFactory, InteractsWithMedia;
 
-    protected function imageFolder(): string
+    public function registerMediaCollections(): void
     {
-        return 'team';
+        $this->addMediaCollection(MediaCollectionEnum::Team->value)
+            ->singleFile()
+            ->useFallbackUrl(placeholder_image(100, 100, 'HAVOC', 12));
     }
 }

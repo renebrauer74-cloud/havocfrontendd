@@ -2,20 +2,22 @@
 
 namespace App\Models;
 
-use App\Models\Concerns\HasUploadedImage;
+use App\Enums\MediaCollectionEnum;
 use Database\Factories\GalleryImageFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
 
 #[Table('gallery')]
 #[Fillable(['artist_id'])]
-class GalleryImage extends Model
+class GalleryImage extends Model implements HasMedia
 {
     /** @use HasFactory<GalleryImageFactory> */
-    use HasFactory, HasUploadedImage;
+    use HasFactory, InteractsWithMedia;
 
     public const MAX_PER_ARTIST = 8;
 
@@ -27,8 +29,9 @@ class GalleryImage extends Model
         return $this->belongsTo(Artist::class);
     }
 
-    protected function imageFolder(): string
+    public function registerMediaCollections(): void
     {
-        return 'gallery';
+        $this->addMediaCollection(MediaCollectionEnum::Gallery->value)
+            ->singleFile();
     }
 }

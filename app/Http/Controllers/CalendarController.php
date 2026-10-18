@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Website\ListArtistsAlphabeticallyAction;
 use App\Models\Artist;
 use Illuminate\View\View;
 
@@ -12,7 +13,7 @@ class CalendarController extends Controller
      */
     public function __invoke(): View
     {
-        $artists = Artist::alphabetical()
+        $artists = app(ListArtistsAlphabeticallyAction::class)->execute()
             ->load('tourDates')
             ->filter(fn (Artist $artist): bool => $artist->tourDates->isNotEmpty())
             ->values();

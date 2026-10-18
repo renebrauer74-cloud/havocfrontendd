@@ -101,7 +101,7 @@
                     <span class="hv-avatar">{{ mb_strtoupper(mb_substr($user->name, 0, 1)) }}</span>
                     <span class="hv-user-text">
                         <span class="hv-user-name">{{ $user->name }}</span>
-                        <span class="hv-user-role">{{ $user->roleLabel() }}</span>
+                        <span class="hv-user-role">{{ $user->role->label() }}</span>
                     </span>
                 </div>
                 <form method="post" action="{{ route('band-manager.logout') }}" class="m-0">

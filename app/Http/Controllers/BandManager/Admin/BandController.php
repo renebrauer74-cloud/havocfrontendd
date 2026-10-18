@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers\BandManager\Admin;
 
+use App\Actions\BandManager\DeleteBandAction;
+use App\Actions\BandManager\RecordActivityAction;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\BandManager\Admin\BandRequest;
-use App\Models\BandManager\ActivityLog;
 use App\Models\BandManager\Band;
 use App\Models\BandManager\User;
 use Illuminate\Http\RedirectResponse;
@@ -29,7 +30,7 @@ class BandController extends Controller
         $band = Band::query()->create($request->bandAttributes());
         $band->users()->sync($request->userIds());
 
-        ActivityLog::record('band.created', ['band_id' => $band->id]);
+        app(RecordActivityAction::class)->execute('band.created', ['band_id' => $band->id]);
 
         return to_route('band-manager.admin.bands.index')->with('success', 'Band wurde angelegt.');
     }
@@ -44,7 +45,7 @@ class BandController extends Controller
         $band->update($request->bandAttributes());
         $band->users()->sync($request->userIds());
 
-        ActivityLog::record('band.updated', ['band_id' => $band->id]);
+        app(RecordActivityAction::class)->execute('band.updated', ['band_id' => $band->id]);
 
         return to_route('band-manager.admin.bands.index')->with('success', 'Band wurde gespeichert.');
     }
@@ -52,11 +53,11 @@ class BandController extends Controller
     /**
      * Zugehörige Daten (Logins-Zuordnung, später Gigs, Kalender …) löscht die Datenbank per Fremdschlüssel mit.
      */
-    public function destroy(Band $band): RedirectResponse
+    public function destroy(Band $band, DeleteBandAction $deleteBand): RedirectResponse
     {
-        $band->delete();
+        $deleteBand->execute($band);
 
-        ActivityLog::record('band.deleted', ['band_id' => $band->id]);
+        app(RecordActivityAction::class)->execute('band.deleted', ['band_id' => $band->id]);
 
         return to_route('band-manager.admin.bands.index')->with('success', 'Band wurde gelöscht.');
     }

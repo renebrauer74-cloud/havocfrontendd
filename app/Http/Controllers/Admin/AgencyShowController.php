@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\MediaCollectionEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\AgencyShowRequest;
 use App\Models\AgencyShow;
@@ -53,10 +54,10 @@ class AgencyShowController extends Controller
     {
         $show->fill($request->safe()->except('image'));
 
-        if ($request->hasFile('image')) {
-            $show->replaceImage($request->file('image'));
-        }
-
         $show->save();
+
+        if ($request->hasFile('image')) {
+            $show->addMediaFromRequest('image')->toMediaCollection(MediaCollectionEnum::Shows->value);
+        }
     }
 }

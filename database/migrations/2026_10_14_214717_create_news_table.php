@@ -21,7 +21,6 @@ return new class extends Migration
             $table->id();
             $table->string('title');
             $table->text('text')->nullable();
-            $table->string('image_url', 1024)->default('');
             $table->timestamps();
         });
     }

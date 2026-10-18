@@ -2,23 +2,26 @@
 
 namespace App\Models\BandManager;
 
+use App\Enums\BandManager\RiderCategoryEnum;
+use App\Enums\MediaCollectionEnum;
 use Database\Factories\BandManager\DocumentFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Facades\Storage;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
 
 /**
- * Vertrag oder Rider (PDF). Dateien liegen auf dem Disk "band-manager" unter documents/{band_id}/.
+ * Vertrag oder Rider (PDF). Die Datei liegt in der Media Library.
  */
 #[Table('bm_documents')]
-#[Fillable(['band_id', 'gig_id', 'type', 'category', 'title', 'original_name', 'stored_name', 'size_bytes', 'uploaded_by'])]
-class Document extends Model
+#[Fillable(['band_id', 'gig_id', 'type', 'category', 'title', 'uploaded_by'])]
+class Document extends Model implements HasMedia
 {
     /** @use HasFactory<DocumentFactory> */
-    use HasFactory;
+    use HasFactory, InteractsWithMedia;
 
     public const TYPE_CONTRACT = 'contract';
 
@@ -32,21 +35,16 @@ class Document extends Model
     protected function casts(): array
     {
         return [
-            'size_bytes' => 'integer',
+            'category' => RiderCategoryEnum::class,
         ];
     }
 
-    protected static function booted(): void
+    public function registerMediaCollections(): void
     {
-        static::deleted(fn (Document $document) => Storage::disk('band-manager')->delete($document->storagePath()));
-    }
-
-    /**
-     * @return array<string, string>
-     */
-    public static function riderCategories(): array
-    {
-        return config('band-manager.documents.rider_categories', []);
+        $this->addMediaCollection(MediaCollectionEnum::Documents->value)
+            ->singleFile()
+            ->useDisk(config('havoc.uploads.band_manager_disk'))
+            ->acceptsMimeTypes(['application/pdf']);
     }
 
     /**
@@ -68,22 +66,5 @@ class Document extends Model
     public function isContract(): bool
     {
         return $this->type === self::TYPE_CONTRACT;
-    }
-
-    public function categoryLabel(): string
-    {
-        return $this->category ? (self::riderCategories()[$this->category] ?? $this->category) : '–';
-    }
-
-    public function sizeLabel(): string
-    {
-        return $this->size_bytes >= 1048576
-            ? number_format($this->size_bytes / 1048576, 1, ',', '.').' MB'
-            : max(1, (int) round($this->size_bytes / 1024)).' KB';
-    }
-
-    public function storagePath(): string
-    {
-        return 'documents/'.$this->band_id.'/'.basename($this->stored_name);
     }
 }

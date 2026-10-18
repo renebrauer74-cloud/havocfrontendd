@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\MediaCollectionEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\TeamMemberRequest;
 use App\Models\TeamMember;
@@ -53,10 +54,10 @@ class TeamMemberController extends Controller
     {
         $member->fill($request->safe()->except('image'));
 
-        if ($request->hasFile('image')) {
-            $member->replaceImage($request->file('image'));
-        }
-
         $member->save();
+
+        if ($request->hasFile('image')) {
+            $member->addMediaFromRequest('image')->toMediaCollection(MediaCollectionEnum::Team->value);
+        }
     }
 }

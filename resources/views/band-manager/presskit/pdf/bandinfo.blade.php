@@ -48,7 +48,7 @@
         <h2>{{ $t['links'] }}</h2>
         <table class="kv">
             @foreach ($links as $link)
-                <tr><td class="k">{{ $link['label'] }}</td><td><a href="{{ $link['url'] }}">{{ $link['display'] }}</a></td></tr>
+                <tr><td class="k">{{ $link['platform']->label() }}</td><td><a href="{{ $link['url'] }}">{{ $link['display'] }}</a></td></tr>
             @endforeach
         </table>
     </div>

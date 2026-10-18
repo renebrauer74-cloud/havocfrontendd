@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers\BandManager\Api;
 
+use App\Actions\BandManager\Availability\ClearAvailabilityAction;
+use App\Actions\BandManager\Availability\SetAvailabilityAction;
+use App\Actions\BandManager\RecordActivityAction;
+use App\Enums\BandManager\AvailabilityStatusEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\BandManager\AvailabilityRangeRequest;
 use App\Http\Requests\BandManager\StoreAvailabilityRequest;
-use App\Models\BandManager\ActivityLog;
 use App\Models\BandManager\Availability;
 use App\Models\BandManager\Band;
 use App\Models\BandManager\Gig;
@@ -40,9 +43,9 @@ class AvailabilityController extends Controller
                 'start' => $availability->date,
                 'allDay' => true,
                 'display' => 'background',
-                'color' => $availability->statusDefinition()['color'],
-                'title' => $availability->statusDefinition()['label'],
-                'extendedProps' => ['type' => 'availability', 'status' => $availability->status, 'note' => $availability->note],
+                'color' => $availability->status->color(),
+                'title' => $availability->status->label(),
+                'extendedProps' => ['type' => 'availability', 'status' => $availability->status->value, 'note' => $availability->note],
             ]);
 
         // Gigs der Band (ohne abgesagte) als normale Termine darüber
@@ -58,8 +61,8 @@ class AvailabilityController extends Controller
                     'start' => $gig->date,
                     'allDay' => true,
                     'title' => '🎤 '.$gig->title.($gig->city ? ' ('.$gig->city.')' : ''),
-                    'color' => $gig->statusDefinition()['color'],
-                    'extendedProps' => ['type' => 'gig', 'gigStatus' => $gig->statusDefinition()['label'], 'note' => $gig->venue],
+                    'color' => $gig->status->color(),
+                    'extendedProps' => ['type' => 'gig', 'gigStatus' => $gig->status->label(), 'note' => $gig->venue],
                 ]));
         }
 
@@ -70,12 +73,12 @@ class AvailabilityController extends Controller
     {
         $from = $request->from();
         $to = $request->to();
-        $status = $request->validated('status');
+        $status = AvailabilityStatusEnum::from($request->validated('status'));
 
-        $count = Availability::setRange($band, $from, $to, $status, $request->validated('note'), $request->user()->id);
+        $count = app(SetAvailabilityAction::class)->execute($band, $from, $to, $status, $request->validated('note'), $request->user()->id);
 
-        ActivityLog::record('availability.saved', [
-            'band_id' => $band->id, 'from' => $from->format('Y-m-d'), 'to' => $to->format('Y-m-d'), 'status' => $status,
+        app(RecordActivityAction::class)->execute('availability.saved', [
+            'band_id' => $band->id, 'from' => $from->format('Y-m-d'), 'to' => $to->format('Y-m-d'), 'status' => $status->value,
         ]);
 
         return response()->json([
@@ -90,9 +93,9 @@ class AvailabilityController extends Controller
         $from = $request->from();
         $to = $request->to();
 
-        $count = Availability::clearRange($band, $from, $to);
+        $count = app(ClearAvailabilityAction::class)->execute($band, $from, $to);
 
-        ActivityLog::record('availability.cleared', [
+        app(RecordActivityAction::class)->execute('availability.cleared', [
             'band_id' => $band->id, 'from' => $from->format('Y-m-d'), 'to' => $to->format('Y-m-d'),
         ]);
 

@@ -8,10 +8,10 @@
 @forelse ($roster as $artist)
                 <a class="artist-card" href="{{ route('artists.show', $artist) }}">
                     <div class="poster-frame">
-                        <img class="artist-img" src="{{ media_url($artist->image_url, asset('assets/img/havoc-logo.jpeg')) }}" alt="{{ $artist->name }}">
+                        <img class="artist-img" src="{{ $artist->getFirstMediaUrl(\App\Enums\MediaCollectionEnum::Artists->value) }}" alt="{{ $artist->name }}">
                     </div>
                     <div class="artist-name">{{ $artist->name }}</div>
-                    <div class="artist-genre">{{ $artist->displayGenre() }}</div>
+                    <div class="artist-genre">{{ $artist->genre ?: 'Alternative' }}</div>
                 </a>
 @empty
                 <div class="empty-state roster-empty">NO ARTISTS IN ROSTER YET //</div>

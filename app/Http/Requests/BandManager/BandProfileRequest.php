@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\BandManager;
 
+use App\Actions\BandManager\Profile\NormalizeProfileLinkAction;
+use App\Enums\BandManager\PlatformEnum;
 use App\Models\BandManager\Band;
 use App\Models\BandManager\BandProfile;
 use Closure;
@@ -37,8 +39,8 @@ class BandProfileRequest extends FormRequest
             'remove_logo' => ['boolean'],
         ];
 
-        foreach (BandProfile::platforms() as $key => $platform) {
-            $rules['link_'.$key] = ['nullable', 'string', 'max:255', $this->validLink($platform)];
+        foreach (PlatformEnum::cases() as $platform) {
+            $rules['link_'.$platform->value] = ['nullable', 'string', 'max:255', $this->validLink($platform)];
         }
 
         return $rules;
@@ -77,11 +79,11 @@ class BandProfileRequest extends FormRequest
     {
         $links = [];
 
-        foreach (BandProfile::platforms() as $key => $platform) {
-            $value = $this->validated('link_'.$key);
+        foreach (PlatformEnum::cases() as $platform) {
+            $value = $this->validated('link_'.$platform->value);
 
             if (filled($value)) {
-                $links[$key] = BandProfile::normalizeUrl($value, $platform);
+                $links[$platform->value] = app(NormalizeProfileLinkAction::class)->execute($value, $platform);
             }
         }
 
@@ -93,14 +95,11 @@ class BandProfileRequest extends FormRequest
         return $this->route('band');
     }
 
-    /**
-     * @param  array{label: string, handle?: string}  $platform
-     */
-    private function validLink(array $platform): Closure
+    private function validLink(PlatformEnum $platform): Closure
     {
         return function (string $attribute, mixed $value, Closure $fail) use ($platform): void {
-            if (BandProfile::normalizeUrl((string) $value, $platform) === null) {
-                $fail("{$platform['label']}: Bitte einen gültigen Link eingeben (z. B. https://…).");
+            if (app(NormalizeProfileLinkAction::class)->execute((string) $value, $platform) === null) {
+                $fail("{$platform->label()}: Bitte einen gültigen Link eingeben (z. B. https://…).");
             }
         };
     }

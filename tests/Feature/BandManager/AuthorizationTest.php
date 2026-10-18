@@ -1,5 +1,6 @@
 <?php
 
+use App\Actions\BandManager\Users\CheckPermissionAction;
 use App\Models\BandManager\Band;
 use App\Models\BandManager\User;
 use Illuminate\Support\Facades\Gate;
@@ -26,8 +27,8 @@ it('supports wildcard permissions', function () {
     config(['band-manager.permissions.artist' => ['gigs.*']]);
     $artist = User::factory()->create();
 
-    expect($artist->hasPermission('gigs.create'))->toBeTrue()
-        ->and($artist->hasPermission('gallery.view'))->toBeFalse();
+    expect(app(CheckPermissionAction::class)->execute($artist, 'gigs.create'))->toBeTrue()
+        ->and(app(CheckPermissionAction::class)->execute($artist, 'gallery.view'))->toBeFalse();
 });
 
 it('lets bands access only their own bands', function () {

@@ -1,5 +1,8 @@
 <?php
 
+use App\Enums\BandManager\GalleryCategoryEnum;
+use App\Enums\MediaCollectionEnum;
+use App\Enums\MediaConversionEnum;
 use App\Models\BandManager\ActivityLog;
 use App\Models\BandManager\Band;
 use App\Models\BandManager\GalleryImage;
@@ -30,12 +33,24 @@ it('uploads several photos with previews and sets the first as main', function (
 
     expect($images)->toHaveCount(2)
         ->and($main->is_main)->toBeTrue()
-        ->and($main->category)->toBe('band')
-        ->and($main->original_name)->toBe('a.jpg')
-        ->and($main->width)->toBe(3200)
-        ->and($images->last()->category)->toBe('live')
-        ->and(getimagesize(Storage::disk('band-manager')->path($main->storagePath()))[0])->toBe(1600)
+        ->and($main->category)->toBe(GalleryCategoryEnum::Band)
+        ->and($main->getFirstMedia(MediaCollectionEnum::BandPhotos->value)->file_name)->toBe('a.jpg')
+        ->and($main->getFirstMedia(MediaCollectionEnum::BandPhotos->value)->getCustomProperty('width'))->toBe(3200)
+        ->and($images->last()->category)->toBe(GalleryCategoryEnum::Live)
+        ->and(getimagesizefromstring(Storage::disk('band-manager')->get($main->getFirstMedia(MediaCollectionEnum::BandPhotos->value)->getPathRelativeToRoot(MediaConversionEnum::Preview->value)))[0])->toBe(1600)
+        ->and(getimagesizefromstring(Storage::disk('band-manager')->get($main->getFirstMedia(MediaCollectionEnum::BandPhotos->value)->getPathRelativeToRoot()))[0])->toBe(3200)
         ->and(ActivityLog::query()->where('action', 'gallery.uploaded')->exists())->toBeTrue();
+});
+
+it('rejects photos with too many megapixels before the preview is generated', function () {
+    config(['band-manager.gallery.max_megapixels' => 1]);
+    $band = Band::factory()->create();
+
+    actingAsBandManager()
+        ->post(route('band-manager.gallery.store', $band), ['photos' => [UploadedFile::fake()->image('riesig.jpg', 2000, 1000)]])
+        ->assertSessionHas('error', ['„riesig.jpg“: Das Bild ist zu groß (max. 1 Megapixel).']);
+
+    expect($band->galleryImages()->count())->toBe(0);
 });
 
 it('skips invalid files and reports them', function () {
@@ -78,7 +93,7 @@ it('keeps exactly one main image per band', function () {
     actingAsBandManager()->post(route('band-manager.gallery.main', $live))->assertSessionHas('success', 'Hauptbild wurde festgelegt.');
 
     expect($oldMain->fresh()->is_main)->toBeFalse()
-        ->and($live->fresh())->is_main->toBeTrue()->category->toBe('band');
+        ->and($live->fresh())->is_main->toBeTrue()->category->toBe(GalleryCategoryEnum::Band);
 });
 
 it('updates caption and category but keeps the main image a band photo', function () {
@@ -86,13 +101,12 @@ it('updates caption and category but keeps the main image a band photo', functio
 
     actingAsBandManager()->put(route('band-manager.gallery.update', $main), ['caption' => 'Neu', 'credit' => '', 'category' => 'live']);
 
-    expect($main->fresh())->caption->toBe('Neu')->credit->toBeNull()->category->toBe('band');
+    expect($main->fresh())->caption->toBe('Neu')->credit->toBeNull()->category->toBe(GalleryCategoryEnum::Band);
 });
 
 it('deletes an image with its files and warns when it was the main image', function () {
-    $image = GalleryImage::factory()->main()->create();
-    Storage::disk('band-manager')->put("gallery/{$image->band_id}/{$image->file}", 'x');
-    Storage::disk('band-manager')->put("gallery/{$image->band_id}/{$image->preview}", 'x');
+    $image = GalleryImage::factory()->main()->withPhoto()->create();
+    expect(Storage::disk('band-manager')->allFiles())->toHaveCount(2);
 
     actingAsBandManager()
         ->delete(route('band-manager.gallery.destroy', $image))
@@ -103,13 +117,17 @@ it('deletes an image with its files and warns when it was the main image', funct
 });
 
 it('serves the preview, the original and the download', function () {
-    $image = GalleryImage::factory()->create(['original_name' => 'Bandfoto 2026.jpg']);
-    Storage::disk('band-manager')->put("gallery/{$image->band_id}/{$image->file}", 'original');
-    Storage::disk('band-manager')->put("gallery/{$image->band_id}/{$image->preview}", 'preview');
+    $image = GalleryImage::factory()->withPhoto()->create();
+    $media = $image->getFirstMedia(MediaCollectionEnum::BandPhotos->value);
+    $disk = Storage::disk('band-manager');
+    $preview = $disk->get($media->getPathRelativeToRoot(MediaConversionEnum::Preview->value));
+    $original = $disk->get($media->getPathRelativeToRoot());
 
-    actingAsBandManager()->get(route('band-manager.gallery.image', $image))->assertSuccessful()->assertStreamedContent('preview');
-    actingAsBandManager()->get(route('band-manager.gallery.image', [$image, 'size' => 'original']))->assertStreamedContent('original');
-    actingAsBandManager()->get(route('band-manager.gallery.image', [$image, 'download' => 1]))->assertDownload('Bandfoto 2026.jpg');
+    expect($preview)->not->toBe($original);
+
+    actingAsBandManager()->get(route('band-manager.gallery.image', $image))->assertSuccessful()->assertHeader('Content-Type', 'image/jpeg')->assertStreamedContent($preview);
+    actingAsBandManager()->get(route('band-manager.gallery.image', [$image, 'size' => 'original']))->assertStreamedContent($original);
+    actingAsBandManager()->get(route('band-manager.gallery.image', [$image, 'download' => 1]))->assertDownload('bandfoto.jpg');
 });
 
 it('keeps galleries of other bands private', function () {
@@ -127,5 +145,5 @@ it('shows the gallery overview and the main image in the band profile', function
 
     actingAsBandManager()->get(route('band-manager.gallery.index'))->assertSuccessful()->assertSee('Iron Kittens')->assertSee('1 / 8 Bilder');
     actingAsBandManager()->get(route('band-manager.gallery.band', $band))->assertSuccessful()->assertSee('Freier Platz');
-    actingAsBandManager()->get(route('band-manager.team.band', $band))->assertSee($main->url(), false);
+    actingAsBandManager()->get(route('band-manager.team.band', $band))->assertSee(route('band-manager.gallery.image', $main), false);
 });

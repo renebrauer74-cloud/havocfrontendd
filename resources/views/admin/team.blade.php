@@ -14,7 +14,7 @@
         <div class="form-group"><label for="teamBio">Infotext / Biografie</label><textarea id="teamBio" name="bio" rows="6" placeholder="Beschreibe das Teammitglied...">{{ old('bio', $editing?->bio) }}</textarea></div>
         <div class="form-group">
             <label>Profilbild (Drag & Drop)</label>
-            <x-admin.dropzone label="Profilbild ablegen oder klicken" :current="$editing?->image_url" />
+            <x-admin.dropzone label="Profilbild ablegen oder klicken" :current="$editing?->getFirstMedia(\App\Enums\MediaCollectionEnum::Team->value)?->getUrl()" />
         </div>
 
         <button type="submit" class="submit-btn">{{ $editing ? 'ÄNDERUNGEN SPEICHERN' : 'MITGLIED SPEICHERN' }}</button>

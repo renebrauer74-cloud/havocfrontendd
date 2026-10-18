@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Enums\BandManager\UserRoleEnum;
 use App\Models\BandManager\User;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
@@ -40,7 +41,7 @@ class CreateBandManagerAdmin extends Command
 
         $user = User::query()->firstOrNew(['email' => $email]);
         $user->name = $this->option('name') ?? ($user->name ?: 'Administrator');
-        $user->role = User::ROLE_ADMIN;
+        $user->role = UserRoleEnum::Admin;
         $user->is_active = true;
         $user->password = $password ?? password(
             label: 'Passwort',

@@ -9,7 +9,7 @@
                 <li class="list-group-item d-flex justify-content-between align-items-center gap-2">
                     <div>
                         <span @class(['badge', 'bg-primary' => $document->isContract(), 'bg-secondary' => ! $document->isContract()])>
-                            {{ $document->isContract() ? 'Vertrag' : $document->categoryLabel() }}
+                            {{ $document->isContract() ? 'Vertrag' : ($document->category?->label() ?? '–') }}
                         </span>
                         <a href="{{ route('band-manager.documents.show', $document) }}" target="_blank" rel="noopener">{{ $document->title }}</a>
                         <br><small class="text-muted">{{ $document->band->name }}</small>

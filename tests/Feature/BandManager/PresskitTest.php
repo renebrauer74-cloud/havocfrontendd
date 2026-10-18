@@ -9,7 +9,6 @@ use App\Models\BandManager\Gig;
 use App\Models\BandManager\TeamMember;
 use App\Models\BandManager\User;
 use App\Services\BandManager\Presskit;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Testing\TestResponse;
 
@@ -50,13 +49,9 @@ function completeBand(): Band
     Gig::factory()->for($band)->confirmed()->create(['date' => today()->addMonth()->format('Y-m-d'), 'title' => 'Festival']);
     Gig::factory()->for($band)->create(['date' => today()->addMonths(2)->format('Y-m-d'), 'title' => 'Nur Anfrage']);
 
-    $photo = UploadedFile::fake()->image('bandfoto.jpg', 800, 600);
-    GalleryImage::query()->create(GalleryImage::storeUpload($photo, $band->id) + [
-        'band_id' => $band->id, 'category' => 'band', 'is_main' => true, 'sort_order' => 1, 'credit' => 'Max',
-    ]);
+    GalleryImage::factory()->for($band)->main()->withPhoto(800, 600)->create(['caption' => null, 'credit' => 'Max']);
 
-    $rider = Document::factory()->for($band)->create(['title' => 'Tech Rider']);
-    Storage::disk('band-manager')->put($rider->storagePath(), '%PDF-1.4');
+    Document::factory()->for($band)->withFile('%PDF-1.4')->create(['title' => 'Tech Rider']);
 
     return $band;
 }
@@ -149,8 +144,7 @@ it('refuses an empty presskit', function () {
 
 it('ignores riders of other bands', function () {
     $band = completeBand();
-    $foreign = Document::factory()->create();
-    Storage::disk('band-manager')->put($foreign->storagePath(), '%PDF');
+    $foreign = Document::factory()->withFile()->create();
 
     $response = actingAsBandManager()->post(route('band-manager.presskit.store'), [
         'band_id' => $band->id, 'riders' => [$foreign->id], 'inc' => ['gigs_upcoming'],

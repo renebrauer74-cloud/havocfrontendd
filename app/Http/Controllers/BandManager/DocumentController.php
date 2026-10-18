@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers\BandManager;
 
+use App\Actions\BandManager\RecordActivityAction;
+use App\Enums\BandManager\RiderCategoryEnum;
+use App\Enums\MediaCollectionEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\BandManager\DocumentRequest;
-use App\Models\BandManager\ActivityLog;
 use App\Models\BandManager\Band;
 use App\Models\BandManager\Document;
 use App\Models\BandManager\Gig;
@@ -13,7 +15,6 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -40,12 +41,12 @@ class DocumentController extends Controller
         return view('band-manager.documents.index', [
             'contracts' => $this->documents($request, Document::TYPE_CONTRACT, $band),
             'riders' => $this->documents($request, Document::TYPE_RIDER, $band),
-            'bands' => $user->accessibleBands()->orderBy('name')->get(),
+            'bands' => Band::query()->accessibleBy($user)->orderBy('name')->get(),
             'bandId' => $band?->id,
             'gigId' => $request->integer('gig'),
             'canManage' => $canManage,
             'canUpload' => $canManage || $user->can('documents.upload'),
-            'categories' => Document::riderCategories(),
+            'categories' => RiderCategoryEnum::cases(),
             'gigs' => $canManage ? $this->gigOptions($band) : collect(),
             'maxMb' => (int) config('band-manager.documents.max_size_mb'),
         ]);
@@ -54,9 +55,6 @@ class DocumentController extends Controller
     public function store(DocumentRequest $request): RedirectResponse
     {
         $bandId = (int) $request->validated('band_id');
-        $storedName = bin2hex(random_bytes(16)).'.pdf';
-
-        $request->file('file')->storeAs("documents/{$bandId}", $storedName, 'band-manager');
 
         $document = Document::query()->create([
             'band_id' => $bandId,
@@ -64,13 +62,11 @@ class DocumentController extends Controller
             'type' => $request->validated('type'),
             'category' => $request->validated('category'),
             'title' => $request->title(),
-            'original_name' => $request->originalName(),
-            'stored_name' => $storedName,
-            'size_bytes' => (int) $request->file('file')->getSize(),
             'uploaded_by' => $request->user()->id,
         ]);
+        $document->addMediaFromRequest('file')->toMediaCollection(MediaCollectionEnum::Documents->value);
 
-        ActivityLog::record('document.uploaded', ['document_id' => $document->id, 'band_id' => $bandId, 'type' => $document->type]);
+        app(RecordActivityAction::class)->execute('document.uploaded', ['document_id' => $document->id, 'band_id' => $bandId, 'type' => $document->type]);
 
         return $this->backToList($request)
             ->with('success', $document->isContract() ? 'Vertrag wurde hinterlegt.' : 'Rider wurde hochgeladen.');
@@ -83,15 +79,10 @@ class DocumentController extends Controller
     {
         Gate::authorize('view', $document);
 
-        $disk = Storage::disk('band-manager');
-        abort_unless($disk->exists($document->storagePath()), 404);
+        $media = $document->getFirstMedia(MediaCollectionEnum::Documents->value);
+        abort_if($media === null, 404);
 
-        $headers = ['Content-Type' => 'application/pdf', 'X-Content-Type-Options' => 'nosniff', 'Cache-Control' => 'private, no-store'];
-        $name = $document->original_name ?: 'dokument.pdf';
-
-        return $request->boolean('download')
-            ? $disk->download($document->storagePath(), $name, $headers)
-            : $disk->response($document->storagePath(), $name, $headers);
+        return $request->boolean('download') ? $media->toResponse($request) : $media->toInlineResponse($request);
     }
 
     /**
@@ -103,7 +94,7 @@ class DocumentController extends Controller
 
         $document->delete();
 
-        ActivityLog::record('document.deleted', ['document_id' => $document->id, 'band_id' => $document->band_id, 'type' => $document->type]);
+        app(RecordActivityAction::class)->execute('document.deleted', ['document_id' => $document->id, 'band_id' => $document->band_id, 'type' => $document->type]);
 
         return $this->backToList($request)->with('success', 'Dokument wurde gelöscht.');
     }
@@ -114,9 +105,9 @@ class DocumentController extends Controller
     private function documents(Request $request, string $type, ?Band $band): Collection
     {
         return Document::query()
-            ->with(['band', 'gig'])
+            ->with(['band', 'gig', 'media'])
             ->where('type', $type)
-            ->whereIn('band_id', $request->user()->accessibleBands()->select('id'))
+            ->whereIn('band_id', Band::query()->accessibleBy($request->user())->select('id'))
             ->when($band, fn ($query) => $query->where('band_id', $band->id))
             ->latest()
             ->latest('id')

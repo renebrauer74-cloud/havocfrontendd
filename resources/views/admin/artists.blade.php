@@ -18,7 +18,7 @@
         <div class="form-group"><label for="artistTiktok">TikTok URL</label><input type="text" id="artistTiktok" name="tiktok_url" value="{{ old('tiktok_url', $editing?->tiktok_url) }}"></div>
         <div class="form-group">
             <label>Bild (Drag & Drop)</label>
-            <x-admin.dropzone label="Bild hier ablegen oder klicken" :current="$editing?->image_url" />
+            <x-admin.dropzone label="Bild hier ablegen oder klicken" :current="$editing?->getFirstMedia(\App\Enums\MediaCollectionEnum::Artists->value)?->getUrl()" />
         </div>
 
         <button type="submit" class="submit-btn">{{ $editing ? 'ÄNDERUNGEN SPEICHERN' : 'KÜNSTLER SPEICHERN' }}</button>
