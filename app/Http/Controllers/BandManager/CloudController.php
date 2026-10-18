@@ -6,6 +6,7 @@ use App\Actions\BandManager\Cloud\CalculateCloudUsageAction;
 use App\Actions\BandManager\Cloud\CreateDefaultCloudFoldersAction;
 use App\Actions\BandManager\Cloud\ListCloudFolderPathAction;
 use App\Actions\BandManager\Cloud\ListCloudFolderTreeAction;
+use App\Actions\BandManager\Cloud\SummarizeCloudFoldersAction;
 use App\Http\Controllers\Controller;
 use App\Models\BandManager\Band;
 use App\Models\BandManager\CloudFile;
@@ -64,9 +65,9 @@ class CloudController extends Controller
             'folders' => CloudFolder::query()
                 ->where('band_id', $band->id)
                 ->where('parent_id', $folder?->id)
-                ->withCount(['children', 'files'])
                 ->ordered()
                 ->get(),
+            'summary' => app(SummarizeCloudFoldersAction::class)->execute($band),
             'files' => CloudFile::query()
                 ->where('band_id', $band->id)
                 ->where('folder_id', $folder?->id)

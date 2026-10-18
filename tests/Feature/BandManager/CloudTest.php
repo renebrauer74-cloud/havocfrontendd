@@ -1,6 +1,7 @@
 <?php
 
 use App\Actions\BandManager\Cloud\CalculateCloudUsageAction;
+use App\Actions\BandManager\Cloud\SummarizeCloudFoldersAction;
 use App\Actions\BandManager\Cloud\TrashCloudFolderAction;
 use App\Enums\BandManager\UserRoleEnum;
 use App\Enums\MediaCollectionEnum;
@@ -56,6 +57,29 @@ it('creates the default folders on the first visit and keeps the main folders lo
 
     actingAsBandManager(cloudBandUser($band))->put(route('band-manager.cloud.folders.update', $recording), ['name' => 'Anders'])->assertForbidden();
     actingAsBandManager(cloudBandUser($band))->delete(route('band-manager.cloud.folders.destroy', $recording))->assertForbidden();
+});
+
+it('counts files and size of all subfolders in the folder list', function () {
+    $band = Band::factory()->create();
+    $videos = CloudFolder::factory()->for($band)->create(['name' => 'Videos']);
+    $test = CloudFolder::factory()->inFolder($videos)->create(['name' => 'Test']);
+    $deeper = CloudFolder::factory()->inFolder($test)->create(['name' => 'Tiefer']);
+    CloudFolder::factory()->inFolder($videos)->create(['name' => 'Leer']);
+    CloudFile::factory()->inFolder($test)->withFile('clip.mp4', 20)->create();
+    CloudFile::factory()->inFolder($deeper)->withFile('roh.mp4', 10)->create();
+    CloudFile::factory()->inFolder($deeper)->withFile('weg.mp4', 50)->create()->delete();
+    CloudFile::factory()->withFile('fremd.mp4')->create();
+
+    $summary = app(SummarizeCloudFoldersAction::class)->execute($band);
+
+    expect($summary[$videos->id])->toBe(['folders' => 2, 'files' => 2, 'bytes' => 30 * 1024])
+        ->and($summary[$test->id])->toBe(['folders' => 1, 'files' => 2, 'bytes' => 30 * 1024])
+        ->and($summary[$deeper->id])->toBe(['folders' => 0, 'files' => 1, 'bytes' => 10 * 1024]);
+
+    actingAsBandManager(cloudBandUser($band))
+        ->get(route('band-manager.cloud.band', $band))
+        ->assertSee('2 Ordner · 2 Dateien')
+        ->assertSee('30 KB');
 });
 
 it('uploads a file into a folder of the band', function () {

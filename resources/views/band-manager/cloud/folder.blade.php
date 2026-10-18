@@ -103,14 +103,18 @@
                                 <span>
                                     {{ $child->name }}
                                     @if ($child->isLocked())<i class="bi bi-lock text-muted small" title="Vorgegebener Ordner"></i>@endif
-                                    <small class="d-block text-muted">
-                                        {{ $child->children_count }} Ordner · {{ $child->files_count }} {{ $child->files_count === 1 ? 'Datei' : 'Dateien' }}
-                                    </small>
+                                    <x-band-manager.cloud-folder-summary :summary="$summary[$child->id] ?? null" class="d-block small text-muted" />
                                 </span>
                             </a>
                         </td>
                         <td class="d-none d-md-table-cell text-muted small">–</td>
-                        <td class="text-end text-muted small">–</td>
+                        <td class="text-end text-nowrap small">
+                            @if (($summary[$child->id]['bytes'] ?? 0) > 0)
+                                {{ \Spatie\MediaLibrary\Support\File::getHumanReadableSize($summary[$child->id]['bytes']) }}
+                            @else
+                                <span class="text-muted">–</span>
+                            @endif
+                        </td>
                         <td class="text-end text-nowrap">
                             <a href="{{ route('band-manager.cloud.folders.zip', $child) }}" class="btn btn-sm btn-outline-secondary" title="Als ZIP herunterladen" aria-label="Als ZIP herunterladen"><i class="bi bi-file-earmark-zip"></i></a>
                             @can('cloud.share')
