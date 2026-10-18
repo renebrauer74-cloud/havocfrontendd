@@ -9,6 +9,7 @@ use App\Models\BandManager\User;
 /**
  * Menü der Seitenleiste (Icons: https://icons.getbootstrap.com).
  * Einträge mit section "riders" landen unter der Überschrift "Rider Creator",
+ * die Exporte (section "exports") unter der Überschrift "Export",
  * Einträge mit section "admin" im abgetrennten Bereich "Administration".
  */
 class Navigation
@@ -20,6 +21,12 @@ class Navigation
      */
     public function for(User $user): array
     {
+        // Reihenfolge wie auf der Export-Seite
+        $exports = array_map(fn (array $export): array => [
+            'route' => $export['route'], 'active' => $export['active'], 'label' => $export['title'], 'icon' => $export['icon'],
+            'order' => 0, 'section' => 'exports', 'visible' => true,
+        ], $this->exports->availableFor($user));
+
         $items = [
             ['route' => 'band-manager.admin.dashboard', 'label' => 'Dashboard', 'icon' => 'grid-1x2', 'order' => 10, 'visible' => $user->isAdmin()],
             ['route' => 'band-manager.home', 'label' => 'Start', 'icon' => 'house', 'order' => 10, 'visible' => app(ResolveHomeUrlAction::class)->execute($user) === route('band-manager.home')],
@@ -30,11 +37,12 @@ class Navigation
             ['route' => 'band-manager.messages.index', 'active' => ['band-manager.messages.*'], 'label' => 'Nachrichten', 'icon' => 'chat-dots', 'order' => 35, 'visible' => $user->can('messages.view'),
                 'badge' => $user->can('messages.view') ? app(CountUnreadThreadsAction::class)->execute($user) : 0],
             ['route' => 'band-manager.documents.index', 'active' => ['band-manager.documents.*'], 'label' => 'Dokumente', 'icon' => 'file-earmark-text', 'order' => 40, 'visible' => $user->can('documents.view')],
-            ['route' => 'band-manager.exports.index', 'active' => ['band-manager.exports.*', 'band-manager.presskit.*', 'band-manager.admin.availability-export.*'], 'label' => 'Export', 'icon' => 'box-arrow-down', 'order' => 80, 'visible' => $this->exports->availableFor($user) !== []],
             // Die Agentur verwaltet alle Logins unter Administration → Benutzer
             ['route' => 'band-manager.accesses.index', 'active' => ['band-manager.accesses.*'], 'label' => 'Zugänge', 'icon' => 'key', 'order' => 90, 'visible' => ! $user->isAdmin() && $user->can('logins.manage')],
 
             ['route' => 'band-manager.tech-riders.index', 'active' => ['band-manager.tech-riders.*'], 'label' => 'Tech Rider', 'icon' => 'sliders2-vertical', 'order' => 10, 'section' => 'riders', 'visible' => $user->can('riders.view')],
+
+            ...$exports,
 
             ['route' => 'band-manager.admin.bands.index', 'active' => ['band-manager.admin.bands.*'], 'label' => 'Bands', 'icon' => 'people', 'order' => 40, 'section' => 'admin', 'visible' => $user->isAdmin()],
             ['route' => 'band-manager.admin.users.index', 'active' => ['band-manager.admin.users.*'], 'label' => 'Benutzer', 'icon' => 'person-gear', 'order' => 50, 'section' => 'admin', 'visible' => $user->isAdmin()],
