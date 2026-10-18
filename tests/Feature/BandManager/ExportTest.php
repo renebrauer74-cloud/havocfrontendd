@@ -2,6 +2,7 @@
 
 use App\Models\BandManager\Availability;
 use App\Models\BandManager\Band;
+use App\Models\BandManager\TechRider;
 use App\Models\BandManager\User;
 
 it('shows the export overview with the csv export for the agency', function () {
@@ -21,6 +22,37 @@ it('shows the export menu only when an export is available', function () {
 
     actingAsBandManager($artist)
         ->get(route('band-manager.exports.index'))
+        ->assertForbidden();
+});
+
+it('lists the exports below the export heading in the menu', function () {
+    actingAsBandManager()
+        ->get(route('band-manager.calendar.index'))
+        ->assertSeeInOrder(['Rider Creator', 'Export', 'Pressekit zusammenstellen', 'Technischer Rider', 'Verfügbarkeiten (CSV)', 'Administration']);
+});
+
+it('shows the tech rider pdf download of each own band on the export page', function () {
+    $artist = User::factory()->create();
+    $rider = TechRider::factory()->create();
+    $rider->band->users()->attach($artist);
+    $emptyBand = Band::factory()->hasAttached($artist)->create();
+    $foreignRider = TechRider::factory()->create();
+
+    actingAsBandManager($artist)
+        ->get(route('band-manager.tech-rider-export.index'))
+        ->assertSuccessful()
+        ->assertSee(route('band-manager.tech-riders.pdf', $rider->band))
+        ->assertSee($emptyBand->name)
+        ->assertDontSee(route('band-manager.tech-riders.pdf', $emptyBand))
+        ->assertSee('Jetzt ausfüllen')
+        ->assertDontSee($foreignRider->band->name);
+});
+
+it('keeps the tech rider export for users who may view riders', function () {
+    config(['band-manager.permissions.artist' => ['availability.view']]);
+
+    actingAsBandManager(User::factory()->create())
+        ->get(route('band-manager.tech-rider-export.index'))
         ->assertForbidden();
 });
 

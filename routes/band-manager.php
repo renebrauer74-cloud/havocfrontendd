@@ -16,6 +16,7 @@ use App\Http\Controllers\BandManager\MessageController;
 use App\Http\Controllers\BandManager\PresskitController;
 use App\Http\Controllers\BandManager\TeamController;
 use App\Http\Controllers\BandManager\TechRiderController;
+use App\Http\Controllers\BandManager\TechRiderExportController;
 use App\Http\Controllers\BandManager\ThemeController;
 use App\Http\Middleware\EnsureBandManagerUserIsActive;
 use Illuminate\Support\Facades\Route;
@@ -134,6 +135,8 @@ Route::middleware(['auth:band-manager', EnsureBandManagerUserIsActive::class])->
         Route::get('export/presskit', [PresskitController::class, 'create'])->name('presskit.create');
         Route::post('export/presskit', [PresskitController::class, 'store'])->name('presskit.store');
     });
+    // Download über tech-riders.pdf
+    Route::get('export/tech-rider', [TechRiderExportController::class, 'index'])->middleware('can:riders.view')->name('tech-rider-export.index');
 
     Route::prefix('admin')->name('admin.')->middleware('can:band-manager.admin')->group(function () {
         Route::get('/', Admin\DashboardController::class)->name('dashboard');

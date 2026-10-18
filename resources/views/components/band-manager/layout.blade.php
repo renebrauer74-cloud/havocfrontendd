@@ -17,6 +17,7 @@
     $navigation = $user ? app(Navigation::class)->for($user) : [];
     $mainNavigation = array_filter($navigation, fn (array $item): bool => $item['section'] === 'main');
     $riderNavigation = array_filter($navigation, fn (array $item): bool => $item['section'] === 'riders');
+    $exportNavigation = array_filter($navigation, fn (array $item): bool => $item['section'] === 'exports');
     $adminNavigation = array_filter($navigation, fn (array $item): bool => $item['section'] === 'admin');
     $unreadTotal = array_sum(array_column($navigation, 'badge'));
 
@@ -79,6 +80,15 @@
                     <div class="hv-side-section">
                         <div class="hv-side-label"><i class="bi bi-file-earmark-music"></i> Rider Creator</div>
                         @foreach ($riderNavigation as $item)
+                            <x-band-manager.nav-link :item="$item" />
+                        @endforeach
+                    </div>
+                @endif
+
+                @if ($exportNavigation)
+                    <div class="hv-side-section">
+                        <div class="hv-side-label"><i class="bi bi-box-arrow-down"></i> Export</div>
+                        @foreach ($exportNavigation as $item)
                             <x-band-manager.nav-link :item="$item" />
                         @endforeach
                     </div>
