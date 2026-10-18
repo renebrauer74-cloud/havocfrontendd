@@ -108,6 +108,16 @@ class Band extends Model
     }
 
     /**
+     * Freigabe-Links des Cloud-Speichers.
+     *
+     * @return HasMany<CloudLink, $this>
+     */
+    public function cloudLinks(): HasMany
+    {
+        return $this->hasMany(CloudLink::class);
+    }
+
+    /**
      * @return HasOne<BandProfile, $this>
      */
     public function profile(): HasOne

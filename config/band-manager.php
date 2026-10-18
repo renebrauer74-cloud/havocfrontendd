@@ -48,6 +48,7 @@ return [
             'riders.edit',          // Rider Creator bearbeiten
             'cloud.view',           // Cloud-Speicher ansehen & Dateien herunterladen
             'cloud.edit',           // hochladen, Ordner anlegen, umbenennen, verschieben, Papierkorb
+            'cloud.share',          // Freigabe-Links für Externe anlegen & widerrufen
         ],
 
         // Zugänge einer Band: Rechte kommen aus den freigegebenen Bereichen (App\Enums\BandManager\BandAreaEnum)
@@ -153,6 +154,8 @@ return [
         'thumbnail_px' => 400,      // Vorschau für Bilder in der Dateiliste
         'max_megapixels' => 60,     // größere Bilder bekommen keine Vorschau – zu viel RAM
         'name_max' => 150,          // Zeichen für Ordner- und Dateinamen
+        'zip_max_gb' => 4,          // größere Ordner bitte in Teilen herunterladen – der Download läuft durch PHP
+        'link_expiry_days' => [7, 30, 90],  // Auswahl beim Freigabe-Link, dazu „unbegrenzt“; vorgewählt der mittlere Wert
 
         // Ausführbare Dateien – zusätzlich sperrt die Media Library z. B. php, cgi, asp (FileAdder::$defaultDisallowedExtensions)
         'blocked_extensions' => [

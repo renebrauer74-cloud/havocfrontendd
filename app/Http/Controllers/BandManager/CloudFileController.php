@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\BandManager;
 
 use App\Actions\BandManager\Cloud\RenameCloudFileAction;
+use App\Actions\BandManager\Cloud\RespondWithCloudFileAction;
 use App\Actions\BandManager\Cloud\StoreCloudFileAction;
 use App\Actions\BandManager\RecordActivityAction;
 use App\Enums\MediaCollectionEnum;
@@ -49,16 +50,9 @@ class CloudFileController extends Controller
     /**
      * Im Browser öffnen (nur sichere Formate, siehe CloudFile::INLINE_TYPES) – mit ?download=1 als Download.
      */
-    public function show(Request $request, CloudFile $file): StreamedResponse
+    public function show(Request $request, CloudFile $file, RespondWithCloudFileAction $respondWithFile): StreamedResponse
     {
-        $media = $this->media($file);
-
-        $response = ! $request->boolean('download') && in_array($media->mime_type, CloudFile::INLINE_TYPES, true)
-            ? $media->toInlineResponse($request)
-            : $media->toResponse($request);
-        $response->headers->set('X-Content-Type-Options', 'nosniff');
-
-        return $response;
+        return $respondWithFile->execute($request, $this->media($file), $request->boolean('download'));
     }
 
     public function thumbnail(Request $request, CloudFile $file): StreamedResponse

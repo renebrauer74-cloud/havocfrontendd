@@ -11,7 +11,10 @@ use App\Http\Controllers\BandManager\CateringRiderExportController;
 use App\Http\Controllers\BandManager\CloudController;
 use App\Http\Controllers\BandManager\CloudFileController;
 use App\Http\Controllers\BandManager\CloudFolderController;
+use App\Http\Controllers\BandManager\CloudLinkController;
+use App\Http\Controllers\BandManager\CloudShareController;
 use App\Http\Controllers\BandManager\CloudTrashController;
+use App\Http\Controllers\BandManager\CloudZipController;
 use App\Http\Controllers\BandManager\DocumentController;
 use App\Http\Controllers\BandManager\ExportController;
 use App\Http\Controllers\BandManager\GalleryController;
@@ -42,6 +45,16 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('guest:band-manager')->group(function () {
     Route::get('login', [LoginController::class, 'create'])->name('login');
     Route::post('login', [LoginController::class, 'store'])->name('login.store');
+});
+
+// Freigabe-Links des Cloud-Speichers – ohne Login, Zugriff prüft CloudShareController über den Token
+Route::middleware('throttle:120,1')->prefix('s/{link:token}')->name('share.')->group(function () {
+    Route::get('/', [CloudShareController::class, 'show'])->name('show');
+    Route::get('zip', [CloudShareController::class, 'zip'])->name('zip');
+    Route::get('folders/{folder}', [CloudShareController::class, 'folder'])->name('folder');
+    Route::get('folders/{folder}/zip', [CloudShareController::class, 'zip'])->name('folder.zip');
+    Route::get('files/{file}', [CloudShareController::class, 'file'])->name('file');
+    Route::get('files/{file}/thumbnail', [CloudShareController::class, 'thumbnail'])->name('thumbnail');
 });
 
 Route::middleware(['auth:band-manager', EnsureBandManagerUserIsActive::class])->group(function () {
@@ -123,6 +136,15 @@ Route::middleware(['auth:band-manager', EnsureBandManagerUserIsActive::class])->
         Route::get('files/{file}', [CloudFileController::class, 'show'])->name('files.show');
         Route::get('files/{file}/thumbnail', [CloudFileController::class, 'thumbnail'])->name('files.thumbnail');
         Route::get('band/{band}/trash', [CloudTrashController::class, 'index'])->name('trash');
+        Route::get('band/{band}/zip', [CloudZipController::class, 'band'])->name('zip');
+        Route::get('folders/{folder}/zip', [CloudZipController::class, 'folder'])->name('folders.zip');
+
+        Route::middleware('can:cloud.share')->group(function () {
+            Route::get('band/{band}/links', [CloudLinkController::class, 'index'])->name('links');
+            Route::post('folders/{folder}/links', [CloudLinkController::class, 'storeForFolder'])->name('links.folder');
+            Route::post('files/{file}/links', [CloudLinkController::class, 'storeForFile'])->name('links.file');
+            Route::delete('links/{link}', [CloudLinkController::class, 'destroy'])->name('links.destroy');
+        });
 
         Route::middleware('can:cloud.edit')->group(function () {
             Route::post('band/{band}/folders', [CloudFolderController::class, 'store'])->name('folders.store');
