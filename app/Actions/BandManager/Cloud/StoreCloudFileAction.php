@@ -6,6 +6,7 @@ use App\Enums\MediaCollectionEnum;
 use App\Models\BandManager\Band;
 use App\Models\BandManager\CloudFile;
 use App\Models\BandManager\CloudFolder;
+use App\Models\BandManager\CloudLink;
 use App\Models\BandManager\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -21,11 +22,19 @@ class StoreCloudFileAction
     public function __construct(private CalculateCloudUsageAction $calculateUsage) {}
 
     /**
+     * Externe laden über einen Upload-Link hoch ($link, freiwillig mit Namen) – eingeloggte Nutzer als $uploader.
+     *
      * @throws ValidationException wenn der Speicherplatz nicht reicht
      */
-    public function execute(Band $band, ?CloudFolder $folder, UploadedFile $upload, ?User $uploader): CloudFile
-    {
-        return DB::transaction(function () use ($band, $folder, $upload, $uploader): CloudFile {
+    public function execute(
+        Band $band,
+        ?CloudFolder $folder,
+        UploadedFile $upload,
+        ?User $uploader,
+        ?CloudLink $link = null,
+        ?string $uploaderName = null,
+    ): CloudFile {
+        return DB::transaction(function () use ($band, $folder, $upload, $uploader, $link, $uploaderName): CloudFile {
             Band::query()->whereKey($band->id)->lockForUpdate()->first();
 
             $usage = $this->calculateUsage->execute($band);
@@ -41,6 +50,8 @@ class StoreCloudFileAction
                 'band_id' => $band->id,
                 'folder_id' => $folder?->id,
                 'uploaded_by' => $uploader?->id,
+                'link_id' => $link?->id,
+                'uploader_name' => $uploaderName,
             ]);
 
             $file->addMedia($upload)

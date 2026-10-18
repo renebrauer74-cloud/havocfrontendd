@@ -22,7 +22,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * Im Papierkorb (Soft Delete) bleibt die Datei erhalten und zählt weiter zum Speicherplatz.
  */
 #[Table('bm_cloud_files')]
-#[Fillable(['band_id', 'folder_id', 'uploaded_by'])]
+#[Fillable(['band_id', 'folder_id', 'uploaded_by', 'link_id', 'uploader_name'])]
 class CloudFile extends Model implements HasMedia
 {
     /** @use HasFactory<CloudFileFactory> */
@@ -63,6 +63,16 @@ class CloudFile extends Model implements HasMedia
     public function uploader(): BelongsTo
     {
         return $this->belongsTo(User::class, 'uploaded_by');
+    }
+
+    /**
+     * Upload-Link, über den ein Externer die Datei hochgeladen hat (Name in uploader_name).
+     *
+     * @return BelongsTo<CloudLink, $this>
+     */
+    public function link(): BelongsTo
+    {
+        return $this->belongsTo(CloudLink::class, 'link_id');
     }
 
     public function registerMediaCollections(): void

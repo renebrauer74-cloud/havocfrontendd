@@ -3,9 +3,13 @@
 namespace App\Providers;
 
 use App\Actions\BandManager\Users\CheckPermissionAction;
+use App\Models\BandManager\CloudLink;
 use App\Models\BandManager\User as BandManagerUser;
+use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -24,6 +28,14 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->defineBandManagerGates();
+
+        // Uploads über einen Cloud-Upload-Link: pro Besucher (IP) und Link – läuft vor dem Route-Model-Binding, daher der Token
+        RateLimiter::for('cloud-link-uploads', function (Request $request): Limit {
+            $link = $request->route('link');
+
+            return Limit::perHour((int) config('band-manager.cloud.link_uploads_per_hour'))
+                ->by($request->ip().'|'.($link instanceof CloudLink ? $link->token : (string) $link));
+        });
     }
 
     /**

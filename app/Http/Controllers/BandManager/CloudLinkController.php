@@ -27,7 +27,7 @@ class CloudLinkController extends Controller
 
         return view('band-manager.cloud.links', [
             'band' => $band,
-            'links' => $band->cloudLinks()->with(['folder', 'file.media', 'creator'])->latest()->latest('id')->get(),
+            'links' => $band->cloudLinks()->with(['folder', 'file.media', 'creator'])->withCount('uploads')->latest()->latest('id')->get(),
             'newLinkId' => (int) $request->session()->get('new_link_id'),
         ]);
     }
@@ -36,14 +36,28 @@ class CloudLinkController extends Controller
     {
         Gate::authorize('access', $folder->band);
 
-        return $this->store($request, $folder->band, ['folder_id' => $folder->id]);
+        $type = $request->type();
+
+        return $this->store($request, $folder->band, [
+            'folder_id' => $folder->id,
+            'type' => $type,
+            'message' => $request->validated('message'),
+            'allow_all_types' => $type->allowsUpload() && $request->boolean('allow_all_types'),
+        ]);
     }
 
+    /**
+     * Einzelne Dateien gibt es nur zum Ansehen & Herunterladen.
+     */
     public function storeForFile(CloudLinkRequest $request, CloudFile $file): RedirectResponse
     {
         Gate::authorize('access', $file->band);
 
-        return $this->store($request, $file->band, ['file_id' => $file->id]);
+        return $this->store($request, $file->band, [
+            'file_id' => $file->id,
+            'type' => CloudLinkTypeEnum::Read,
+            'message' => $request->validated('message'),
+        ]);
     }
 
     public function destroy(CloudLink $link): RedirectResponse
@@ -58,15 +72,14 @@ class CloudLinkController extends Controller
     }
 
     /**
-     * @param  array{folder_id?: int, file_id?: int}  $target
+     * @param  array{folder_id?: int, file_id?: int, type: CloudLinkTypeEnum, message: ?string, allow_all_types?: bool}  $attributes
      */
-    private function store(CloudLinkRequest $request, Band $band, array $target): RedirectResponse
+    private function store(CloudLinkRequest $request, Band $band, array $attributes): RedirectResponse
     {
         $link = CloudLink::query()->create([
             'band_id' => $band->id,
-            ...$target,
+            ...$attributes,
             'token' => Str::random(40),
-            'type' => CloudLinkTypeEnum::Read,
             'expires_at' => $request->expiresAt(),
             'created_by' => $request->user()->id,
         ]);

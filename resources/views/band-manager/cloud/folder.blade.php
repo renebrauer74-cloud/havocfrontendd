@@ -55,8 +55,8 @@
         </a>
         @if ($folder)
             @can('cloud.share')
-                <button class="btn btn-outline-secondary" type="button" data-cl-share data-action="{{ route('band-manager.cloud.links.folder', $folder) }}" data-name="{{ $folder->name }}">
-                    <i class="bi bi-share"></i> Ordner teilen
+                <button class="btn btn-outline-secondary" type="button" data-cl-share="folder" data-action="{{ route('band-manager.cloud.links.folder', $folder) }}" data-name="{{ $folder->name }}">
+                    <i class="bi bi-share"></i> Ordner teilen / Upload-Link
                 </button>
             @endcan
         @endif
@@ -115,7 +115,7 @@
                             <a href="{{ route('band-manager.cloud.folders.zip', $child) }}" class="btn btn-sm btn-outline-secondary" title="Als ZIP herunterladen" aria-label="Als ZIP herunterladen"><i class="bi bi-file-earmark-zip"></i></a>
                             @can('cloud.share')
                                 <button class="btn btn-sm btn-outline-secondary" type="button" title="Teilen" aria-label="Teilen"
-                                        data-cl-share data-action="{{ route('band-manager.cloud.links.folder', $child) }}" data-name="{{ $child->name }}">
+                                        data-cl-share="folder" data-action="{{ route('band-manager.cloud.links.folder', $child) }}" data-name="{{ $child->name }}">
                                     <i class="bi bi-share"></i>
                                 </button>
                             @endcan
@@ -152,13 +152,16 @@
                         </td>
                         <td class="d-none d-md-table-cell small text-muted text-nowrap">
                             {{ $file->created_at->format('d.m.Y H:i') }}@if ($file->uploader) · {{ $file->uploader->name }}@endif
+                            @if ($file->link_id || $file->uploader_name)
+                                <span class="d-block"><i class="bi bi-cloud-arrow-up"></i> über Upload-Link{{ $file->uploader_name ? ' · '.$file->uploader_name : '' }}</span>
+                            @endif
                         </td>
                         <td class="text-end text-nowrap small">{{ $media->human_readable_size }}</td>
                         <td class="text-end text-nowrap">
                             <a href="{{ route('band-manager.cloud.files.show', [$file, 'download' => 1]) }}" class="btn btn-sm btn-outline-secondary" title="Herunterladen" aria-label="Herunterladen"><i class="bi bi-download"></i></a>
                             @can('cloud.share')
                                 <button class="btn btn-sm btn-outline-secondary" type="button" title="Teilen" aria-label="Teilen"
-                                        data-cl-share data-action="{{ route('band-manager.cloud.links.file', $file) }}" data-name="{{ $media->file_name }}">
+                                        data-cl-share="file" data-action="{{ route('band-manager.cloud.links.file', $file) }}" data-name="{{ $media->file_name }}">
                                     <i class="bi bi-share"></i>
                                 </button>
                             @endcan
@@ -240,10 +243,37 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
                     </div>
                     <div class="modal-body">
-                        <p class="small text-muted">
+                        <fieldset class="mb-3" id="clShareTypes">
+                            <legend class="form-label fs-6">Was dürfen Externe?</legend>
+                            @foreach (\App\Enums\BandManager\CloudLinkTypeEnum::cases() as $linkType)
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="type" value="{{ $linkType->value }}" id="clShareType{{ $linkType->value }}" @checked($loop->first)>
+                                    <label class="form-check-label" for="clShareType{{ $linkType->value }}"><i class="bi bi-{{ $linkType->icon() }}"></i> {{ $linkType->label() }}</label>
+                                </div>
+                            @endforeach
+                        </fieldset>
+
+                        <p class="small text-muted" data-cl-share-hint="read">
                             Wer den Link hat, kann ohne Login ansehen und herunterladen – bei Ordnern auch alle Unterordner.
                             Hochladen oder Löschen ist darüber nicht möglich. Du kannst den Link jederzeit widerrufen.
                         </p>
+                        <div data-cl-share-hint="upload" hidden>
+                            <p class="small text-muted">
+                                Ideal nach einem Gig: Link z. B. auf Social Media teilen – wer ihn hat, kann ohne Login Dateien in diesen Ordner
+                                hochladen und alles darin ansehen und herunterladen. Löschen ist darüber nicht möglich. Uploads zählen zu eurem Speicherplatz.
+                            </p>
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" name="allow_all_types" value="1" id="clShareAllTypes">
+                                <label class="form-check-label" for="clShareAllTypes">
+                                    Alle Dateitypen erlauben <span class="text-muted small">(sonst nur Fotos &amp; Videos; Programme nie)</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <label class="form-label" for="clShareMessage">Hinweis für die Besucher <span class="text-muted small">(optional)</span></label>
+                        <textarea name="message" id="clShareMessage" class="form-control mb-3" rows="2" maxlength="500"
+                                  placeholder="z. B. Danke fürs Kommen! Ladet hier eure Fotos vom Gig im Gloria hoch."></textarea>
+
                         <label class="form-label" for="clShareExpires">Gültig</label>
                         @php($expiryDays = (array) config('band-manager.cloud.link_expiry_days'))
                         <select name="expires_in" id="clShareExpires" class="form-select">
@@ -264,7 +294,7 @@
 
     @if ($canEdit || auth('band-manager')->user()->can('cloud.share'))
         @push('scripts')
-            <script src="{{ asset('assets/band-manager/js/cloud.js') }}?v=2"></script>
+            <script src="{{ asset('assets/band-manager/js/cloud.js') }}?v=3"></script>
         @endpush
     @endif
 </x-band-manager.layout>

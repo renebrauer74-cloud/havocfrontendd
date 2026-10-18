@@ -40,6 +40,14 @@ class CloudLinkFactory extends Factory
         return $this->state(fn (): array => ['band_id' => $file->band_id, 'file_id' => $file->id]);
     }
 
+    /**
+     * Upload-Link (nur Fotos & Videos, mit ->state(['allow_all_types' => true]) alle Dateitypen).
+     */
+    public function upload(): static
+    {
+        return $this->state(fn (): array => ['type' => CloudLinkTypeEnum::Upload]);
+    }
+
     public function expired(): static
     {
         return $this->state(fn (): array => ['expires_at' => now()->subMinute()]);

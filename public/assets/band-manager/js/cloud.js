@@ -18,7 +18,9 @@
 
     if (drop && input && queue) {
         const maxBytes = +drop.dataset.maxBytes;
-        let free = +drop.dataset.free;
+        // Upload-Link-Seite: kein Speicherstand (prüft der Server), evtl. nur bestimmte Typen ("image/,video/")
+        let free = drop.dataset.free ? +drop.dataset.free : Infinity;
+        const accept = (drop.dataset.accept ?? '').split(',').filter(Boolean);
         let running = false;
         const pending = [];
         let uploaded = 0;
@@ -59,6 +61,7 @@
             const data = new FormData();
             data.append('file', file);
             if (drop.dataset.folder) data.append('folder_id', drop.dataset.folder);
+            document.querySelectorAll('[data-cl-upload-field]').forEach(field => data.append(field.name, field.value));
 
             const xhr = new XMLHttpRequest();
             xhr.open('POST', drop.dataset.url);
@@ -94,7 +97,10 @@
         const add = files => {
             [...files].forEach(file => {
                 const ui = row(file);
-                if (maxBytes > 0 && file.size > maxBytes) {
+                // Unbekannter Typ (z. B. HEIC/RAW unter Windows) → entscheidet der Server
+                if (accept.length && file.type && !accept.some(prefix => file.type.startsWith(prefix))) {
+                    ui.state('Hier können nur Fotos und Videos hochgeladen werden.', 'danger');
+                } else if (maxBytes > 0 && file.size > maxBytes) {
                     ui.state(`Zu groß (max. ${sizeLabel(maxBytes)})`, 'danger');
                 } else if (file.size > free) {
                     ui.state(`Nicht genug Speicherplatz (noch ${sizeLabel(Math.max(0, free))} frei)`, 'danger');
@@ -120,10 +126,23 @@
     const shareEl = document.getElementById('clShareModal');
     if (shareEl) {
         const shareModal = bootstrap.Modal.getOrCreateInstance(shareEl);
+        const typeInputs = [...shareEl.querySelectorAll('input[name="type"]')];
+
+        // Upload-Links gibt es nur für Ordner – Hinweise und Optionen passend zum gewählten Typ
+        const showType = () => {
+            const type = typeInputs.find(input => input.checked)?.value ?? 'read';
+            shareEl.querySelectorAll('[data-cl-share-hint]').forEach(el => { el.hidden = el.dataset.clShareHint !== type; });
+        };
+        typeInputs.forEach(input => input.addEventListener('change', showType));
 
         document.querySelectorAll('[data-cl-share]').forEach(button => button.addEventListener('click', () => {
+            const isFolder = button.dataset.clShare === 'folder';
+
             document.getElementById('clShareForm').action = button.dataset.action;
             document.getElementById('clShareName').textContent = button.dataset.name;
+            document.getElementById('clShareTypes').hidden = !isFolder;
+            typeInputs.forEach(input => { input.checked = input.value === 'read'; input.disabled = !isFolder && input.value !== 'read'; });
+            showType();
             shareModal.show();
         }));
     }
