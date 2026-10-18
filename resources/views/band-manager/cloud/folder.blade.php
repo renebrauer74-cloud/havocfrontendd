@@ -8,7 +8,7 @@
 @endphp
 <x-band-manager.layout :title="$title.' – '.$band->name">
     @push('styles')
-        <link href="{{ asset('assets/band-manager/css/cloud.css') }}?v=1" rel="stylesheet">
+        <link href="{{ asset('assets/band-manager/css/cloud.css') }}?v=3" rel="stylesheet">
     @endpush
 
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
@@ -17,6 +17,9 @@
             <h1 class="h3 mb-0">{{ $band->name }} – Cloud</h1>
         </div>
         <div class="d-flex flex-wrap align-items-center gap-2">
+            @can('cloud.share')
+                <a href="{{ route('band-manager.cloud.links', $band) }}" class="btn btn-outline-secondary"><i class="bi bi-link-45deg"></i> Freigaben</a>
+            @endcan
             <a href="{{ route('band-manager.cloud.trash', $band) }}" class="btn btn-outline-secondary"><i class="bi bi-trash3"></i> Papierkorb</a>
             @if ($bands->count() > 1)
                 <x-band-manager.band-switcher :bands="$bands" :current="$band" route="band-manager.cloud.band" />
@@ -40,13 +43,26 @@
         </ol>
     </nav>
 
-    @if ($canEdit)
-        <div class="d-flex flex-wrap gap-2 mb-3">
+    <div class="d-flex flex-wrap gap-2 mb-3">
+        @if ($canEdit)
             <label class="btn btn-primary mb-0" for="clFiles"><i class="bi bi-upload"></i> Dateien hochladen</label>
             <button class="btn btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#clNewFolder" aria-expanded="false" aria-controls="clNewFolder">
                 <i class="bi bi-folder-plus"></i> Neuer Ordner
             </button>
-        </div>
+        @endif
+        <a href="{{ $folder ? route('band-manager.cloud.folders.zip', $folder) : route('band-manager.cloud.zip', $band) }}" class="btn btn-outline-secondary">
+            <i class="bi bi-file-earmark-zip"></i> {{ $folder ? 'Ordner als ZIP' : 'Alles als ZIP' }}
+        </a>
+        @if ($folder)
+            @can('cloud.share')
+                <button class="btn btn-outline-secondary" type="button" data-cl-share data-action="{{ route('band-manager.cloud.links.folder', $folder) }}" data-name="{{ $folder->name }}">
+                    <i class="bi bi-share"></i> Ordner teilen
+                </button>
+            @endcan
+        @endif
+    </div>
+
+    @if ($canEdit)
 
         <div @class(['collapse', 'show' => $errors->has('name') && ! old('_edit')]) id="clNewFolder">
             <form method="post" action="{{ route('band-manager.cloud.folders.store', $band) }}" class="card card-body shadow-sm mb-3">
@@ -96,6 +112,13 @@
                         <td class="d-none d-md-table-cell text-muted small">–</td>
                         <td class="text-end text-muted small">–</td>
                         <td class="text-end text-nowrap">
+                            <a href="{{ route('band-manager.cloud.folders.zip', $child) }}" class="btn btn-sm btn-outline-secondary" title="Als ZIP herunterladen" aria-label="Als ZIP herunterladen"><i class="bi bi-file-earmark-zip"></i></a>
+                            @can('cloud.share')
+                                <button class="btn btn-sm btn-outline-secondary" type="button" title="Teilen" aria-label="Teilen"
+                                        data-cl-share data-action="{{ route('band-manager.cloud.links.folder', $child) }}" data-name="{{ $child->name }}">
+                                    <i class="bi bi-share"></i>
+                                </button>
+                            @endcan
                             @if ($canEdit && ! $child->isLocked())
                                 <button class="btn btn-sm btn-outline-secondary" type="button" title="Umbenennen / verschieben" aria-label="Umbenennen / verschieben"
                                         data-cl-edit="folder" data-action="{{ route('band-manager.cloud.folders.update', $child) }}"
@@ -133,6 +156,12 @@
                         <td class="text-end text-nowrap small">{{ $media->human_readable_size }}</td>
                         <td class="text-end text-nowrap">
                             <a href="{{ route('band-manager.cloud.files.show', [$file, 'download' => 1]) }}" class="btn btn-sm btn-outline-secondary" title="Herunterladen" aria-label="Herunterladen"><i class="bi bi-download"></i></a>
+                            @can('cloud.share')
+                                <button class="btn btn-sm btn-outline-secondary" type="button" title="Teilen" aria-label="Teilen"
+                                        data-cl-share data-action="{{ route('band-manager.cloud.links.file', $file) }}" data-name="{{ $media->file_name }}">
+                                    <i class="bi bi-share"></i>
+                                </button>
+                            @endcan
                             @if ($canEdit)
                                 <button class="btn btn-sm btn-outline-secondary" type="button" title="Umbenennen / verschieben" aria-label="Umbenennen / verschieben"
                                         data-cl-edit="file" data-action="{{ route('band-manager.cloud.files.update', $file) }}"
@@ -198,8 +227,44 @@
             </div>
         </div>
 
+    @endif
+
+    @can('cloud.share')
+        {{-- Freigabe-Link anlegen – cloud.js setzt Ziel-URL und Namen --}}
+        <div class="modal fade" id="clShareModal" tabindex="-1" aria-labelledby="clShareTitle" aria-hidden="true">
+            <div class="modal-dialog">
+                <form method="post" class="modal-content" id="clShareForm">
+                    @csrf
+                    <div class="modal-header">
+                        <h2 class="modal-title h5" id="clShareTitle">„<span id="clShareName"></span>“ teilen</h2>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="small text-muted">
+                            Wer den Link hat, kann ohne Login ansehen und herunterladen – bei Ordnern auch alle Unterordner.
+                            Hochladen oder Löschen ist darüber nicht möglich. Du kannst den Link jederzeit widerrufen.
+                        </p>
+                        <label class="form-label" for="clShareExpires">Gültig</label>
+                        @php($expiryDays = (array) config('band-manager.cloud.link_expiry_days'))
+                        <select name="expires_in" id="clShareExpires" class="form-select">
+                            @foreach ($expiryDays as $days)
+                                <option value="{{ $days }}" @selected($loop->index === intdiv(count($expiryDays), 2))>{{ $days }} Tage</option>
+                            @endforeach
+                            <option value="0">Unbegrenzt</option>
+                        </select>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                        <button class="btn btn-primary"><i class="bi bi-link-45deg"></i> Link erstellen</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    @endcan
+
+    @if ($canEdit || auth('band-manager')->user()->can('cloud.share'))
         @push('scripts')
-            <script src="{{ asset('assets/band-manager/js/cloud.js') }}?v=1"></script>
+            <script src="{{ asset('assets/band-manager/js/cloud.js') }}?v=2"></script>
         @endpush
     @endif
 </x-band-manager.layout>

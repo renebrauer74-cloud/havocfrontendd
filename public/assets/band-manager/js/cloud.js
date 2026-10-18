@@ -115,6 +115,19 @@
         window.addEventListener('beforeunload', e => { if (running) e.preventDefault(); });
     }
 
+    // ---- Teilen (Freigabe-Link anlegen) -----------------------------------------------------------
+
+    const shareEl = document.getElementById('clShareModal');
+    if (shareEl) {
+        const shareModal = bootstrap.Modal.getOrCreateInstance(shareEl);
+
+        document.querySelectorAll('[data-cl-share]').forEach(button => button.addEventListener('click', () => {
+            document.getElementById('clShareForm').action = button.dataset.action;
+            document.getElementById('clShareName').textContent = button.dataset.name;
+            shareModal.show();
+        }));
+    }
+
     // ---- Umbenennen / verschieben ------------------------------------------------------------------
 
     const modalEl = document.getElementById('clEditModal');
