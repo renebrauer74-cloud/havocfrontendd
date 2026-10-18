@@ -1,10 +1,10 @@
 @inject('describeRole', 'App\Actions\BandManager\Team\DescribeTeamMemberRoleAction')
 <x-band-manager.layout :title="trim($person->first_name.' '.$person->last_name)">
     @push('styles')
-        <link href="{{ asset('assets/band-manager/css/team.css') }}" rel="stylesheet">
+        <link href="{{ asset('assets/band-manager/css/team.css') }}?v=2" rel="stylesheet">
     @endpush
 
-    <a href="{{ route('band-manager.team.band', $band) }}" class="small">&larr; {{ $band->name }} – Band &amp; Team</a>
+    <a href="{{ route('band-manager.team.band', $band) }}" class="hv-back"><i class="bi bi-arrow-left"></i> {{ $band->name }} – Band &amp; Team</a>
 
     <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mt-1 mb-4">
         <div>
@@ -57,7 +57,7 @@
                             @foreach ($facts as [$label, $value, $href])
                                 <div class="col-sm-6">
                                     <dt>{{ $label }}</dt>
-                                    <dd>@if ($href)<a href="{{ $href }}">{{ $value }}</a>@else{!! nl2br(e($value)) !!}@endif</dd>
+                                    <dd>@if ($href)<a href="{{ $href }}" class="hv-link">{{ $value }}</a>@else{!! nl2br(e($value)) !!}@endif</dd>
                                 </div>
                             @endforeach
                         </dl>

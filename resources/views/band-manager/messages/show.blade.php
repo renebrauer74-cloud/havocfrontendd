@@ -5,7 +5,7 @@
         : 'Unterhaltung aus deiner Liste entfernen? Die Agentur behält ihre Kopie.';
 @endphp
 <x-band-manager.layout :title="$thread->subject">
-    <a href="{{ route('band-manager.messages.index') }}" class="small">&larr; Alle Nachrichten</a>
+    <a href="{{ route('band-manager.messages.index') }}" class="hv-back"><i class="bi bi-arrow-left"></i> Alle Nachrichten</a>
 
     <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-4">
         <div>

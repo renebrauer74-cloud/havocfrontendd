@@ -2,7 +2,7 @@
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
         <div>
             @if (auth()->user()->isAdmin())
-                <a href="{{ route('band-manager.calendar.index') }}" class="small">&larr; Alle Bands</a>
+                <a href="{{ route('band-manager.calendar.index') }}" class="hv-back"><i class="bi bi-arrow-left"></i> Alle Bands</a>
             @endif
             <h1 class="h3 mb-0">{{ $band->name }} – Verfügbarkeiten</h1>
         </div>

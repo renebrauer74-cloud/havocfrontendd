@@ -60,6 +60,8 @@
 .tm-facts dd { margin-bottom: 1rem; color: var(--hv-text); }
 
 /* ---------- Bandprofil ---------- */
+.tm-profile-head { background: var(--hv-surface-2); border-bottom-color: var(--hv-border-strong); }
+.tm-profile-head .bi-person-vcard { margin-right: .35rem; color: var(--hv-accent); }
 .tm-bio { max-height: 24rem; overflow-y: auto; line-height: 1.65; color: var(--hv-text); padding-right: .25rem; }
 .tm-socials { display: flex; flex-wrap: wrap; gap: .5rem; }
 .tm-social {

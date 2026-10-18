@@ -1,5 +1,5 @@
 <x-band-manager.layout title="Neue Nachricht">
-    <a href="{{ route('band-manager.messages.index') }}" class="small">&larr; Alle Nachrichten</a>
+    <a href="{{ route('band-manager.messages.index') }}" class="hv-back"><i class="bi bi-arrow-left"></i> Alle Nachrichten</a>
     <h1 class="h3 mb-4">Neue Nachricht</h1>
 
     @if ($bands->isEmpty())

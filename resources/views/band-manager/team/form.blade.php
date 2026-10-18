@@ -8,10 +8,10 @@
 @endphp
 <x-band-manager.layout :title="$isEdit ? trim($person->first_name.' '.$person->last_name).' bearbeiten' : 'Neues '.$what">
     @push('styles')
-        <link href="{{ asset('assets/band-manager/css/team.css') }}" rel="stylesheet">
+        <link href="{{ asset('assets/band-manager/css/team.css') }}?v=2" rel="stylesheet">
     @endpush
 
-    <a href="{{ $back }}" class="small">&larr; Zurück</a>
+    <a href="{{ $back }}" class="hv-back"><i class="bi bi-arrow-left"></i> Zurück</a>
     <h1 class="h3 mb-1">{{ $isEdit ? trim($person->first_name.' '.$person->last_name).' bearbeiten' : 'Neues '.$what }}</h1>
     <p class="text-muted small mb-4">{{ $band->name }} · {{ $what }}</p>
 

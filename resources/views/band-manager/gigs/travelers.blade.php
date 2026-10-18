@@ -22,12 +22,12 @@
                 <div class="text-muted small">
                     Für {{ $band->name }} sind noch keine Personen unter „Band &amp; Team“ angelegt.
                     @can('team.view')
-                        <a href="{{ route('band-manager.team.band', $band) }}">Zu Band &amp; Team</a>
+                        <a href="{{ route('band-manager.team.band', $band) }}" class="hv-link">Zu Band &amp; Team</a>
                     @endcan
                 </div>
             @else
                 <div class="mb-2 small">
-                    <a href="#" data-travel-all="1">Alle auswählen</a> · <a href="#" data-travel-all="0">Keine</a>
+                    <a href="#" class="hv-link" data-travel-all="1">Alle auswählen</a> · <a href="#" class="hv-link" data-travel-all="0">Keine</a>
                 </div>
                 <div class="row g-2">
                     @foreach ($people as $person)

@@ -40,7 +40,7 @@
 
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
         <div>
-            @if ($bands->count() > 1)<a href="{{ route('band-manager.tech-riders.index') }}" class="small">&larr; Alle Bands</a>@endif
+            @if ($bands->count() > 1)<a href="{{ route('band-manager.tech-riders.index') }}" class="hv-back"><i class="bi bi-arrow-left"></i> Alle Bands</a>@endif
             <h1 class="h3 mb-0">{{ $band->name }} – Tech Rider</h1>
             <div class="small text-muted">
                 @if ($rider->exists)
@@ -228,7 +228,7 @@
                         </div>
                         @if ($hasStagePlot)
                             <div class="d-flex flex-wrap align-items-center gap-3 mt-2">
-                                <a href="{{ route('band-manager.tech-riders.stage-plot', ['band' => $band, 'download' => 1]) }}" class="small"><i class="bi bi-download"></i> Bühnenplan herunterladen</a>
+                                <a href="{{ route('band-manager.tech-riders.stage-plot', ['band' => $band, 'download' => 1]) }}" class="small hv-link"><i class="bi bi-download"></i> Bühnenplan herunterladen</a>
                                 <div class="form-check m-0">
                                     <input class="form-check-input" type="checkbox" name="remove_stage_plot" value="1" id="remove_stage_plot">
                                     <label class="form-check-label small" for="remove_stage_plot">Bühnenplan entfernen</label>

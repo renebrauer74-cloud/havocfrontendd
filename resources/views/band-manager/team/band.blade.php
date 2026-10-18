@@ -9,13 +9,13 @@
 @endphp
 <x-band-manager.layout :title="'Band/Team – '.$band->name">
     @push('styles')
-        <link href="{{ asset('assets/band-manager/css/team.css') }}" rel="stylesheet">
+        <link href="{{ asset('assets/band-manager/css/team.css') }}?v=2" rel="stylesheet">
         <link href="{{ asset('assets/band-manager/css/gallery.css') }}" rel="stylesheet">
     @endpush
 
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
         <div>
-            @if ($bands->count() > 1)<a href="{{ route('band-manager.team.index') }}" class="small">&larr; Alle Bands</a>@endif
+            @if ($bands->count() > 1)<a href="{{ route('band-manager.team.index') }}" class="hv-back"><i class="bi bi-arrow-left"></i> Alle Bands</a>@endif
             <h1 class="h3 mb-0">{{ $band->name }} – Band &amp; Team</h1>
         </div>
         <div class="d-flex flex-wrap gap-2">
@@ -31,9 +31,9 @@
 
     {{-- ================= Bandprofil ================= --}}
     <div class="card shadow-sm mb-5">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <span>Bandprofil</span>
-            @if ($canEdit)<a href="{{ $profileUrl }}" class="small"><i class="bi bi-pencil"></i> Biografie &amp; Links bearbeiten</a>@endif
+        <div class="card-header tm-profile-head d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <h2 class="h5 mb-0"><i class="bi bi-person-vcard"></i> Bandprofil</h2>
+            @if ($canEdit)<a href="{{ $profileUrl }}" class="btn btn-primary btn-sm"><i class="bi bi-pencil"></i> Bio, Logo &amp; Links bearbeiten</a>@endif
         </div>
         <div class="card-body">
             <div class="row g-4">
@@ -82,7 +82,7 @@
                     @else
                         <div class="tm-empty py-4">
                             Noch keine Biografie hinterlegt.
-                            @if ($canEdit)<br><a href="{{ $profileUrl }}" class="small">+ Jetzt schreiben (Deutsch &amp; Englisch)</a>@endif
+                            @if ($canEdit)<br><a href="{{ $profileUrl }}" class="btn btn-outline-primary btn-sm mt-2"><i class="bi bi-plus-lg"></i> Jetzt schreiben (Deutsch &amp; Englisch)</a>@endif
                         </div>
                     @endif
 
@@ -98,7 +98,7 @@
                         </div>
                     @else
                         <span class="text-muted small">Noch keine Links hinterlegt.
-                            @if ($canEdit)<a href="{{ $profileUrl }}">Jetzt eintragen</a>@endif</span>
+                            @if ($canEdit)<a href="{{ $profileUrl }}" class="hv-link">Jetzt eintragen</a>@endif</span>
                     @endif
                 </div>
             </div>
@@ -121,7 +121,7 @@
             <div class="tm-empty mb-5">
                 {{ $empty }}
                 @if ($canEdit)
-                    <br><a href="{{ route('band-manager.team.create', [$band, 'type' => $type]) }}" class="small">+ Jetzt anlegen</a>
+                    <br><a href="{{ route('band-manager.team.create', [$band, 'type' => $type]) }}" class="btn btn-outline-primary btn-sm mt-2"><i class="bi bi-plus-lg"></i> Jetzt anlegen</a>
                 @endif
             </div>
         @endif

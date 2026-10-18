@@ -12,4 +12,4 @@
         <small>Jetzt in der Galerie festlegen</small>
     </a>
 @endif
-<div class="small mt-2"><a href="{{ $galleryUrl }}"><i class="bi bi-images"></i> Galerie ({{ $gallery['count'] }}/{{ $gallery['max'] }} Bilder)</a></div>
+<div class="small mt-2"><a href="{{ $galleryUrl }}" class="hv-link"><i class="bi bi-images"></i> Galerie ({{ $gallery['count'] }}/{{ $gallery['max'] }} Bilder)</a></div>

@@ -1,7 +1,7 @@
 <x-band-manager.layout :title="'Zugänge – '.$band->name">
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
         <div>
-            @if ($bands->count() > 1)<a href="{{ route('band-manager.accesses.index') }}" class="small">&larr; Alle Bands</a>@endif
+            @if ($bands->count() > 1)<a href="{{ route('band-manager.accesses.index') }}" class="hv-back"><i class="bi bi-arrow-left"></i> Alle Bands</a>@endif
             <h1 class="h3 mb-0">{{ $band->name }} – Zugänge</h1>
         </div>
         <div class="d-flex flex-wrap gap-2">
