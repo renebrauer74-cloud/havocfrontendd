@@ -6,7 +6,7 @@
     $areaAccess = $errors->any() ? (array) old('areas', []) : ($user->area_access ?? []);
 @endphp
 <x-band-manager.layout :title="$isEdit ? 'Zugang bearbeiten' : 'Neuer Zugang'">
-    <a href="{{ route('band-manager.accesses.index', $band) }}" class="small">&larr; Zugänge von {{ $band->name }}</a>
+    <a href="{{ route('band-manager.accesses.band', $band) }}" class="small">&larr; Zugänge von {{ $band->name }}</a>
     <h1 class="h3 mb-4">{{ $isEdit ? 'Zugang bearbeiten' : 'Neuer Zugang' }}</h1>
 
     <form method="post" action="{{ $isEdit ? route('band-manager.accesses.update', [$band, $user]) : route('band-manager.accesses.store', $band) }}"
@@ -69,7 +69,7 @@
         </div>
         <div class="mt-4 d-flex gap-2">
             <button class="btn btn-primary">Speichern</button>
-            <a href="{{ route('band-manager.accesses.index', $band) }}" class="btn btn-secondary">Abbrechen</a>
+            <a href="{{ route('band-manager.accesses.band', $band) }}" class="btn btn-secondary">Abbrechen</a>
         </div>
     </form>
 

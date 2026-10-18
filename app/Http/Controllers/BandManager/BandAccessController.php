@@ -10,7 +10,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\BandManager\BandAccessRequest;
 use App\Models\BandManager\Band;
 use App\Models\BandManager\User;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 
@@ -20,12 +22,31 @@ use Illuminate\View\View;
  */
 class BandAccessController extends Controller
 {
-    public function index(Band $band): View
+    /**
+     * Band-Auswahl – Bands mit genau einer Band landen direkt in deren Zugängen.
+     */
+    public function index(Request $request): View|RedirectResponse
+    {
+        $user = $request->user();
+        $bands = Band::query()->accessibleBy($user)
+            ->withCount(['users as accesses_count' => fn (Builder $query) => $query->whereIn('role', UserRoleEnum::bandAccessCases())])
+            ->orderBy('name')
+            ->get();
+
+        if (! $user->isAdmin() && $bands->count() === 1) {
+            return to_route('band-manager.accesses.band', $bands->first());
+        }
+
+        return view('band-manager.accesses.index', ['bands' => $bands]);
+    }
+
+    public function band(Request $request, Band $band): View
     {
         Gate::authorize('access', $band);
 
-        return view('band-manager.accesses.index', [
+        return view('band-manager.accesses.band', [
             'band' => $band,
+            'bands' => Band::query()->accessibleBy($request->user())->orderBy('name')->get(),
             'accesses' => $band->users()->whereIn('role', UserRoleEnum::bandAccessCases())->orderBy('name')->get(),
             'areas' => BandAreaEnum::cases(),
         ]);
@@ -48,7 +69,7 @@ class BandAccessController extends Controller
 
         app(RecordActivityAction::class)->execute('access.created', ['user_id' => $user->id, 'band_id' => $band->id]);
 
-        return to_route('band-manager.accesses.index', $band)->with('success', "Zugang für {$user->name} wurde angelegt.");
+        return to_route('band-manager.accesses.band', $band)->with('success', "Zugang für {$user->name} wurde angelegt.");
     }
 
     public function edit(Band $band, User $user): View
@@ -64,7 +85,7 @@ class BandAccessController extends Controller
 
         app(RecordActivityAction::class)->execute('access.updated', ['user_id' => $user->id, 'band_id' => $band->id]);
 
-        return to_route('band-manager.accesses.index', $band)->with('success', "Zugang für {$user->name} wurde gespeichert.");
+        return to_route('band-manager.accesses.band', $band)->with('success', "Zugang für {$user->name} wurde gespeichert.");
     }
 
     public function destroy(Band $band, User $user): RedirectResponse
@@ -75,7 +96,7 @@ class BandAccessController extends Controller
 
         app(RecordActivityAction::class)->execute('access.deleted', ['user_id' => $user->id, 'band_id' => $band->id]);
 
-        return to_route('band-manager.accesses.index', $band)->with('success', "Zugang für {$user->name} wurde gelöscht.");
+        return to_route('band-manager.accesses.band', $band)->with('success', "Zugang für {$user->name} wurde gelöscht.");
     }
 
     /**

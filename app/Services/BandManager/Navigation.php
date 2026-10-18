@@ -30,6 +30,8 @@ class Navigation
                 'badge' => $user->can('messages.view') ? app(CountUnreadThreadsAction::class)->execute($user) : 0],
             ['route' => 'band-manager.documents.index', 'active' => ['band-manager.documents.*'], 'label' => 'Dokumente', 'icon' => 'file-earmark-text', 'order' => 40, 'visible' => $user->can('documents.view')],
             ['route' => 'band-manager.exports.index', 'active' => ['band-manager.exports.*', 'band-manager.presskit.*', 'band-manager.admin.availability-export.*'], 'label' => 'Export', 'icon' => 'box-arrow-down', 'order' => 80, 'visible' => $this->exports->availableFor($user) !== []],
+            // Die Agentur verwaltet alle Logins unter Administration → Benutzer
+            ['route' => 'band-manager.accesses.index', 'active' => ['band-manager.accesses.*'], 'label' => 'Zugänge', 'icon' => 'key', 'order' => 90, 'visible' => ! $user->isAdmin() && $user->can('logins.manage')],
 
             ['route' => 'band-manager.admin.bands.index', 'active' => ['band-manager.admin.bands.*'], 'label' => 'Bands', 'icon' => 'people', 'order' => 40, 'section' => 'admin', 'visible' => $user->isAdmin()],
             ['route' => 'band-manager.admin.users.index', 'active' => ['band-manager.admin.users.*'], 'label' => 'Benutzer', 'icon' => 'person-gear', 'order' => 50, 'section' => 'admin', 'visible' => $user->isAdmin()],
