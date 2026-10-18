@@ -1,0 +1,103 @@
+/* Rider Creator – nutzt die Farben aus havoc.css (hell + dunkel) */
+
+.rd-index-icon {
+  width: 44px; height: 44px; flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 10px;
+  background: var(--hv-accent-soft); color: var(--hv-accent-text);
+  font-size: 1.25rem;
+}
+
+/* ---------- Sprungleiste zu den Abschnitten ---------- */
+.rd-jump { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: 1rem; }
+.rd-jump a {
+  display: inline-flex; align-items: center; gap: .35rem;
+  padding: .3rem .7rem;
+  border: 1px solid var(--hv-border); border-radius: 999px;
+  background: var(--hv-surface);
+  color: var(--hv-text); font-size: .78rem; font-weight: 500;
+  transition: border-color .15s, color .15s;
+}
+.rd-jump a:hover { border-color: var(--hv-accent); color: var(--hv-accent-text); }
+
+/* ---------- Abschnitte ---------- */
+.rd-form { max-width: 1100px; }
+.rd-form fieldset { min-width: 0; }
+.rd-card { margin-bottom: 1rem; scroll-margin-top: 1rem; }
+.rd-title { display: flex; align-items: center; gap: .5rem; font-size: 1.05rem; font-weight: 600; color: var(--hv-heading); margin: 0 0 .25rem; }
+.rd-title .bi { color: var(--hv-accent); }
+.rd-help { font-size: .85rem; color: var(--hv-muted); margin: 0 0 1rem; }
+
+/* ---------- Listen mit Zeilen ---------- */
+.rd-list { display: flex; flex-direction: column; gap: .5rem; }
+.rd-row {
+  display: flex; align-items: flex-start; gap: .5rem;
+  padding: .5rem;
+  border: 1px solid var(--hv-border); border-radius: 10px;
+  background: var(--hv-surface-2);
+}
+.rd-num {
+  flex-shrink: 0; min-width: 2rem; height: 38px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 8px;
+  background: var(--hv-surface); border: 1px solid var(--hv-border);
+  font-weight: 600; font-size: .85rem; color: var(--hv-heading);
+}
+.rd-fields { flex: 1; min-width: 0; display: flex; flex-wrap: wrap; gap: .5rem; }
+.rd-f-lg { flex: 2 1 220px; }
+.rd-f-md { flex: 1 1 160px; }
+.rd-phantom {
+  display: inline-flex; align-items: center; gap: .35rem;
+  height: 38px; padding: 0 .6rem;
+  border: 1px solid var(--hv-border); border-radius: 8px; background: var(--hv-surface);
+  font-size: .8rem; white-space: nowrap; cursor: pointer;
+}
+.rd-phantom .form-check-input { margin: 0; }
+.rd-custom { flex: 1; display: flex; flex-direction: column; gap: .5rem; }
+.rd-actions { flex-shrink: 0; display: flex; gap: .25rem; }
+.rd-actions .btn { width: 32px; height: 38px; padding: 0; border: 1px solid var(--hv-border); background: var(--hv-surface); color: var(--hv-text); }
+.rd-actions .btn:hover { border-color: var(--hv-border-strong); color: var(--hv-heading); }
+.rd-actions .btn[data-rd-remove] { color: var(--hv-accent-text); }
+.rd-empty {
+  margin: 0; padding: 1rem;
+  text-align: center; font-size: .85rem; color: var(--hv-muted);
+  border: 1px dashed var(--hv-border-strong); border-radius: 10px;
+}
+
+/* ---------- Ideen für eigene Abschnitte ---------- */
+.rd-ideas { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; margin-top: .75rem; }
+.rd-idea {
+  padding: .2rem .65rem;
+  border: 1px dashed var(--hv-border-strong); border-radius: 999px;
+  background: transparent; color: var(--hv-text); font-size: .78rem;
+}
+.rd-idea:hover { border-color: var(--hv-accent); color: var(--hv-accent-text); }
+
+/* ---------- Bühnenplan ---------- */
+.rd-plot {
+  display: flex; align-items: center; justify-content: center;
+  aspect-ratio: 4 / 3; padding: .5rem; overflow: hidden;
+  border: 1px dashed var(--hv-border-strong); border-radius: 12px;
+  background: var(--hv-surface-2);
+}
+.rd-plot img { display: block; max-width: 100%; max-height: 100%; object-fit: contain; background: #fff; }
+.rd-plot a { display: contents; }
+.rd-plot-empty { text-align: center; font-size: .8rem; color: var(--hv-muted); }
+.rd-plot-empty .bi { font-size: 1.6rem; opacity: .6; }
+
+/* ---------- Speicherleiste ---------- */
+.rd-savebar {
+  position: sticky; bottom: 0; z-index: 5;
+  display: flex; justify-content: flex-end; align-items: center; gap: 1rem;
+  margin: 0 -.25rem; padding: .75rem .25rem;
+  background: var(--hv-bg);
+  border-top: 1px solid var(--hv-border);
+}
+.rd-dirty { color: var(--hv-accent-text); }
+.rd-dirty .bi { font-size: .5rem; vertical-align: middle; }
+
+@media (max-width: 575.98px) {
+  .rd-row { flex-wrap: wrap; }
+  .rd-fields { flex-basis: calc(100% - 2.5rem); }
+  .rd-actions { width: 100%; justify-content: flex-end; }
+}

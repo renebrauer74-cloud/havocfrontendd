@@ -204,11 +204,13 @@ it('deletes all band files when a band is deleted', function () {
         ->and(Media::count())->toBe(0);
 });
 
-it('lists the travel party on the day sheet', function () {
+it('lists the selected travel party on the day sheet', function () {
     $band = Band::factory()->create();
-    TeamMember::factory()->for($band)->crew()->create(['first_name' => 'Sam', 'last_name' => 'Sound', 'diet' => 'vegan']);
-    TeamMember::factory()->for($band)->create(['first_name' => 'Kim', 'last_name' => 'Kitten', 'stage_name' => 'Kitty']);
+    $sam = TeamMember::factory()->for($band)->crew()->create(['first_name' => 'Sam', 'last_name' => 'Sound', 'diet' => 'vegan']);
+    $kim = TeamMember::factory()->for($band)->create(['first_name' => 'Kim', 'last_name' => 'Kitten', 'stage_name' => 'Kitty']);
+    TeamMember::factory()->for($band)->create(['first_name' => 'Daheim', 'last_name' => 'Bleiber']);
     $gig = Gig::factory()->for($band)->create();
+    $gig->travelers()->attach([$sam->id, $kim->id]);
 
     $html = view('band-manager.gigs.pdf', [
         'gig' => $gig,
@@ -221,5 +223,14 @@ it('lists the travel party on the day sheet', function () {
     expect($html)->toContain('Reisegruppe (2 Personen)')
         ->toContain('Kim Kitten („Kitty“)')
         ->toContain('vegan')
+        ->not->toContain('Daheim Bleiber')
         ->and(strpos($html, 'Kim Kitten'))->toBeLessThan(strpos($html, 'Sam Sound'));
+});
+
+it('leaves out the travel party when nobody is selected', function () {
+    $band = Band::factory()->create();
+    TeamMember::factory()->for($band)->create();
+    $gig = Gig::factory()->for($band)->create();
+
+    expect(app(DaySheet::class)->travelParty($gig))->toBe([]);
 });

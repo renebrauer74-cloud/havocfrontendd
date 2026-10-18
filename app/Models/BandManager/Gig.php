@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
@@ -77,6 +78,16 @@ class Gig extends Model
     public function contracts(): HasMany
     {
         return $this->hasMany(Document::class)->where('type', Document::TYPE_CONTRACT);
+    }
+
+    /**
+     * Reisegruppe: Bandmitglieder und Crew, die zu diesem Gig mitreisen.
+     *
+     * @return BelongsToMany<TeamMember, $this>
+     */
+    public function travelers(): BelongsToMany
+    {
+        return $this->belongsToMany(TeamMember::class, 'bm_gig_team_member');
     }
 
     /**

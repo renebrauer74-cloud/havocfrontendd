@@ -14,6 +14,7 @@ enum BandAreaEnum: string
     case Documents = 'documents';
     case Messages = 'messages';
     case Presskit = 'presskit';
+    case Riders = 'riders';
 
     public function label(): string
     {
@@ -25,6 +26,7 @@ enum BandAreaEnum: string
             self::Documents => 'Verträge & Rider',
             self::Messages => 'Nachrichten',
             self::Presskit => 'Pressekit',
+            self::Riders => 'Rider Creator (Tech Rider)',
         };
     }
 
@@ -38,6 +40,7 @@ enum BandAreaEnum: string
             self::Documents => 'file-earmark-text',
             self::Messages => 'chat-dots',
             self::Presskit => 'box-arrow-down',
+            self::Riders => 'sliders2-vertical',
         };
     }
 
@@ -66,6 +69,7 @@ enum BandAreaEnum: string
             self::Documents => $edit ? ['documents.view', 'documents.upload'] : ['documents.view'],
             self::Messages => ['messages.view'],
             self::Presskit => ['presskit.create'],
+            self::Riders => $edit ? ['riders.view', 'riders.edit'] : ['riders.view'],
         };
     }
 }

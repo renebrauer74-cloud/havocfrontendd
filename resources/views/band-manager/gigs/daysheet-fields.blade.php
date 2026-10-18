@@ -59,6 +59,8 @@
 <x-band-manager.textarea name="catering_notes" label="Hinweise" :value="$gig->catering_notes"
                          placeholder="z.B. Getränke frei, warmes Essen um 18:30, 2× vegan …" />
 
+@include('band-manager.gigs.travelers')
+
 {!! $heading('telephone', 'Ansprechpartner vor Ort') !!}
 <x-band-manager.field name="contact_venue_name" label="Location – Name" :value="$gig->contact_venue_name" :max="100" />
 <x-band-manager.field name="contact_venue_phone" label="Location – Telefon" :value="$gig->contact_venue_phone" type="tel" :max="50" />

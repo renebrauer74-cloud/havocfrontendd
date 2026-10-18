@@ -33,13 +33,13 @@ class DaySheet
     }
 
     /**
-     * Reisegruppe aus Band & Team (Band zuerst, dann Crew).
+     * Am Gig ausgewählte Reisegruppe aus Band & Team (Band zuerst, dann Crew).
      *
      * @return list<array{crew: bool, name: string, role: string, phone: string, diet: string}>
      */
     public function travelParty(Gig $gig): array
     {
-        return $gig->band->teamMembers()
+        return $gig->travelers()
             ->orderBy('first_name')
             ->orderBy('last_name')
             ->get()

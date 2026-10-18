@@ -49,12 +49,14 @@ enum UserRoleEnum: string
                 BandAreaEnum::Documents->value => AreaAccessEnum::View,
                 BandAreaEnum::Messages->value => AreaAccessEnum::View,
                 BandAreaEnum::Presskit->value => AreaAccessEnum::View,
+                BandAreaEnum::Riders->value => AreaAccessEnum::Edit,
             ],
             self::Team => [
                 BandAreaEnum::Calendar->value => AreaAccessEnum::View,
                 BandAreaEnum::Gigs->value => AreaAccessEnum::View,
                 BandAreaEnum::Team->value => AreaAccessEnum::View,
                 BandAreaEnum::Documents->value => AreaAccessEnum::View,
+                BandAreaEnum::Riders->value => AreaAccessEnum::View,
             ],
             self::Photographer => [
                 BandAreaEnum::Team->value => AreaAccessEnum::View,

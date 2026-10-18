@@ -78,6 +78,8 @@ class GigRequest extends FormRequest
                 Rule::excludeIf(! in_array($this->input('catering'), ['buyout', 'both'], true)),
                 'nullable', 'numeric', 'min:0', 'max:9999.99',
             ],
+            'travelers' => ['nullable', 'array'],
+            'travelers.*' => ['integer', 'distinct', Rule::exists('bm_team_members', 'id')->where('band_id', $this->integer('band_id'))],
         ];
 
         foreach (self::DAYSHEET_TEXT as $field => $max) {
@@ -105,6 +107,7 @@ class GigRequest extends FormRequest
             'status.*' => 'Ungültiger Status.',
             'buyout_amount.*' => 'Buy-out muss ein Betrag sein (z.B. 15,00).',
             'set_length.*' => 'Spielzeit muss zwischen 1 und 600 Minuten liegen.',
+            'travelers.*' => 'Bitte nur Personen aus Band & Team dieser Band wählen.',
             'regex' => ':attribute muss eine Uhrzeit sein (HH:MM).',
         ];
     }
@@ -128,13 +131,23 @@ class GigRequest extends FormRequest
      */
     public function gigAttributes(): array
     {
-        $attributes = $this->safe()->except(Gig::TIME_FIELDS) + ['buyout_amount' => null];
+        $attributes = $this->safe()->except([...Gig::TIME_FIELDS, 'travelers']) + ['buyout_amount' => null];
 
         foreach (Gig::TIME_FIELDS as $field) {
             $attributes[$field] = $this->validated($field);
         }
 
         return $attributes;
+    }
+
+    /**
+     * Ausgewählte Reisegruppe (IDs aus Band & Team der gewählten Band).
+     *
+     * @return list<int>
+     */
+    public function travelerIds(): array
+    {
+        return array_values(array_map('intval', $this->validated('travelers') ?? []));
     }
 
     /**

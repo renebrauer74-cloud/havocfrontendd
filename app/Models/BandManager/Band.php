@@ -96,6 +96,16 @@ class Band extends Model
     }
 
     /**
+     * Technischer Rider (Rider Creator).
+     *
+     * @return HasOne<TechRider, $this>
+     */
+    public function techRider(): HasOne
+    {
+        return $this->hasOne(TechRider::class)->withDefault();
+    }
+
+    /**
      * Das Hauptbild der Galerie (Titelbild im Pressekit).
      *
      * @return HasOne<GalleryImage, $this>
