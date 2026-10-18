@@ -391,7 +391,7 @@ class Presskit
      */
     private function photoLabel(GalleryImage $image, array $texts): string
     {
-        return $image->is_main ? $texts['photo_main'] : ($texts['categories'][$image->category] ?? $texts['categories']['other']);
+        return $image->is_main ? $texts['photo_main'] : ($texts['categories'][$image->category?->value] ?? $texts['categories']['other']);
     }
 
     /**
