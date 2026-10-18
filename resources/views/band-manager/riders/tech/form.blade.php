@@ -21,6 +21,11 @@
         'custom' => ['plus-square', 'Eigene Abschnitte'],
         'notes' => ['chat-left-text', 'Sonstiges'],
     ];
+    $engineers = [
+        'brings_foh_engineer' => 'Wir bringen eigenen FOH-Techniker mit',
+        'brings_monitor_engineer' => 'Wir bringen eigenen Monitor-Techniker mit',
+        'brings_lighting_engineer' => 'Wir bringen eigenen Lichttechniker mit',
+    ];
     $minutes = [
         'setup_minutes' => 'Aufbau',
         'soundcheck_minutes' => 'Soundcheck',
@@ -88,7 +93,7 @@
                     <x-band-manager.field name="contact_phone" label="Telefon" :value="$rider->contact_phone" col="col-md-4" type="tel" :max="50" />
                     <x-band-manager.field name="contact_email" label="E-Mail" :value="$rider->contact_email" col="col-md-4" type="email" :max="190" />
                     <div class="col-12 d-flex flex-wrap gap-4">
-                        @foreach (['brings_foh_engineer' => 'Wir bringen eigenen FOH-Techniker mit', 'brings_monitor_engineer' => 'Wir bringen eigenen Monitor-Techniker mit'] as $field => $label)
+                        @foreach ($engineers as $field => $label)
                             <div class="form-check m-0">
                                 <input type="hidden" name="{{ $field }}" value="0">
                                 <input class="form-check-input" type="checkbox" name="{{ $field }}" value="1" id="{{ $field }}" @checked(old($field, $rider->{$field}))>
@@ -97,6 +102,20 @@
                         @endforeach
                     </div>
                 </div>
+
+                <h3 class="h6 mt-4 mb-1">Weitere Ansprechpartner</h3>
+                <p class="rd-help">Eigene Leute für Ton, Licht, Backline … – mit Bereich und Kontaktdaten.</p>
+                @include('band-manager.riders.tech.list', $listOptions + [
+                    'list' => 'contacts',
+                    'rows' => $rows('contacts'),
+                    'addLabel' => 'Ansprechpartner',
+                    'empty' => 'Noch keine weiteren Ansprechpartner.',
+                ])
+                <datalist id="rdContactRoles">
+                    @foreach ($contactRoles as $role)
+                        <option value="{{ $role->label() }}">
+                    @endforeach
+                </datalist>
             </section>
 
             {{-- ================= Besetzung ================= --}}
@@ -234,7 +253,7 @@
                 <h2 class="rd-title"><i class="bi bi-lightbulb"></i> Licht</h2>
                 <div class="row g-3">
                     <x-band-manager.textarea name="lighting_notes" label="Wünsche zum Licht" :value="$rider->lighting_notes" :max="$textMax" rows="3"
-                                             placeholder="z. B. eigener Lichttechniker, Farbwünsche, kein Stroboskop, Hazer erwünscht …" />
+                                             placeholder="z. B. eigenes Lichtpult, Farbwünsche, kein Stroboskop, Hazer erwünscht …" />
                 </div>
             </section>
 
@@ -290,6 +309,6 @@
 
     @push('scripts')
         <script>window.RD_PRESETS = @json($presets);</script>
-        <script src="{{ asset('assets/band-manager/js/tech-rider.js') }}?v=2"></script>
+        <script src="{{ asset('assets/band-manager/js/tech-rider.js') }}?v=3"></script>
     @endpush
 </x-band-manager.layout>

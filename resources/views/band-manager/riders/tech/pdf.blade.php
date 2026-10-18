@@ -29,13 +29,18 @@
         ? $meters($rider->stage_width).' breit × '.$meters($rider->stage_depth).' tief'
         : '';
 
+    $phoneLink = fn (?string $phone): string => filled($phone) ? '<a href="tel:'.e(preg_replace('/[^0-9+]/', '', $phone)).'">'.e($phone).'</a>' : '';
+    $emailLink = fn (?string $email): string => filled($email) ? '<a href="mailto:'.e($email).'">'.e($email).'</a>' : '';
+
     $contact = array_filter([
         'Name' => e((string) $rider->contact_name),
-        'Telefon' => filled($rider->contact_phone) ? '<a href="tel:'.e(preg_replace('/[^0-9+]/', '', $rider->contact_phone)).'">'.e($rider->contact_phone).'</a>' : '',
-        'E-Mail' => filled($rider->contact_email) ? '<a href="mailto:'.e($rider->contact_email).'">'.e($rider->contact_email).'</a>' : '',
+        'Telefon' => $phoneLink($rider->contact_phone),
+        'E-Mail' => $emailLink($rider->contact_email),
         'FOH-Technik' => $rider->brings_foh_engineer ? 'bringt die Band mit' : '',
         'Monitor-Technik' => $rider->brings_monitor_engineer ? 'bringt die Band mit' : '',
+        'Lichttechnik' => $rider->brings_lighting_engineer ? 'bringt die Band mit' : '',
     ], fn (string $html): bool => $html !== '');
+    $contacts = $rider->contacts ?? [];
 
     $textSections = array_filter([
         'PA & FOH' => $rider->pa_notes,
@@ -132,7 +137,7 @@
 </table>
 
 {{-- ================= Kontakt & Zeiten ================= --}}
-@if ($contact || $times)
+@if ($contact || $contacts || $times)
 <div class="block">
     {!! $heading('Kontakt & Zeitbedarf') !!}
     <table class="split">
@@ -159,6 +164,19 @@
             </td>
         </tr>
     </table>
+    @if ($contacts)
+        <table class="grid" style="margin-top:6px">
+            <thead><tr><th style="width:24%">Bereich</th><th style="width:26%">Weitere Ansprechpartner</th><th style="width:22%">Telefon</th><th>E-Mail</th></tr></thead>
+            @foreach ($contacts as $i => $person)
+                <tr @class(['alt' => $i % 2 === 1])>
+                    <td><strong>{{ $person['role'] ?? '' }}</strong></td>
+                    <td>{{ $person['name'] ?? '' }}</td>
+                    <td>{!! $phoneLink($person['phone'] ?? null) !!}</td>
+                    <td>{!! $emailLink($person['email'] ?? null) !!}</td>
+                </tr>
+            @endforeach
+        </table>
+    @endif
 </div>
 @endif
 

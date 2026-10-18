@@ -21,6 +21,7 @@ class SaveTechRiderAction
      * @var array<string, array{required: list<string>, text: list<string>, flags: list<string>}>
      */
     private const array LISTS = [
+        'contacts' => ['required' => ['name', 'phone', 'email'], 'text' => ['role', 'name', 'phone', 'email'], 'flags' => []],
         'line_up' => ['required' => ['name', 'instrument'], 'text' => ['name', 'instrument'], 'flags' => []],
         'inputs' => ['required' => ['source', 'mic', 'note'], 'text' => ['source', 'mic', 'stand', 'note'], 'flags' => ['phantom']],
         'monitors' => ['required' => ['who', 'note'], 'text' => ['who', 'type', 'note'], 'flags' => []],
@@ -43,6 +44,7 @@ class SaveTechRiderAction
             'contact_email' => $data['contact_email'] ?? null,
             'brings_foh_engineer' => (bool) ($data['brings_foh_engineer'] ?? false),
             'brings_monitor_engineer' => (bool) ($data['brings_monitor_engineer'] ?? false),
+            'brings_lighting_engineer' => (bool) ($data['brings_lighting_engineer'] ?? false),
             'setup_minutes' => $data['setup_minutes'] ?? null,
             'soundcheck_minutes' => $data['soundcheck_minutes'] ?? null,
             'show_minutes' => $data['show_minutes'] ?? null,
