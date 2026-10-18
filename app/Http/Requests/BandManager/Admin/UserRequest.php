@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\BandManager\Admin;
 
+use App\Enums\BandManager\UserRoleEnum;
 use App\Models\BandManager\User;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -39,7 +40,7 @@ class UserRequest extends FormRequest
             'name' => ['required', 'string', 'max:150'],
             'email' => ['required', 'string', 'email', 'max:190', Rule::unique('bm_users')->ignore($this->editedUser())],
             'password' => [$this->editedUser() ? 'nullable' : 'required', 'string', 'min:8'],
-            'role' => ['required', Rule::in(array_keys(config('band-manager.roles')))],
+            'role' => ['required', Rule::enum(UserRoleEnum::class)],
             'is_active' => ['boolean'],
             'bands' => ['array'],
             'bands.*' => ['integer', Rule::exists('bm_bands', 'id')],
@@ -73,7 +74,7 @@ class UserRequest extends FormRequest
 
         // Admin kann sich nicht selbst aussperren
         if ($this->editedUser()?->is($this->user())) {
-            $attributes['role'] = User::ROLE_ADMIN;
+            $attributes['role'] = UserRoleEnum::Admin;
             $attributes['is_active'] = true;
         }
 

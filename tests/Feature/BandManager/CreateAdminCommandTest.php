@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\BandManager\UserRoleEnum;
 use App\Models\BandManager\User;
 use Illuminate\Support\Facades\Hash;
 
@@ -12,7 +13,7 @@ it('creates a band manager admin with a prompted password', function () {
     expect(User::sole())
         ->email->toBe('rene@havoc-agency.com')
         ->name->toBe('Rene')
-        ->role->toBe(User::ROLE_ADMIN)
+        ->role->toBe(UserRoleEnum::Admin)
         ->is_active->toBeTrue()
         ->and(Hash::check('ein-sicheres-passwort', User::sole()->password))->toBeTrue();
 });
@@ -26,7 +27,7 @@ it('promotes and reactivates an existing account', function () {
 
     expect($user->fresh())
         ->name->toBe('Kim')
-        ->role->toBe(User::ROLE_ADMIN)
+        ->role->toBe(UserRoleEnum::Admin)
         ->is_active->toBeTrue();
 });
 

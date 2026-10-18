@@ -11,11 +11,11 @@
                 @if ($showBand)<td>{{ $document->band->name }}</td>@endif
                 <td>
                     {{ $document->title }}<br>
-                    <small class="text-muted">{{ $document->original_name }}</small>
+                    <small class="text-muted">{{ $document->getFirstMedia(\App\Enums\MediaCollectionEnum::Documents->value)?->file_name }}</small>
                 </td>
                 <td>
                     @if (! $document->isContract())
-                        {{ $document->categoryLabel() }}
+                        {{ $document->category?->label() ?? '–' }}
                     @elseif ($document->gig)
                         {{ \Carbon\CarbonImmutable::parse($document->gig->date)->format('d.m.Y') }} · {{ $document->gig->title }}
                     @else
@@ -23,7 +23,7 @@
                     @endif
                 </td>
                 <td class="text-nowrap">{{ $document->created_at->format('d.m.Y') }}</td>
-                <td class="text-end text-nowrap">{{ $document->sizeLabel() }}</td>
+                <td class="text-end text-nowrap">{{ $document->getFirstMedia(\App\Enums\MediaCollectionEnum::Documents->value)?->human_readable_size }}</td>
                 <td class="text-end text-nowrap">
                     <a href="{{ route('band-manager.documents.show', $document) }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-secondary">Ansehen</a>
                     <a href="{{ route('band-manager.documents.show', [$document, 'download' => 1]) }}" class="btn btn-sm btn-outline-secondary">Download</a>

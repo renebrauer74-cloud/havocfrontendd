@@ -23,7 +23,6 @@ return new class extends Migration
             $table->string('genre')->default('');
             $table->text('bio')->nullable();
             $table->text('bio_en')->nullable();
-            $table->string('image_url', 1024)->default('');
             $table->string('spotify_url', 1024)->default('');
             $table->string('youtube_url', 1024)->default('');
             $table->string('website_url', 1024)->default('');

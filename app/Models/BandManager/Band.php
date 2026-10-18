@@ -4,13 +4,14 @@ namespace App\Models\BandManager;
 
 use Database\Factories\BandManager\BandFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Attributes\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Support\Facades\Storage;
 
 #[Table('bm_bands')]
 #[Fillable(['name', 'genre', 'description', 'contact_email'])]
@@ -20,20 +21,16 @@ class Band extends Model
     use HasFactory;
 
     /**
-     * Ordner der Band auf dem Disk "band-manager" (Fotos, Logo, Galerie, Verträge & Rider).
+     * Bands, die dieser Login sehen darf: Agentur alle, Bands nur die eigenen.
+     *
+     * @param  Builder<Band>  $query
      */
-    public const STORAGE_FOLDERS = ['team', 'gallery', 'documents'];
-
-    /**
-     * Die Datensätze löscht die Datenbank per Fremdschlüssel mit – die Dateien räumen wir hier auf.
-     */
-    protected static function booted(): void
+    #[Scope]
+    protected function accessibleBy(Builder $query, User $user): void
     {
-        static::deleted(function (Band $band): void {
-            foreach (self::STORAGE_FOLDERS as $folder) {
-                Storage::disk('band-manager')->deleteDirectory($folder.'/'.$band->id);
-            }
-        });
+        if (! $user->isAdmin()) {
+            $query->whereHas('users', fn (Builder $users) => $users->whereKey($user->getKey()));
+        }
     }
 
     /**
@@ -95,14 +92,16 @@ class Band extends Model
      */
     public function profile(): HasOne
     {
-        return $this->hasOne(BandProfile::class);
+        return $this->hasOne(BandProfile::class)->withDefault();
     }
 
     /**
-     * Bandprofil – auch wenn noch keins gespeichert wurde (dann leer).
+     * Das Hauptbild der Galerie (Titelbild im Pressekit).
+     *
+     * @return HasOne<GalleryImage, $this>
      */
-    public function profileOrNew(): BandProfile
+    public function mainGalleryImage(): HasOne
     {
-        return $this->profile ?? new BandProfile(['band_id' => $this->id]);
+        return $this->hasOne(GalleryImage::class)->where('is_main', true);
     }
 }

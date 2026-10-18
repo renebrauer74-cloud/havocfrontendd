@@ -1,6 +1,6 @@
 @php
     $back = route('band-manager.team.band', $band);
-    $logoUrl = $profile->logoUrl();
+    $logoUrl = $profile->hasMedia(\App\Enums\MediaCollectionEnum::BandLogos->value) ? route('band-manager.team.logo', $band) : null;
     $languages = [
         'de' => ['🇩🇪 Deutsch', 'Wer seid ihr, wie klingt ihr, was habt ihr erreicht? (Releases, Festivals, Support-Shows …)'],
         'en' => ['🇬🇧 English', 'Who are you, what do you sound like, what have you achieved? (releases, festivals, support shows …)'],
@@ -41,7 +41,7 @@
                 </div>
                 @if ($logoUrl)
                     <div class="d-flex flex-wrap align-items-center gap-3 mt-2">
-                        <a href="{{ $profile->logoUrl(download: true) }}" class="small"><i class="bi bi-download"></i> Logo herunterladen</a>
+                        <a href="{{ route('band-manager.team.logo', ['band' => $band, 'download' => 1]) }}" class="small"><i class="bi bi-download"></i> Logo herunterladen</a>
                         <div class="form-check m-0">
                             <input class="form-check-input" type="checkbox" name="remove_logo" value="1" id="remove_logo">
                             <label class="form-check-label small" for="remove_logo">Logo entfernen</label>
@@ -68,13 +68,14 @@
         <div class="tm-section">Social Media &amp; Streaming</div>
         <p class="form-text mt-0 mb-3">Kompletten Link einfügen – bei Instagram, TikTok, YouTube, X und Threads reicht auch <code>@name</code>. Leere Felder werden nicht angezeigt.</p>
         <div class="row g-3">
-            @foreach ($platforms as $key => $platform)
+            @foreach ($platforms as $platform)
+                @php($key = $platform->value)
                 <div class="col-md-6">
-                    <label class="form-label" for="link_{{ $key }}">{{ $platform['label'] }}</label>
+                    <label class="form-label" for="link_{{ $key }}">{{ $platform->label() }}</label>
                     <div class="input-group">
-                        <span class="input-group-text tm-platform-icon" style="--c: {{ $platform['color'] }}"><i class="bi bi-{{ $platform['icon'] }}"></i></span>
+                        <span class="input-group-text tm-platform-icon" style="--c: {{ $platform->color() }}"><i class="bi bi-{{ $platform->icon() }}"></i></span>
                         <input type="text" name="link_{{ $key }}" id="link_{{ $key }}" class="form-control" maxlength="255"
-                               placeholder="{{ $platform['placeholder'] ?? '' }}"
+                               placeholder="{{ $platform->placeholder() }}"
                                value="{{ old('link_'.$key, $profile->links[$key] ?? '') }}">
                     </div>
                 </div>

@@ -3,13 +3,13 @@
     <main>
         <section class="artist-hero">
             <div class="hero-image-container">
-@if ($artist->image_url)
-                <img src="{{ media_url($artist->image_url) }}" alt="{{ $artist->name }}">
+@if ($artist->hasMedia(\App\Enums\MediaCollectionEnum::Artists->value))
+                <img src="{{ $artist->getFirstMediaUrl(\App\Enums\MediaCollectionEnum::Artists->value) }}" alt="{{ $artist->name }}">
 @endif
             </div>
             <div class="artist-header-box">
                 <h1 class="artist-main-name">{{ $artist->name }}</h1>
-                <div class="artist-main-genre">{{ $artist->displayGenre() }}</div>
+                <div class="artist-main-genre">{{ $artist->genre ?: 'Alternative' }}</div>
             </div>
         </section>
 
@@ -37,7 +37,7 @@
             </div>
 
             <div class="links-box">
-@forelse ($artist->profileLinks() as $label => $href)
+@forelse ($links as $label => $href)
                 <a href="{{ $href }}" target="_blank" rel="noopener" class="media-btn">{{ $label }}</a>
 @empty
                 <div class="empty-state">Keine Links hinterlegt</div>
@@ -51,8 +51,8 @@
             <div class="section-title">Live Gallery //</div>
             <div class="gallery-grid">
 @foreach ($artist->galleryImages as $photo)
-                <a class="gallery-item" href="{{ media_url($photo->image_url) }}" target="_blank">
-                    <img src="{{ media_url($photo->image_url) }}" alt="Live Photo {{ $artist->name }}">
+                <a class="gallery-item" href="{{ $photo->getFirstMediaUrl(\App\Enums\MediaCollectionEnum::Gallery->value) }}" target="_blank">
+                    <img src="{{ $photo->getFirstMediaUrl(\App\Enums\MediaCollectionEnum::Gallery->value) }}" alt="Live Photo {{ $artist->name }}">
                 </a>
 @endforeach
             </div>

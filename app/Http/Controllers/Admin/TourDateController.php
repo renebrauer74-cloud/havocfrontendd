@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Actions\Website\ListArtistsAlphabeticallyAction;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\TourDateRequest;
-use App\Models\Artist;
 use App\Models\TourDate;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
@@ -45,7 +45,7 @@ class TourDateController extends Controller
     private function form(?TourDate $editing = null): View
     {
         return view('admin.dates', [
-            'artists' => Artist::alphabetical(),
+            'artists' => app(ListArtistsAlphabeticallyAction::class)->execute(),
             'dates' => TourDate::query()->with('artist')->get()->sortByShowDate(),
             'editing' => $editing,
         ]);

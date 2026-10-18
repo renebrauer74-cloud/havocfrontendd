@@ -99,7 +99,7 @@
                         <div class="card-body">
                             @forelse ($inventory['riders'] as $rider)
                                 <x-band-manager.presskit-option group="riders" :value="(string) $rider->id" :label="$rider->title"
-                                                                :hint="$rider->categoryLabel().' · '.$rider->sizeLabel()" />
+                                                                :hint="($rider->category?->label() ?? '–').' · '.$rider->getFirstMedia(\App\Enums\MediaCollectionEnum::Documents->value)?->human_readable_size" />
                             @empty
                                 <span class="text-muted small">Noch keine Rider hochgeladen.</span>
                             @endforelse

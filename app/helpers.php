@@ -3,28 +3,8 @@
 use App\Services\BandManager\Markdown;
 
 /**
- * View-Helfer für gespeicherte Bilder und externe Links aus dem Admin.
+ * View-Helfer für externe Links aus dem Admin.
  */
-if (! function_exists('media_url')) {
-    /**
-     * URL für gespeicherte Bilder: lokale Upload-Pfade oder externe http(s)-URLs.
-     */
-    function media_url(?string $path, string $fallback = ''): string
-    {
-        $path = trim((string) $path);
-
-        if ($path === '') {
-            return $fallback;
-        }
-
-        if (preg_match('#^https?://#i', $path)) {
-            return $path;
-        }
-
-        return asset($path);
-    }
-}
-
 if (! function_exists('safe_link')) {
     /**
      * Externe Links aus dem Admin absichern: nur http(s) und mailto, sonst '#'.

@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers\BandManager;
 
+use App\Actions\BandManager\Messages\CountUnreadThreadsAction;
+use App\Enums\BandManager\AvailabilityStatusEnum;
 use App\Http\Controllers\Controller;
-use App\Models\BandManager\Availability;
 use App\Models\BandManager\Band;
-use App\Models\BandManager\MessageThread;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -19,7 +19,7 @@ class CalendarController extends Controller
     public function index(Request $request): View|RedirectResponse
     {
         $user = $request->user();
-        $bands = $user->accessibleBands()->orderBy('name')->get();
+        $bands = Band::query()->accessibleBy($user)->orderBy('name')->get();
 
         if (! $user->isAdmin() && $bands->count() === 1) {
             return to_route('band-manager.calendar.show', $bands->first());
@@ -36,10 +36,10 @@ class CalendarController extends Controller
 
         return view('band-manager.calendar.show', [
             'band' => $band,
-            'statuses' => Availability::statuses(),
+            'statuses' => AvailabilityStatusEnum::cases(),
             'canEdit' => $user->can('availability.edit'),
             // Bands landen im Kalender → dort auf neue Nachrichten der Agentur hinweisen
-            'unreadMessages' => $user->can('messages.view') && ! $user->can('messages.manage') ? MessageThread::unreadCountFor($user) : 0,
+            'unreadMessages' => $user->can('messages.view') && ! $user->can('messages.manage') ? app(CountUnreadThreadsAction::class)->execute($user) : 0,
         ]);
     }
 }

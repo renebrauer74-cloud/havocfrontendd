@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\BandManager\Admin;
 
+use App\Actions\BandManager\RecordActivityAction;
 use App\Http\Controllers\Controller;
-use App\Models\BandManager\ActivityLog;
 use App\Models\BandManager\Availability;
 use App\Models\BandManager\Band;
 use Carbon\CarbonImmutable;
@@ -38,7 +38,7 @@ class AvailabilityExportController extends Controller
             ->orderBy('bm_availabilities.date')
             ->get(['bm_bands.name AS band_name', 'bm_availabilities.date', 'bm_availabilities.status', 'bm_availabilities.note']);
 
-        ActivityLog::record('export.csv', ['month' => $month, 'band_id' => $bandId]);
+        app(RecordActivityAction::class)->execute('export.csv', ['month' => $month, 'band_id' => $bandId]);
 
         return response()->streamDownload(function () use ($rows): void {
             $out = fopen('php://output', 'w');
@@ -49,7 +49,7 @@ class AvailabilityExportController extends Controller
                 fputcsv($out, [
                     $row->band_name,
                     CarbonImmutable::parse($row->date)->format('d.m.Y'),
-                    $row->statusDefinition()['label'],
+                    $row->status->label(),
                     $row->note,
                 ], ';', escape: '');
             }

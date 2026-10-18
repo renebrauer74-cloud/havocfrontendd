@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Actions\Website\ListArtistsAlphabeticallyAction;
+use App\Enums\MediaCollectionEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\GalleryImageRequest;
 use App\Models\Artist;
@@ -20,7 +22,7 @@ class GalleryImageController extends Controller
         $selectedArtist = Artist::query()->find($request->integer('artist'));
 
         return view('admin.gallery', [
-            'artists' => Artist::alphabetical(),
+            'artists' => app(ListArtistsAlphabeticallyAction::class)->execute(),
             'selectedArtist' => $selectedArtist,
             'photos' => $selectedArtist?->galleryImages ?? collect(),
         ]);
@@ -28,9 +30,8 @@ class GalleryImageController extends Controller
 
     public function store(GalleryImageRequest $request): RedirectResponse
     {
-        $image = new GalleryImage($request->safe()->only('artist_id'));
-        $image->replaceImage($request->file('image'));
-        $image->save();
+        $image = GalleryImage::query()->create($request->safe()->only('artist_id'));
+        $image->addMediaFromRequest('image')->toMediaCollection(MediaCollectionEnum::Gallery->value);
 
         return to_route('admin.gallery.index', ['artist' => $image->artist_id])
             ->with('status', 'Galeriebild gespeichert //');

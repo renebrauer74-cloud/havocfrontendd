@@ -70,8 +70,8 @@
                     <div class="col-md-6">
                         <label class="form-label" for="category">Art *</label>
                         <select name="category" id="category" class="form-select" required>
-                            @foreach ($categories as $key => $label)
-                                <option value="{{ $key }}">{{ $label }}</option>
+                            @foreach ($categories as $category)
+                                <option value="{{ $category->value }}">{{ $category->label() }}</option>
                             @endforeach
                         </select>
                     </div>

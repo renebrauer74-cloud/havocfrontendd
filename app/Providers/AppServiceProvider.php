@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Actions\BandManager\Users\CheckPermissionAction;
 use App\Models\BandManager\User as BandManagerUser;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Facades\Gate;
@@ -32,7 +33,7 @@ class AppServiceProvider extends ServiceProvider
     private function defineBandManagerGates(): void
     {
         Gate::before(function (Authenticatable $user, string $ability): ?bool {
-            return $user instanceof BandManagerUser && $user->hasPermission($ability) ? true : null;
+            return $user instanceof BandManagerUser && app(CheckPermissionAction::class)->execute($user, $ability) ? true : null;
         });
 
         Gate::define('band-manager.admin', fn (BandManagerUser $user): bool => $user->isAdmin());

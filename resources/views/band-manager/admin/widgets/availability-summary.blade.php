@@ -6,7 +6,7 @@
                 <thead><tr>
                     <th>Band</th>
                     @foreach ($statuses as $status)
-                        <th class="text-center" title="{{ $status['label'] }}"><span class="status-dot" style="background:{{ $status['color'] }}"></span></th>
+                        <th class="text-center" title="{{ $status->label() }}"><span class="status-dot" style="background:{{ $status->color() }}"></span></th>
                     @endforeach
                     <th></th>
                 </tr></thead>
@@ -14,8 +14,8 @@
                 @forelse ($bands as $band)
                     <tr>
                         <td>{{ $band->name }}</td>
-                        @foreach ($statuses as $key => $status)
-                            <td class="text-center">{{ $summary[$band->id][$key] ?? 0 }}</td>
+                        @foreach ($statuses as $status)
+                            <td class="text-center">{{ $summary[$band->id][$status->value] ?? 0 }}</td>
                         @endforeach
                         <td class="text-end"><a href="{{ route('band-manager.calendar.show', $band) }}" class="btn btn-sm btn-outline-primary">Kalender</a></td>
                     </tr>

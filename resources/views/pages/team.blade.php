@@ -8,7 +8,7 @@
 @forelse ($members as $member)
                 <div class="team-card">
                     <div class="profile-wrapper">
-                        <img src="{{ media_url($member->image_url, placeholder_image(100, 100, 'HAVOC', 12)) }}" alt="{{ $member->name }}" class="profile-img">
+                        <img src="{{ $member->getFirstMediaUrl(\App\Enums\MediaCollectionEnum::Team->value) }}" alt="{{ $member->name }}" class="profile-img">
                     </div>
                     <h2 class="member-name">{{ $member->name }}</h2>
 

@@ -2,6 +2,8 @@
 
 namespace App\Models\BandManager;
 
+use App\Casts\TimeOfDayCast;
+use App\Enums\BandManager\GigStatusEnum;
 use Carbon\CarbonImmutable;
 use Database\Factories\BandManager\GigFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -12,11 +14,10 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Support\Facades\Auth;
 
 /**
  * Auftritt einer Band inkl. Day Sheet. "date" bleibt ein Y-m-d-String (siehe Availability).
- * Bestätigte Gigs blockieren den Tag im Ampel-Kalender automatisch.
+ * Bestätigte Gigs blockieren den Tag im Ampel-Kalender (BlockCalendarDayForGigAction).
  */
 #[Table('bm_gigs')]
 #[Fillable([
@@ -38,12 +39,8 @@ class Gig extends Model
 
     public const BOOKED_BY_BAND = 'band';
 
-    public const STATUS_CONFIRMED = 'confirmed';
-
-    public const STATUS_CANCELLED = 'cancelled';
-
     /**
-     * Uhrzeit-Felder des Day Sheets (werden als HH:MM angezeigt).
+     * Uhrzeit-Felder des Day Sheets (als HH:MM, siehe TimeOfDayCast).
      */
     public const TIME_FIELDS = [
         'time_get_in', 'time_soundcheck', 'time_dinner', 'time_doors', 'time_show', 'time_curfew', 'hotel_checkin', 'hotel_checkout',
@@ -57,23 +54,11 @@ class Gig extends Model
     protected function casts(): array
     {
         return [
+            'status' => GigStatusEnum::class,
             'fee' => 'decimal:2',
             'buyout_amount' => 'decimal:2',
             'set_length' => 'integer',
-        ];
-    }
-
-    protected static function booted(): void
-    {
-        static::saved(fn (Gig $gig) => $gig->blockCalendarDay());
-    }
-
-    /**
-     * @return array<string, array{label: string, color: string}>
-     */
-    public static function statuses(): array
-    {
-        return config('band-manager.gigs.statuses', []);
+        ] + array_fill_keys(self::TIME_FIELDS, TimeOfDayCast::class);
     }
 
     /**
@@ -95,14 +80,6 @@ class Gig extends Model
     }
 
     /**
-     * @return array{label: string, color: string}
-     */
-    public function statusDefinition(): array
-    {
-        return self::statuses()[$this->status] ?? ['label' => $this->status, 'color' => '#6b7280'];
-    }
-
-    /**
      * Von der Band selbst angelegt? Dann darf die Band alles sehen und bearbeiten.
      */
     public function isBandOwned(): bool
@@ -113,14 +90,6 @@ class Gig extends Model
     public function isPast(): bool
     {
         return $this->date < CarbonImmutable::today()->format('Y-m-d');
-    }
-
-    /**
-     * Uhrzeit als HH:MM (MariaDB liefert HH:MM:SS) – leer, wenn nicht gesetzt.
-     */
-    public function time(string $field): string
-    {
-        return $this->{$field} ? substr((string) $this->{$field}, 0, 5) : '';
     }
 
     /**
@@ -149,20 +118,6 @@ class Gig extends Model
     #[Scope]
     protected function notCancelled(Builder $query): void
     {
-        $query->where('status', '<>', self::STATUS_CANCELLED);
-    }
-
-    /**
-     * Bestätigter Gig → Tag im Ampel-Kalender auf "Rot" (config band-manager.gigs.block_*).
-     */
-    public function blockCalendarDay(): void
-    {
-        if (! config('band-manager.gigs.block_availability') || $this->status !== self::STATUS_CONFIRMED) {
-            return;
-        }
-
-        $day = CarbonImmutable::createFromFormat('!Y-m-d', $this->date);
-
-        Availability::setRange($this->band, $day, $day, (string) config('band-manager.gigs.block_status', 'red'), 'Gig: '.$this->title, Auth::guard('band-manager')->id());
+        $query->where('status', '<>', GigStatusEnum::Cancelled);
     }
 }

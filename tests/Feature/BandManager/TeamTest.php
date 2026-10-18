@@ -1,14 +1,20 @@
 <?php
 
+use App\Enums\BandManager\CrewRoleEnum;
+use App\Enums\MediaCollectionEnum;
+use App\Enums\MediaConversionEnum;
 use App\Models\BandManager\ActivityLog;
 use App\Models\BandManager\Band;
 use App\Models\BandManager\BandProfile;
+use App\Models\BandManager\Document;
+use App\Models\BandManager\GalleryImage;
 use App\Models\BandManager\Gig;
 use App\Models\BandManager\TeamMember;
 use App\Models\BandManager\User;
 use App\Services\BandManager\DaySheet;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 beforeEach(function () {
     Storage::fake('band-manager');
@@ -67,8 +73,8 @@ it('creates a band member with a resized photo', function () {
         ->email->toBe('kim@example.com')
         ->type->toBe('member')
         ->crew_role->toBeNull()
-        ->photo->toEndWith('.jpg')
-        ->and(getimagesize(Storage::disk('band-manager')->path($person->photoPath()))[0])->toBe(800)
+        ->and($person->getFirstMedia(MediaCollectionEnum::MemberPhotos->value)->file_name)->toBe('kim.png')
+        ->and(getimagesizefromstring(Storage::disk('band-manager')->get($person->getFirstMedia(MediaCollectionEnum::MemberPhotos->value)->getPathRelativeToRoot(MediaConversionEnum::Preview->value)))[0])->toBe(800)
         ->and(ActivityLog::query()->where('action', 'team.created')->exists())->toBeTrue();
 
     $this->get(route('band-manager.team.photo', $person))->assertSuccessful();
@@ -98,7 +104,7 @@ it('keeps the custom crew role only for "other"', function () {
     ]);
 
     expect($person->fresh())
-        ->crew_role->toBe('light')
+        ->crew_role->toBe(CrewRoleEnum::Light)
         ->crew_role_other->toBeNull()
         ->type->toBe('crew');
 });
@@ -107,27 +113,28 @@ it('replaces and removes photos', function () {
     $person = TeamMember::factory()->create();
 
     actingAsBandManager()->put(route('band-manager.team.update', $person), ['first_name' => 'Kim', 'photo' => UploadedFile::fake()->image('a.jpg')]);
-    $firstPhoto = $person->fresh()->photoPath();
+    $firstPhoto = $person->fresh()->getFirstMedia(MediaCollectionEnum::MemberPhotos->value)->getPathRelativeToRoot();
 
     actingAsBandManager()->put(route('band-manager.team.update', $person), ['first_name' => 'Kim', 'photo' => UploadedFile::fake()->image('b.jpg')]);
     Storage::disk('band-manager')->assertMissing($firstPhoto);
 
     actingAsBandManager()->put(route('band-manager.team.update', $person), ['first_name' => 'Kim', 'remove_photo' => '1']);
 
-    expect($person->fresh()->photo)->toBeNull()
+    expect($person->fresh()->hasMedia(MediaCollectionEnum::MemberPhotos->value))->toBeFalse()
         ->and(Storage::disk('band-manager')->allFiles())->toBe([]);
 });
 
 it('deletes a person including the photo', function () {
-    $person = TeamMember::factory()->create(['photo' => 'abc.jpg']);
-    Storage::disk('band-manager')->put($person->photoPath(), 'x');
+    $person = TeamMember::factory()->create();
+    $person->addMedia(UploadedFile::fake()->image('abc.jpg'))->toMediaCollection(MediaCollectionEnum::MemberPhotos->value);
+    $photo = $person->getFirstMedia(MediaCollectionEnum::MemberPhotos->value)->getPathRelativeToRoot();
 
     actingAsBandManager()
         ->delete(route('band-manager.team.destroy', $person))
         ->assertRedirect(route('band-manager.team.band', $person->band_id));
 
     $this->assertModelMissing($person);
-    Storage::disk('band-manager')->assertMissing($person->photoPath());
+    Storage::disk('band-manager')->assertMissing($photo);
 });
 
 it('requires the edit permission for changes', function () {
@@ -158,7 +165,7 @@ it('saves the band profile with normalized links and a logo', function () {
     expect($profile->links)->toBe([
         'website' => 'https://ironkittens.de',
         'instagram' => 'https://www.instagram.com/ironkittens/',
-    ])->and($profile->logo)->toStartWith('logo_')->toEndWith('.png');
+    ])->and($profile->getFirstMedia(MediaCollectionEnum::BandLogos->value)->file_name)->toBe('Logo_'.str_replace(' ', '-', $band->name).'.png');
 
     $this->get(route('band-manager.team.logo', $band))->assertSuccessful();
     $this->get(route('band-manager.team.logo', [$band, 'download' => 1]))->assertDownload('Logo_'.str_replace(' ', '-', $band->name).'.png');
@@ -172,23 +179,29 @@ it('rejects invalid profile links', function () {
 
 it('removes the logo', function () {
     $band = Band::factory()->create();
-    BandProfile::query()->create(['band_id' => $band->id, 'logo' => 'logo_abc.png']);
-    Storage::disk('band-manager')->put("team/{$band->id}/logo_abc.png", 'x');
+    $profile = BandProfile::query()->create(['band_id' => $band->id]);
+    $profile->addMedia(UploadedFile::fake()->image('logo.png'))->toMediaCollection(MediaCollectionEnum::BandLogos->value);
+    $logo = $profile->getFirstMedia(MediaCollectionEnum::BandLogos->value)->getPathRelativeToRoot();
 
     actingAsBandManager()->put(route('band-manager.team.profile.update', $band), ['remove_logo' => '1']);
 
-    expect($band->profile()->sole()->logo)->toBeNull();
-    Storage::disk('band-manager')->assertMissing("team/{$band->id}/logo_abc.png");
+    expect($band->profile()->sole()->hasMedia(MediaCollectionEnum::BandLogos->value))->toBeFalse();
+    Storage::disk('band-manager')->assertMissing($logo);
 });
 
 it('deletes all band files when a band is deleted', function () {
     $band = Band::factory()->create();
-    Storage::disk('band-manager')->put("team/{$band->id}/a.jpg", 'x');
-    Storage::disk('band-manager')->put("gallery/{$band->id}/b.jpg", 'x');
+    TeamMember::factory()->for($band)->create()->addMedia(UploadedFile::fake()->image('a.jpg'))->toMediaCollection(MediaCollectionEnum::MemberPhotos->value);
+    GalleryImage::factory()->for($band)->withPhoto()->create();
+    Document::factory()->for($band)->withFile()->create();
+    BandProfile::query()->create(['band_id' => $band->id])->addMedia(UploadedFile::fake()->image('logo.png'))->toMediaCollection(MediaCollectionEnum::BandLogos->value);
+    expect(Media::count())->toBe(4)
+        ->and(Storage::disk('band-manager')->allFiles())->toHaveCount(6);
 
     actingAsBandManager()->delete(route('band-manager.admin.bands.destroy', $band));
 
-    expect(Storage::disk('band-manager')->allFiles())->toBe([]);
+    expect(Storage::disk('band-manager')->allFiles())->toBe([])
+        ->and(Media::count())->toBe(0);
 });
 
 it('lists the travel party on the day sheet', function () {

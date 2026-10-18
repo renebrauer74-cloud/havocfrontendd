@@ -10,7 +10,7 @@ class TeamController extends Controller
     public function __invoke(): View
     {
         return view('pages.team', [
-            'members' => TeamMember::query()->orderBy('id')->get(),
+            'members' => TeamMember::query()->with('media')->orderBy('id')->get(),
         ]);
     }
 }

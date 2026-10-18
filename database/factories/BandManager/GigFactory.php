@@ -2,6 +2,7 @@
 
 namespace Database\Factories\BandManager;
 
+use App\Enums\BandManager\GigStatusEnum;
 use App\Models\BandManager\Band;
 use App\Models\BandManager\Gig;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -32,12 +33,12 @@ class GigFactory extends Factory
 
     public function confirmed(): static
     {
-        return $this->state(fn (): array => ['status' => Gig::STATUS_CONFIRMED]);
+        return $this->state(fn (): array => ['status' => GigStatusEnum::Confirmed]);
     }
 
     public function cancelled(): static
     {
-        return $this->state(fn (): array => ['status' => Gig::STATUS_CANCELLED]);
+        return $this->state(fn (): array => ['status' => GigStatusEnum::Cancelled]);
     }
 
     public function bandOwned(): static

@@ -50,8 +50,8 @@
                     <div class="col-md-6">
                         <label class="form-label" for="category">Art</label>
                         <select name="category" id="category" class="form-select">
-                            @foreach ($categories as $key => $label)
-                                <option value="{{ $key }}">{{ $label }}</option>
+                            @foreach ($categories as $category)
+                                <option value="{{ $category->value }}">{{ $category->label() }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -76,18 +76,19 @@
 
     <div class="gl-grid">
         @foreach ($images as $image)
+            @php($photo = $image->getFirstMedia(\App\Enums\MediaCollectionEnum::BandPhotos->value))
             <div @class(['gl-card', 'gl-card--main' => $image->is_main])>
-                <a href="{{ $image->url(original: true) }}" target="_blank" rel="noopener" class="gl-thumb" title="In Originalgröße öffnen">
-                    <img src="{{ $image->url() }}" alt="{{ $image->caption }}" loading="lazy">
+                <a href="{{ route('band-manager.gallery.image', ['image' => $image, 'size' => 'original']) }}" target="_blank" rel="noopener" class="gl-thumb" title="In Originalgröße öffnen">
+                    <img src="{{ route('band-manager.gallery.image', $image) }}" alt="{{ $image->caption }}" loading="lazy">
                     @if ($image->is_main)<span class="gl-main-badge"><i class="bi bi-star-fill"></i> Hauptbild</span>@endif
                 </a>
                 <div class="gl-body">
-                    <span class="gl-cat">{{ $image->categoryLabel() }}</span>
+                    <span class="gl-cat">{{ $image->category->label() }}</span>
                     @if ($image->caption)<div class="gl-caption">{{ $image->caption }}</div>@endif
                     <div class="gl-meta">
                         @if ($image->credit)© {{ $image->credit }} · @endif
-                        @if ($image->width){{ $image->width }} × {{ $image->height }} px · @endif
-                        {{ $image->sizeLabel() }}
+                        @if ($photo?->getCustomProperty('width')){{ $photo->getCustomProperty('width') }} × {{ $photo->getCustomProperty('height') }} px · @endif
+                        {{ $photo?->human_readable_size }}
                     </div>
                 </div>
                 <div class="gl-actions">
@@ -97,7 +98,7 @@
                             <button class="btn btn-sm btn-outline-primary w-100"><i class="bi bi-star"></i> Als Hauptbild</button>
                         </form>
                     @endif
-                    <a href="{{ $image->url(download: true) }}" class="btn btn-sm btn-outline-secondary"
+                    <a href="{{ route('band-manager.gallery.image', ['image' => $image, 'download' => 1]) }}" class="btn btn-sm btn-outline-secondary"
                        title="Original herunterladen" aria-label="Original herunterladen"><i class="bi bi-download"></i></a>
                     @if ($canEdit)
                         <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#glEdit{{ $image->id }}"
@@ -121,8 +122,8 @@
                                 <div class="form-text mt-0 mb-2">Das Hauptbild ist immer ein Bandfoto.</div>
                             @else
                                 <select name="category" class="form-select form-select-sm mb-2" aria-label="Art">
-                                    @foreach ($categories as $key => $label)
-                                        <option value="{{ $key }}" @selected($image->category === $key)>{{ $label }}</option>
+                                    @foreach ($categories as $category)
+                                        <option value="{{ $category->value }}" @selected($image->category === $category)>{{ $category->label() }}</option>
                                     @endforeach
                                 </select>
                             @endif

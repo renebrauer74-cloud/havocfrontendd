@@ -1,9 +1,6 @@
 @php
-    use App\Models\BandManager\BandProfile;
-
     $profileUrl = route('band-manager.team.profile.edit', $band);
-    $links = $profile->linkList();
-    $logoUrl = $profile->logoUrl();
+    $logoUrl = $profile->hasMedia(\App\Enums\MediaCollectionEnum::BandLogos->value) ? route('band-manager.team.logo', $band) : null;
     $side = $gallery !== null || $logoUrl || $canEdit;
     $bios = array_filter([
         'de' => ['🇩🇪 Deutsch', (string) $profile->bio_de],
@@ -47,7 +44,7 @@
                         @endif
                         <div class="small fw-semibold text-muted mt-3 mb-2">Bandlogo</div>
                         @if ($logoUrl)
-                            <a href="{{ $profile->logoUrl(download: true) }}" class="tm-logo" title="Logo herunterladen">
+                            <a href="{{ route('band-manager.team.logo', ['band' => $band, 'download' => 1]) }}" class="tm-logo" title="Logo herunterladen">
                                 <img src="{{ $logoUrl }}" alt="Logo {{ $band->name }}">
                             </a>
                         @elseif ($canEdit)
@@ -93,9 +90,9 @@
                     @if ($links)
                         <div class="tm-socials">
                             @foreach ($links as $link)
-                                <a href="{{ $link['url'] }}" target="_blank" rel="noopener" class="tm-social" style="--c: {{ $link['color'] }}"
-                                   title="{{ BandProfile::display($link['url']) }}">
-                                    <span class="tm-social-icon"><i class="bi bi-{{ $link['icon'] }}"></i></span>{{ $link['label'] }}
+                                <a href="{{ $link['url'] }}" target="_blank" rel="noopener" class="tm-social" style="--c: {{ $link['platform']->color() }}"
+                                   title="{{ $link['display'] }}">
+                                    <span class="tm-social-icon"><i class="bi bi-{{ $link['platform']->icon() }}"></i></span>{{ $link['platform']->label() }}
                                 </a>
                             @endforeach
                         </div>

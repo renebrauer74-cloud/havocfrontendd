@@ -2,6 +2,7 @@
 
 namespace App\Services\BandManager;
 
+use App\Enums\BandManager\AvailabilityStatusEnum;
 use App\Models\BandManager\Availability;
 use App\Models\BandManager\Band;
 use App\Models\BandManager\Gig;
@@ -26,12 +27,12 @@ class GigConflicts
         $availability = Availability::query()->where('band_id', $bandId)->where('date', $date)->first();
 
         if ($availability !== null) {
-            $label = $availability->statusDefinition()['label'];
+            $label = $availability->status->label();
             $note = $availability->note ? ' (Notiz: „'.$availability->note.'“)' : '';
 
-            if ($availability->status === 'red') {
+            if ($availability->status === AvailabilityStatusEnum::Red) {
                 $blocking[] = "Am {$day} ist die Band im Kalender als „{$label}“ eingetragen{$note}.";
-            } elseif ($availability->status === 'orange') {
+            } elseif ($availability->status === AvailabilityStatusEnum::Orange) {
                 $hints[] = "Am {$day} steht im Kalender „{$label}“{$note}. Bitte mit der Band abstimmen.";
             }
         }
@@ -55,9 +56,9 @@ class GigConflicts
      *
      * @return list<string>
      */
-    public function calendarWarnings(Band $band, CarbonImmutable $from, CarbonImmutable $to, string $status): array
+    public function calendarWarnings(Band $band, CarbonImmutable $from, CarbonImmutable $to, AvailabilityStatusEnum $status): array
     {
-        if ($status !== 'red') {
+        if ($status !== AvailabilityStatusEnum::Red) {
             return [];
         }
 

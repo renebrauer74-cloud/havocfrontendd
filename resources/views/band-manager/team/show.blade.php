@@ -1,4 +1,5 @@
-<x-band-manager.layout :title="$person->fullName()">
+@inject('describeRole', 'App\Actions\BandManager\Team\DescribeTeamMemberRoleAction')
+<x-band-manager.layout :title="trim($person->first_name.' '.$person->last_name)">
     @push('styles')
         <link href="{{ asset('assets/band-manager/css/team.css') }}" rel="stylesheet">
     @endpush
@@ -7,10 +8,10 @@
 
     <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mt-1 mb-4">
         <div>
-            <h1 class="h3 mb-1">{{ $person->fullName() }}</h1>
+            <h1 class="h3 mb-1">{{ $person->first_name }} {{ $person->last_name }}</h1>
             <div class="text-muted">
                 @if ($person->stage_name)„{{ $person->stage_name }}“ · @endif
-                {{ $person->roleLabel() }}
+                {{ $describeRole->execute($person) }}
                 · {{ $person->isCrew() ? 'Team' : 'Band' }}
             </div>
         </div>
@@ -30,10 +31,10 @@
     <div class="row g-4">
         <div class="col-md-4 col-lg-3">
             <div class="tm-photo tm-photo--profile">
-                @if ($person->photoUrl())
-                    <img src="{{ $person->photoUrl() }}" alt="{{ $person->fullName() }}">
+                @if ($person->hasMedia(\App\Enums\MediaCollectionEnum::MemberPhotos->value))
+                    <img src="{{ route('band-manager.team.photo', $person) }}" alt="{{ $person->first_name }} {{ $person->last_name }}">
                 @else
-                    <span class="tm-initials">{{ $person->initials() }}</span>
+                    <x-band-manager.initials :person="$person" />
                 @endif
             </div>
         </div>
@@ -51,7 +52,7 @@
             <div class="card shadow-sm">
                 <div class="card-header">Stammdaten &amp; Tour-Infos</div>
                 <div class="card-body">
-                    @if ($facts = $person->facts())
+                    @if ($facts)
                         <dl class="row tm-facts mb-0">
                             @foreach ($facts as [$label, $value, $href])
                                 <div class="col-sm-6">

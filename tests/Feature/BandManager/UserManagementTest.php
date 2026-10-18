@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\BandManager\UserRoleEnum;
 use App\Models\BandManager\ActivityLog;
 use App\Models\BandManager\Band;
 use App\Models\BandManager\User;
@@ -97,7 +98,7 @@ it('does not let admins lock themselves out', function () {
         ]);
 
     expect($admin->fresh())
-        ->role->toBe(User::ROLE_ADMIN)
+        ->role->toBe(UserRoleEnum::Admin)
         ->is_active->toBeTrue();
 });
 

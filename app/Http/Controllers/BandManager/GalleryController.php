@@ -2,16 +2,20 @@
 
 namespace App\Http\Controllers\BandManager;
 
+use App\Actions\BandManager\Gallery\MakeGalleryImageMainAction;
+use App\Actions\BandManager\RecordActivityAction;
+use App\Enums\BandManager\GalleryCategoryEnum;
+use App\Enums\MediaCollectionEnum;
+use App\Enums\MediaConversionEnum;
 use App\Http\Controllers\Controller;
-use App\Models\BandManager\ActivityLog;
 use App\Models\BandManager\Band;
 use App\Models\BandManager\GalleryImage;
+use App\Rules\MaxMegapixelsRule;
 use App\Services\BandManager\Images;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
@@ -28,9 +32,9 @@ class GalleryController extends Controller
     public function index(Request $request): View|RedirectResponse
     {
         $user = $request->user();
-        $bands = $user->accessibleBands()
+        $bands = Band::query()->accessibleBy($user)
             ->withCount('galleryImages')
-            ->with(['galleryImages' => fn ($query) => $query->where('is_main', true)])
+            ->with(['galleryImages' => fn ($query) => $query->where('is_main', true)->with('media')])
             ->orderBy('name')
             ->get();
 
@@ -38,25 +42,25 @@ class GalleryController extends Controller
             return to_route('band-manager.gallery.band', $bands->first());
         }
 
-        return view('band-manager.gallery.index', ['bands' => $bands, 'max' => GalleryImage::maxImages()]);
+        return view('band-manager.gallery.index', ['bands' => $bands, 'max' => (int) config('band-manager.gallery.max_images')]);
     }
 
     public function band(Request $request, Band $band, Images $images): View
     {
         Gate::authorize('access', $band);
 
-        $galleryImages = $band->galleryImages()->ordered()->get();
+        $galleryImages = $band->galleryImages()->with('media')->ordered()->get();
 
         return view('band-manager.gallery.band', [
             'band' => $band,
             'images' => $galleryImages,
-            'bands' => $request->user()->accessibleBands()->orderBy('name')->get(),
+            'bands' => Band::query()->accessibleBy($request->user())->orderBy('name')->get(),
             'hasMain' => $galleryImages->contains('is_main', true),
             'canEdit' => $request->user()->can('gallery.edit'),
-            'max' => GalleryImage::maxImages(),
-            'maxBytes' => GalleryImage::maxKilobytes() * 1024,
+            'max' => (int) config('band-manager.gallery.max_images'),
+            'maxBytes' => $this->maxKilobytes($images) * 1024,
             'postMax' => $images->iniBytes((string) ini_get('post_max_size')),
-            'categories' => GalleryImage::categories(),
+            'categories' => GalleryCategoryEnum::cases(),
         ]);
     }
 
@@ -69,7 +73,7 @@ class GalleryController extends Controller
 
         $validated = $request->validate([
             'photos' => ['required', 'array'],
-            'category' => ['nullable', Rule::in(array_keys(GalleryImage::categories()))],
+            'category' => ['nullable', Rule::enum(GalleryCategoryEnum::class)],
             'caption' => ['nullable', 'string', 'max:190'],
             'credit' => ['nullable', 'string', 'max:150'],
             'make_main' => ['boolean'],
@@ -78,7 +82,7 @@ class GalleryController extends Controller
         ]);
 
         $back = to_route('band-manager.gallery.band', $band);
-        $max = GalleryImage::maxImages();
+        $max = (int) config('band-manager.gallery.max_images');
         $free = $max - $band->galleryImages()->count();
 
         if ($free <= 0) {
@@ -101,26 +105,32 @@ class GalleryController extends Controller
                 continue;
             }
 
-            $uploaded[] = GalleryImage::query()->create(GalleryImage::storeUpload($upload, $band->id) + [
+            [$width, $height] = getimagesize((string) $upload->getRealPath());
+
+            $image = GalleryImage::query()->create([
                 'band_id' => $band->id,
-                'category' => $validated['category'] ?? GalleryImage::MAIN_CATEGORY,
+                'category' => $validated['category'] ?? GalleryCategoryEnum::Band,
                 'caption' => $validated['caption'] ?? null,
                 'credit' => $validated['credit'] ?? null,
                 'is_main' => false,
                 'sort_order' => $nextSort++,
                 'uploaded_by' => $request->user()->id,
             ]);
+            $image->addMedia($upload)
+                ->withCustomProperties(['width' => $width, 'height' => $height])
+                ->toMediaCollection(MediaCollectionEnum::BandPhotos->value);
+            $uploaded[] = $image;
         }
 
         if ($uploaded !== [] && $request->boolean('make_main')) {
-            $uploaded[0]->makeMain();
+            app(MakeGalleryImageMainAction::class)->execute($uploaded[0]);
         }
 
         if ($uploaded !== []) {
-            ActivityLog::record('gallery.uploaded', ['band_id' => $band->id, 'count' => count($uploaded)]);
+            app(RecordActivityAction::class)->execute('gallery.uploaded', ['band_id' => $band->id, 'count' => count($uploaded)]);
             $back->with('success', count($uploaded) === 1 ? '1 Bild wurde hochgeladen.' : count($uploaded).' Bilder wurden hochgeladen.');
 
-            if (GalleryImage::mainFor($band) === null) {
+            if (! $band->mainGalleryImage()->exists()) {
                 $back->with('warning', 'Es ist noch kein Hauptbild festgelegt. Bitte bei einem Bandfoto auf „Als Hauptbild“ klicken.');
             }
         }
@@ -138,16 +148,16 @@ class GalleryController extends Controller
         $validated = $request->validate([
             'caption' => ['nullable', 'string', 'max:190'],
             'credit' => ['nullable', 'string', 'max:150'],
-            'category' => ['nullable', Rule::in(array_keys(GalleryImage::categories()))],
+            'category' => ['nullable', Rule::enum(GalleryCategoryEnum::class)],
         ]);
 
         $image->update([
             'caption' => $validated['caption'] ?? null,
             'credit' => $validated['credit'] ?? null,
-            'category' => $image->is_main ? GalleryImage::MAIN_CATEGORY : ($validated['category'] ?? $image->category),
+            'category' => $image->is_main ? GalleryCategoryEnum::Band : ($validated['category'] ?? $image->category),
         ]);
 
-        ActivityLog::record('gallery.updated', ['image_id' => $image->id, 'band_id' => $image->band_id]);
+        app(RecordActivityAction::class)->execute('gallery.updated', ['image_id' => $image->id, 'band_id' => $image->band_id]);
 
         return to_route('band-manager.gallery.band', $image->band_id)->with('success', 'Bild wurde gespeichert.');
     }
@@ -156,9 +166,9 @@ class GalleryController extends Controller
     {
         Gate::authorize('access', $image->band);
 
-        $image->makeMain();
+        app(MakeGalleryImageMainAction::class)->execute($image);
 
-        ActivityLog::record('gallery.main_set', ['image_id' => $image->id, 'band_id' => $image->band_id]);
+        app(RecordActivityAction::class)->execute('gallery.main_set', ['image_id' => $image->id, 'band_id' => $image->band_id]);
 
         return to_route('band-manager.gallery.band', $image->band_id)->with('success', 'Hauptbild wurde festgelegt.');
     }
@@ -172,7 +182,7 @@ class GalleryController extends Controller
 
         $image->delete();
 
-        ActivityLog::record('gallery.deleted', ['image_id' => $image->id, 'band_id' => $image->band_id]);
+        app(RecordActivityAction::class)->execute('gallery.deleted', ['image_id' => $image->id, 'band_id' => $image->band_id]);
 
         $response = to_route('band-manager.gallery.band', $image->band_id)->with('success', 'Bild wurde gelöscht.');
 
@@ -186,27 +196,21 @@ class GalleryController extends Controller
     {
         Gate::authorize('access', $image->band);
 
-        $original = $request->query('size') === 'original' || $request->boolean('download');
-        $path = $image->storagePath(! $original);
-        $disk = Storage::disk('band-manager');
-        abort_unless($disk->exists($path), 404);
-
-        $headers = [
-            'Content-Type' => $image->isPreviewPath($path) ? 'image/jpeg' : $image->mime,
-            'X-Content-Type-Options' => 'nosniff',
-            'Cache-Control' => 'private, max-age=86400',
-        ];
+        $media = $image->getFirstMedia(MediaCollectionEnum::BandPhotos->value);
+        abort_if($media === null, 404);
 
         if ($request->boolean('download')) {
-            return $disk->download($path, $image->original_name ?: basename($path), $headers);
+            return $media->toResponse($request);
         }
 
-        return $disk->response($path, null, $headers);
+        return $request->query('size') === 'original' || ! $media->hasGeneratedConversion(MediaConversionEnum::Preview->value)
+            ? $media->toInlineResponse($request)
+            : $media->toInlineResponse($request, MediaConversionEnum::Preview->value);
     }
 
     private function uploadError(mixed $upload): ?string
     {
-        $maxMb = (int) floor(GalleryImage::maxKilobytes() / 1024);
+        $maxMb = (int) floor($this->maxKilobytes(app(Images::class)) / 1024);
 
         if (! $upload instanceof UploadedFile) {
             return 'Upload fehlgeschlagen – bitte erneut versuchen.';
@@ -221,17 +225,32 @@ class GalleryController extends Controller
         }
 
         $validator = Validator::make(['photo' => $upload], [
-            'photo' => ['file', 'max:'.GalleryImage::maxKilobytes(), 'mimetypes:'.implode(',', array_keys(GalleryImage::TYPES)), 'image'],
+            'photo' => [
+                'file', 'max:'.$this->maxKilobytes(app(Images::class)), 'mimetypes:'.implode(',', array_keys(GalleryImage::TYPES)), 'image',
+                new MaxMegapixelsRule((int) config('band-manager.gallery.max_megapixels')),
+            ],
         ]);
 
         if ($validator->errors()->has('photo')) {
             return match (array_key_first($validator->failed()['photo'])) {
                 'Max' => "zu groß (max. {$maxMb} MB).",
                 'File', 'Uploaded' => 'Upload fehlgeschlagen – bitte erneut versuchen.',
+                MaxMegapixelsRule::class => $validator->errors()->first('photo'),
                 default => 'nur JPG-, PNG- oder WebP-Bilder sind erlaubt.',
             };
         }
 
         return null;
+    }
+
+    /**
+     * Max. Dateigröße pro Bild in KB – berücksichtigt auch upload_max_filesize des Servers.
+     */
+    private function maxKilobytes(Images $images): int
+    {
+        $own = (int) config('band-manager.gallery.max_photo_mb') * 1024;
+        $ini = (int) floor($images->iniBytes((string) ini_get('upload_max_filesize')) / 1024);
+
+        return $ini > 0 ? min($own, $ini) : $own;
     }
 }

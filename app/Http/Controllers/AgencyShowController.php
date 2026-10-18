@@ -13,7 +13,7 @@ class AgencyShowController extends Controller
     public function index(): View
     {
         return view('shows.index', [
-            'shows' => AgencyShow::all()->sortByShowDate(),
+            'shows' => AgencyShow::query()->with('media')->get()->sortByShowDate(),
         ]);
     }
 

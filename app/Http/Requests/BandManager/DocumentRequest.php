@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\BandManager;
 
+use App\Enums\BandManager\RiderCategoryEnum;
 use App\Models\BandManager\Band;
 use App\Models\BandManager\Document;
 use App\Models\BandManager\Gig;
@@ -41,7 +42,7 @@ class DocumentRequest extends FormRequest
         return [
             'type' => ['required', Rule::in([Document::TYPE_CONTRACT, Document::TYPE_RIDER])],
             'band_id' => ['required', 'integer', $this->accessibleBand()],
-            'category' => $isRider ? ['required', Rule::in(array_keys(Document::riderCategories()))] : ['exclude'],
+            'category' => $isRider ? ['required', Rule::enum(RiderCategoryEnum::class)] : ['exclude'],
             'gig_id' => $isRider ? ['exclude'] : ['nullable', 'integer', $this->gigOfBand()],
             'title' => ['nullable', 'string', 'max:190'],
             'file' => ['required', 'file', 'mimetypes:application/pdf', 'max:'.$this->maxMb() * 1024],

@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Actions\Website\DeleteArtistAction;
+use App\Actions\Website\ListArtistsAlphabeticallyAction;
+use App\Enums\MediaCollectionEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\ArtistRequest;
 use App\Models\Artist;
@@ -35,11 +38,11 @@ class ArtistController extends Controller
     }
 
     /**
-     * Löscht den Künstler inkl. Tourdaten und Galerie (siehe Artist::booted()).
+     * Löscht den Künstler inkl. Tourdaten und Galerie.
      */
-    public function destroy(Artist $artist): RedirectResponse
+    public function destroy(Artist $artist, DeleteArtistAction $deleteArtist): RedirectResponse
     {
-        $artist->delete();
+        $deleteArtist->execute($artist);
 
         return to_route('admin.artists.index')->with('status', 'Künstlerprofil gelöscht //');
     }
@@ -47,7 +50,7 @@ class ArtistController extends Controller
     private function form(?Artist $editing = null): View
     {
         return view('admin.artists', [
-            'artists' => Artist::alphabetical(),
+            'artists' => app(ListArtistsAlphabeticallyAction::class)->execute(),
             'editing' => $editing,
         ]);
     }
@@ -56,10 +59,10 @@ class ArtistController extends Controller
     {
         $artist->fill($request->safe()->except('image'));
 
-        if ($request->hasFile('image')) {
-            $artist->replaceImage($request->file('image'));
-        }
-
         $artist->save();
+
+        if ($request->hasFile('image')) {
+            $artist->addMediaFromRequest('image')->toMediaCollection(MediaCollectionEnum::Artists->value);
+        }
     }
 }

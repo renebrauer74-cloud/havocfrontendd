@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\BandManager;
 
+use App\Actions\BandManager\RecordActivityAction;
 use App\Http\Controllers\Controller;
-use App\Models\BandManager\ActivityLog;
 use App\Models\BandManager\Band;
 use App\Services\BandManager\Presskit;
 use Illuminate\Http\RedirectResponse;
@@ -25,7 +25,7 @@ class PresskitController extends Controller
      */
     public function create(Request $request): View
     {
-        $bands = $request->user()->accessibleBands()->orderBy('name')->get();
+        $bands = Band::query()->accessibleBy($request->user())->orderBy('name')->get();
         $band = null;
 
         if ($request->filled('band')) {
@@ -67,7 +67,7 @@ class PresskitController extends Controller
             return $back->with('error', $exception->getMessage());
         }
 
-        ActivityLog::record('presskit.created', ['band_id' => $band->id, 'files' => $zip['count']]);
+        app(RecordActivityAction::class)->execute('presskit.created', ['band_id' => $band->id, 'files' => $zip['count']]);
 
         return response()
             ->download($zip['path'], $zip['name'], [

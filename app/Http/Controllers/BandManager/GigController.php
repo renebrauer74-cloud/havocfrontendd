@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers\BandManager;
 
+use App\Actions\BandManager\BlockCalendarDayForGigAction;
+use App\Actions\BandManager\RecordActivityAction;
+use App\Enums\BandManager\GigStatusEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\BandManager\GigRequest;
-use App\Models\BandManager\ActivityLog;
 use App\Models\BandManager\Band;
 use App\Models\BandManager\Gig;
 use App\Services\BandManager\DaySheet;
@@ -32,7 +34,7 @@ class GigController extends Controller
 
         $gigs = Gig::query()
             ->with('band')
-            ->whereIn('band_id', $user->accessibleBands()->select('id'))
+            ->whereIn('band_id', Band::query()->accessibleBy($user)->select('id'))
             ->when($band, fn ($query) => $query->where('band_id', $band->id))
             ->when($show === 'upcoming', fn ($query) => $query->upcoming())
             ->when($show === 'past', fn ($query) => $query->past())
@@ -42,7 +44,7 @@ class GigController extends Controller
 
         return view('band-manager.gigs.index', [
             'gigs' => $gigs,
-            'bands' => $user->accessibleBands()->orderBy('name')->get(),
+            'bands' => Band::query()->accessibleBy($user)->orderBy('name')->get(),
             'bandId' => $band?->id,
             'show' => $show,
             'canManage' => $user->can('gigs.manage'),
@@ -57,7 +59,7 @@ class GigController extends Controller
         $gig = new Gig([
             'band_id' => $request->integer('band') ?: null,
             'date' => (string) $request->query('date', ''),
-            'status' => 'request',
+            'status' => GigStatusEnum::Request,
             'booked_by' => $request->user()->can('gigs.manage') ? Gig::BOOKED_BY_AGENCY : Gig::BOOKED_BY_BAND,
         ]);
 
@@ -78,6 +80,8 @@ class GigController extends Controller
             'created_by' => $user->id,
             'booked_by' => $user->can('gigs.manage') ? Gig::BOOKED_BY_AGENCY : Gig::BOOKED_BY_BAND,
         ]);
+
+        app(BlockCalendarDayForGigAction::class)->execute($gig);
 
         $this->logSaved('gig.created', $gig, $conflicts['blocking'] !== []);
 
@@ -115,6 +119,7 @@ class GigController extends Controller
         }
 
         $gig->update($attributes);
+        app(BlockCalendarDayForGigAction::class)->execute($gig);
 
         $this->logSaved('gig.updated', $gig, $conflicts['blocking'] !== []);
 
@@ -130,7 +135,7 @@ class GigController extends Controller
 
         $gig->delete();
 
-        ActivityLog::record('gig.deleted', ['gig_id' => $gig->id, 'band_id' => $gig->band_id]);
+        app(RecordActivityAction::class)->execute('gig.deleted', ['gig_id' => $gig->id, 'band_id' => $gig->band_id]);
 
         return to_route('band-manager.gigs.index')->with('success', 'Gig wurde gelöscht.');
     }
@@ -144,7 +149,7 @@ class GigController extends Controller
 
         $pdf = $daySheet->render($gig);
 
-        ActivityLog::record('gig.pdf', ['gig_id' => $gig->id, 'band_id' => $gig->band_id]);
+        app(RecordActivityAction::class)->execute('gig.pdf', ['gig_id' => $gig->id, 'band_id' => $gig->band_id]);
 
         return response($pdf, 200, [
             'Content-Type' => 'application/pdf',
@@ -160,8 +165,8 @@ class GigController extends Controller
 
         return view('band-manager.gigs.form', [
             'gig' => $gig,
-            'bands' => $user->accessibleBands()->orderBy('name')->get(),
-            'statuses' => Gig::statuses(),
+            'bands' => Band::query()->accessibleBy($user)->orderBy('name')->get(),
+            'statuses' => GigStatusEnum::cases(),
             'cateringOptions' => config('band-manager.gigs.catering_options'),
             'canManage' => $user->can('gigs.manage'),
             'conflict' => session('gigConflict'),
@@ -192,10 +197,10 @@ class GigController extends Controller
 
     private function logSaved(string $action, Gig $gig, bool $conflictOverridden): void
     {
-        ActivityLog::record($action, ['gig_id' => $gig->id, 'band_id' => $gig->band_id]);
+        app(RecordActivityAction::class)->execute($action, ['gig_id' => $gig->id, 'band_id' => $gig->band_id]);
 
         if ($conflictOverridden) {
-            ActivityLog::record('gig.conflict_overridden', ['gig_id' => $gig->id, 'band_id' => $gig->band_id, 'date' => $gig->date]);
+            app(RecordActivityAction::class)->execute('gig.conflict_overridden', ['gig_id' => $gig->id, 'band_id' => $gig->band_id, 'date' => $gig->date]);
         }
     }
 

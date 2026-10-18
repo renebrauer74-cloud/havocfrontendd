@@ -2,17 +2,21 @@
 
 namespace App\Services\BandManager;
 
+use App\Actions\BandManager\Profile\ListProfileLinksAction;
+use App\Actions\MediaLibrary\CreatePdfImageAction;
+use App\Enums\BandManager\GigStatusEnum;
+use App\Enums\MediaCollectionEnum;
+use App\Enums\MediaConversionEnum;
 use App\Models\BandManager\Band;
-use App\Models\BandManager\BandProfile;
 use App\Models\BandManager\Document;
 use App\Models\BandManager\GalleryImage;
 use App\Models\BandManager\Gig;
 use App\Models\BandManager\TeamMember;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use RuntimeException;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use ZipArchive;
 
 /**
@@ -53,7 +57,10 @@ class Presskit
     /** @var array<string, array{data?: string, path?: string}> Name im ZIP => Inhalt oder Pfad */
     private array $files = [];
 
-    public function __construct(private Pdf $pdf) {}
+    /** @var list<string> Lokale Kopien aus der Media Library – werden nach dem ZIP gelöscht */
+    private array $temporaryFiles = [];
+
+    public function __construct(private Pdf $pdf, private CreatePdfImageAction $createPdfImage) {}
 
     /**
      * Fehlende Server-Voraussetzungen (leer = alles ok).
@@ -113,16 +120,16 @@ class Presskit
      */
     public function inventory(Band $band): array
     {
-        $profile = $band->profileOrNew();
+        $profile = $band->profile;
 
         return [
             'bio_de' => trim((string) $profile->bio_de) !== '',
             'bio_en' => trim((string) $profile->bio_en) !== '',
-            'links' => count($profile->linkList()),
+            'links' => count(app(ListProfileLinksAction::class)->execute($profile)),
             'members' => $band->teamMembers()->where('type', TeamMember::TYPE_MEMBER)->count(),
             'images' => $band->galleryImages()->count(),
-            'main' => GalleryImage::mainFor($band) !== null,
-            'riders' => $band->documents()->where('type', Document::TYPE_RIDER)->latest()->latest('id')->get(),
+            'main' => $band->mainGalleryImage()->exists(),
+            'riders' => $band->documents()->with('media')->where('type', Document::TYPE_RIDER)->latest()->latest('id')->get(),
             'upcoming' => $this->gigs($band, true)->count(),
             'past' => $this->gigs($band, false)->count(),
             'contact' => (string) (config('band-manager.exports.contact.name') ?: 'Agentur'),
@@ -161,13 +168,13 @@ class Presskit
         }
 
         // ---------- 2. Fotos (PDF-Übersicht) ----------
-        $images = $options['photos_pdf'] || $options['photos_files'] ? $band->galleryImages()->ordered()->get() : new Collection;
+        $images = $options['photos_pdf'] || $options['photos_files'] ? $band->galleryImages()->with('media')->ordered()->get() : new Collection;
 
         if ($images->isNotEmpty() && $options['photos_pdf']) {
             $photos = [];
 
             foreach ($images as $image) {
-                if ($source = $image->pdfSource()) {
+                if ($source = $this->pdfImage($image)) {
                     $photos[] = $source + [
                         'main' => $image->is_main,
                         'label' => $this->photoLabel($image, $texts),
@@ -195,21 +202,19 @@ class Presskit
         }
 
         // ---------- 4. Fotos als Originaldateien ----------
-        $disk = Storage::disk('band-manager');
-
         if ($images->isNotEmpty() && $options['photos_files']) {
             $credits = [];
 
             foreach ($images->values() as $index => $image) {
-                $path = $image->storagePath(preview: false);
+                $original = $image->getFirstMedia(MediaCollectionEnum::BandPhotos->value);
 
-                if (! $disk->exists($path)) {
+                if ($original === null) {
                     continue;
                 }
 
                 $name = sprintf('%02d_%s', $index + 1, $this->slug($this->photoLabel($image, $texts).' '.$image->caption, 50))
-                    .'.'.strtolower(pathinfo($path, PATHINFO_EXTENSION));
-                $name = $this->add($texts['dir_photos'].'/'.$name, path: $disk->path($path));
+                    .'.'.strtolower($original->extension);
+                $name = $this->add($texts['dir_photos'].'/'.$name, path: $this->localCopy($original));
 
                 if ($image->credit) {
                     $credits[] = basename($name).': © '.$image->credit;
@@ -230,9 +235,9 @@ class Presskit
                 ->get();
 
             foreach ($riders as $rider) {
-                if ($disk->exists($rider->storagePath())) {
-                    $name = $this->slug($rider->categoryLabel().' '.$rider->title, 70) ?: 'Rider';
-                    $this->add($texts['dir_riders'].'/'.$name.'.pdf', path: $disk->path($rider->storagePath()));
+                if ($media = $rider->getFirstMedia(MediaCollectionEnum::Documents->value)) {
+                    $name = $this->slug($rider->category?->label().' '.$rider->title, 70) ?: 'Rider';
+                    $this->add($texts['dir_riders'].'/'.$name.'.pdf', path: $this->localCopy($media));
                 }
             }
         }
@@ -289,7 +294,7 @@ class Presskit
     private function gigs(Band $band, bool $upcoming): Collection
     {
         $today = CarbonImmutable::today();
-        $query = $band->gigs()->where('status', Gig::STATUS_CONFIRMED);
+        $query = $band->gigs()->where('status', GigStatusEnum::Confirmed);
 
         if ($upcoming) {
             return $query->where('date', '>=', $today->format('Y-m-d'))->orderBy('date')->get();
@@ -331,25 +336,25 @@ class Presskit
      */
     private function infoData(Band $band, array $options): array
     {
-        $profile = $band->profileOrNew();
+        $profile = $band->profile;
         $cover = null;
 
-        if ($options['cover'] && ($main = GalleryImage::mainFor($band)) && ($source = $main->pdfSource())) {
+        if ($options['cover'] && ($main = $band->mainGalleryImage) && ($source = $this->pdfImage($main))) {
             $cover = $source + ['credit' => (string) $main->credit];
         }
 
         $members = [];
 
         if ($options['members']) {
-            $people = $band->teamMembers()->where('type', TeamMember::TYPE_MEMBER)->orderBy('first_name')->orderBy('last_name')->get();
+            $people = $band->teamMembers()->with('media')->where('type', TeamMember::TYPE_MEMBER)->orderBy('first_name')->orderBy('last_name')->get();
 
             foreach ($people as $person) {
                 $members[] = [
-                    'name' => $person->fullName(),
+                    'name' => trim($person->first_name.' '.$person->last_name),
                     'stage' => (string) $person->stage_name,
                     'role' => (string) $person->position,
                     'bio' => $options['member_bios'] ? (string) $person->bio : '',
-                    'photo' => $this->imageUri($person->photoPath()),
+                    'photo' => $this->createPdfImage->execute($person->getFirstMedia(MediaCollectionEnum::MemberPhotos->value), MediaConversionEnum::Preview->value)['src'] ?? null,
                 ];
             }
         }
@@ -361,7 +366,7 @@ class Presskit
             'cover' => $cover,
             'members' => $members,
             'links' => $options['links']
-                ? array_map(fn (array $link): array => $link + ['display' => BandProfile::display($link['url'])], $profile->linkList())
+                ? app(ListProfileLinksAction::class)->execute($profile)
                 : [],
             'contact' => $options['contact'] ? array_filter((array) config('band-manager.exports.contact')) : [],
         ];
@@ -403,23 +408,24 @@ class Presskit
     }
 
     /**
-     * Bild vom Disk als data-URI für Dompdf (nur JPG/PNG, max. 5 MB).
+     * Galeriebild (Vorschau) als data-URI für Dompdf.
+     *
+     * @return array{src: string, w: int, h: int}|null
      */
-    private function imageUri(?string $path): ?string
+    private function pdfImage(GalleryImage $image): ?array
     {
-        $disk = Storage::disk('band-manager');
+        return $this->createPdfImage->execute($image->getFirstMedia(MediaCollectionEnum::BandPhotos->value), MediaConversionEnum::Preview->value);
+    }
 
-        if ($path === null || ! $disk->exists($path) || $disk->size($path) > 5 * 1048576) {
-            return null;
-        }
+    /**
+     * Lokale Kopie für ZipArchive – im Bucket gibt es keinen Dateipfad.
+     */
+    private function localCopy(Media $media): string
+    {
+        $path = (string) tempnam(sys_get_temp_dir(), 'pk_media');
+        file_put_contents($path, $media->stream());
 
-        $mime = match (strtolower(pathinfo($path, PATHINFO_EXTENSION))) {
-            'jpg', 'jpeg' => 'image/jpeg',
-            'png' => 'image/png',
-            default => null,
-        };
-
-        return $mime ? 'data:'.$mime.';base64,'.base64_encode((string) $disk->get($path)) : null;
+        return $this->temporaryFiles[] = $path;
     }
 
     /**
@@ -464,7 +470,15 @@ class Presskit
             }
         }
 
-        if (! $zip->close()) {
+        $closed = $zip->close();
+
+        foreach ($this->temporaryFiles as $temporaryFile) {
+            @unlink($temporaryFile);
+        }
+
+        $this->temporaryFiles = [];
+
+        if (! $closed) {
             throw new RuntimeException('ZIP-Datei konnte nicht geschrieben werden.');
         }
 

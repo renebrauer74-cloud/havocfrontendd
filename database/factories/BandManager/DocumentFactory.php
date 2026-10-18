@@ -2,12 +2,14 @@
 
 namespace Database\Factories\BandManager;
 
+use App\Enums\MediaCollectionEnum;
 use App\Models\BandManager\Band;
 use App\Models\BandManager\Document;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Http\UploadedFile;
 
 /**
- * Nur der Datensatz – Dateien legen die Tests bei Bedarf selbst auf dem Fake-Disk an.
+ * Nur der Datensatz – die Datei über ->withFile().
  *
  * @extends Factory<Document>
  */
@@ -25,14 +27,22 @@ class DocumentFactory extends Factory
             'type' => Document::TYPE_RIDER,
             'category' => 'technical',
             'title' => 'Technical Rider '.fake()->year(),
-            'original_name' => 'rider.pdf',
-            'stored_name' => bin2hex(random_bytes(16)).'.pdf',
-            'size_bytes' => 250_000,
         ];
     }
 
     public function contract(): static
     {
         return $this->state(fn (): array => ['type' => Document::TYPE_CONTRACT, 'category' => null, 'title' => 'Vertrag']);
+    }
+
+    /**
+     * Mit PDF in der Media Library.
+     */
+    public function withFile(string $contents = '%PDF-1.4'): static
+    {
+        return $this->afterCreating(function (Document $document) use ($contents): void {
+            $document->addMedia(UploadedFile::fake()->createWithContent('rider.pdf', $contents))
+                ->toMediaCollection(MediaCollectionEnum::Documents->value);
+        });
     }
 }

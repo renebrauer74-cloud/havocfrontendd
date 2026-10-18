@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\MediaCollectionEnum;
 use App\Models\Artist;
 use App\Models\GalleryImage;
 use App\Models\TourDate;
@@ -28,19 +29,21 @@ it('creates an artist with an uploaded image', function () {
         ->assertSessionHas('status', 'Künstlerprofil gespeichert //');
 
     $artist = Artist::sole();
+    $image = $artist->getFirstMedia(MediaCollectionEnum::Artists->value);
 
     expect($artist->name)->toBe('Neue Band')
         ->and($artist->genre)->toBe('')
-        ->and($artist->image_url)->toStartWith('uploads/artists/');
+        ->and($image->disk)->toBe('uploads')
+        ->and($image->getPathRelativeToRoot())->toStartWith('artists/'.$image->uuid.'/')
+        ->and($artist->getFirstMediaUrl(MediaCollectionEnum::Artists->value))->toBe($image->getUrl());
 
-    Storage::disk('uploads')->assertExists(str($artist->image_url)->after('uploads/'));
+    Storage::disk('uploads')->assertExists($image->getPathRelativeToRoot());
 });
 
 it('replaces the old image file when a new one is uploaded', function () {
     $artist = Artist::factory()->create();
-    $artist->replaceImage(UploadedFile::fake()->image('alt.jpg'));
-    $artist->save();
-    $oldFile = str($artist->image_url)->after('uploads/')->toString();
+    $artist->addMedia(UploadedFile::fake()->image('alt.jpg'))->toMediaCollection(MediaCollectionEnum::Artists->value);
+    $oldFile = $artist->getFirstMedia(MediaCollectionEnum::Artists->value)->getPathRelativeToRoot();
 
     actingAsAdmin()
         ->put(route('admin.artists.update', $artist), [
@@ -51,18 +54,20 @@ it('replaces the old image file when a new one is uploaded', function () {
 
     $artist->refresh();
 
-    expect($artist->name)->toBe('Umbenannt');
+    expect($artist->name)->toBe('Umbenannt')
+        ->and($artist->getMedia(MediaCollectionEnum::Artists->value))->toHaveCount(1);
     Storage::disk('uploads')->assertMissing($oldFile);
-    Storage::disk('uploads')->assertExists(str($artist->image_url)->after('uploads/'));
+    Storage::disk('uploads')->assertExists($artist->getFirstMedia(MediaCollectionEnum::Artists->value)->getPathRelativeToRoot());
 });
 
 it('keeps the image when the artist is saved without a new upload', function () {
     $artist = Artist::factory()->create();
-    $artist->forceFill(['image_url' => 'uploads/artists/bestehend.jpg'])->save();
+    $artist->addMedia(UploadedFile::fake()->image('bestehend.jpg'))->toMediaCollection(MediaCollectionEnum::Artists->value);
+    $uuid = $artist->getFirstMedia(MediaCollectionEnum::Artists->value)->uuid;
 
     actingAsAdmin()->put(route('admin.artists.update', $artist), ['name' => 'Gleiches Bild']);
 
-    expect($artist->refresh()->image_url)->toBe('uploads/artists/bestehend.jpg');
+    expect($artist->refresh()->getFirstMedia(MediaCollectionEnum::Artists->value)->uuid)->toBe($uuid);
 });
 
 it('rejects uploads that are not images', function () {
@@ -84,11 +89,9 @@ it('requires a name', function () {
 
 it('deletes an artist with tour dates, gallery and image files', function () {
     $artist = Artist::factory()->create();
+    $artist->addMedia(UploadedFile::fake()->image('band.jpg'))->toMediaCollection(MediaCollectionEnum::Artists->value);
     TourDate::factory()->for($artist)->create();
-    $photo = GalleryImage::factory()->for($artist)->make();
-    $photo->replaceImage(UploadedFile::fake()->image('live.jpg'));
-    $photo->save();
-    $photoFile = str($photo->image_url)->after('uploads/')->toString();
+    GalleryImage::factory()->for($artist)->withImage()->create();
 
     actingAsAdmin()
         ->delete(route('admin.artists.destroy', $artist))
@@ -96,6 +99,6 @@ it('deletes an artist with tour dates, gallery and image files', function () {
 
     $this->assertModelMissing($artist);
     expect(TourDate::count())->toBe(0)
-        ->and(GalleryImage::count())->toBe(0);
-    Storage::disk('uploads')->assertMissing($photoFile);
+        ->and(GalleryImage::count())->toBe(0)
+        ->and(Storage::disk('uploads')->allFiles())->toBe([]);
 });

@@ -18,7 +18,6 @@ return new class extends Migration
             $table->text('bio_de')->nullable();
             $table->text('bio_en')->nullable();
             $table->text('links')->nullable();
-            $table->string('logo', 64)->nullable();
             $table->foreignId('updated_by')->nullable()->constrained('bm_users')->nullOnDelete();
             $table->timestamps();
         });

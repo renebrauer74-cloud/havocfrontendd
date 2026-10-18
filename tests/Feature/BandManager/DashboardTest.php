@@ -1,6 +1,7 @@
 <?php
 
-use App\Models\BandManager\ActivityLog;
+use App\Actions\BandManager\Availability\SummarizeAvailabilityAction;
+use App\Actions\BandManager\RecordActivityAction;
 use App\Models\BandManager\Availability;
 use App\Models\BandManager\Band;
 use App\Models\BandManager\User;
@@ -9,7 +10,7 @@ it('shows stats and the latest activities', function () {
     $admin = User::factory()->admin()->create(['name' => 'Rene']);
     Band::factory()->count(2)->create();
     actingAsBandManager($admin);
-    ActivityLog::record('band.created');
+    app(RecordActivityAction::class)->execute('band.created');
 
     $this->get(route('band-manager.admin.dashboard'))
         ->assertSuccessful()
@@ -24,7 +25,7 @@ it('summarizes the availabilities of the next days per band', function () {
     Availability::factory()->for($band)->create(['date' => today()->addDays(2)->format('Y-m-d'), 'status' => 'red']);
     Availability::factory()->for($band)->create(['date' => today()->addYear()->format('Y-m-d'), 'status' => 'red']);
 
-    expect(Availability::summary(90))->toBe([$band->id => ['red' => 2]]);
+    expect(app(SummarizeAvailabilityAction::class)->execute(90))->toBe([$band->id => ['red' => 2]]);
 
     actingAsBandManager()
         ->get(route('band-manager.admin.dashboard'))

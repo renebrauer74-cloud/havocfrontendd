@@ -27,22 +27,22 @@
     $venue = $gig->venue ?: $gig->title;
     $address = collect([$gig->venue_street, trim($gig->venue_zip.' '.$gig->city), $gig->venue_country])->filter()->join(', ');
 
-    $showEnd = $gig->time('time_show') !== '' && $gig->set_length
-        ? CarbonImmutable::createFromFormat('H:i', $gig->time('time_show'))->addMinutes($gig->set_length)->format('H:i')
+    $showEnd = filled($gig->time_show) && $gig->set_length
+        ? CarbonImmutable::createFromFormat('H:i', $gig->time_show)->addMinutes($gig->set_length)->format('H:i')
         : '';
 
     $schedule = array_filter([
-        'get_in' => ['Get In', $gig->time('time_get_in')],
-        'soundcheck' => ['Soundcheck', $gig->time('time_soundcheck')],
-        'dinner' => ['Dinner', $gig->time('time_dinner')],
-        'doors' => ['Einlass (Doors)', $gig->time('time_doors')],
-        'show' => ['Showtime', $gig->time('time_show')],
-        'curfew' => ['Curfew', $gig->time('time_curfew')],
-    ], fn (array $entry): bool => $entry[1] !== '');
+        'get_in' => ['Get In', $gig->time_get_in],
+        'soundcheck' => ['Soundcheck', $gig->time_soundcheck],
+        'dinner' => ['Dinner', $gig->time_dinner],
+        'doors' => ['Einlass (Doors)', $gig->time_doors],
+        'show' => ['Showtime', $gig->time_show],
+        'curfew' => ['Curfew', $gig->time_curfew],
+    ], fn (array $entry): bool => filled($entry[1]));
 
-    $keyTime = $gig->time('time_show') !== ''
-        ? ['Showtime', $gig->time('time_show').' Uhr']
-        : ['Get In', $gig->time('time_get_in') !== '' ? $gig->time('time_get_in').' Uhr' : '–'];
+    $keyTime = filled($gig->time_show)
+        ? ['Showtime', $gig->time_show.' Uhr']
+        : ['Get In', filled($gig->time_get_in) ? $gig->time_get_in.' Uhr' : '–'];
 @endphp
 <!DOCTYPE html>
 <html lang="de">
@@ -184,8 +184,8 @@
         {!! $row('Adresse', $gig->hotel_address
             ? e($gig->hotel_address).'<br><a class="link" href="'.e($maps(trim($gig->hotel_name.', '.$gig->hotel_address, ', '))).'">» In Google Maps öffnen</a>' : '') !!}
         {!! $row('Telefon', $tel($gig->hotel_phone)) !!}
-        {!! $row('Check-in ab', $gig->time('hotel_checkin') !== '' ? e($gig->time('hotel_checkin')).' Uhr' : '') !!}
-        {!! $row('Check-out bis', $gig->time('hotel_checkout') !== '' ? e($gig->time('hotel_checkout')).' Uhr' : '') !!}
+        {!! $row('Check-in ab', filled($gig->hotel_checkin) ? e($gig->hotel_checkin).' Uhr' : '') !!}
+        {!! $row('Check-out bis', filled($gig->hotel_checkout) ? e($gig->hotel_checkout).' Uhr' : '') !!}
         {!! $row('Hinweise', $text('hotel_notes')) !!}
     </table>
 </div>

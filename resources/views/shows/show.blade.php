@@ -9,7 +9,7 @@
         <main>
             <div class="detail-grid">
                 <div class="poster-frame">
-                    <img src="{{ media_url($show->image_url, placeholder_image(300, 400, 'HAVOC SHOW')) }}" alt="{{ $show->title }}">
+                    <img src="{{ $show->getFirstMediaUrl(\App\Enums\MediaCollectionEnum::Shows->value) }}" alt="{{ $show->title }}">
                 </div>
                 <div class="info-pane">
                     <h1>{{ $show->title }}</h1>

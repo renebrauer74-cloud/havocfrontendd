@@ -2,7 +2,7 @@
 @php($galleryUrl = route('band-manager.gallery.band', $band))
 @if ($gallery['main'])
     <a href="{{ $galleryUrl }}" class="gl-teaser" title="Zur Galerie">
-        <img src="{{ $gallery['main']->url() }}" alt="{{ $band->name }}">
+        <img src="{{ route('band-manager.gallery.image', $gallery['main']) }}" alt="{{ $band->name }}">
         <span class="gl-main-badge"><i class="bi bi-star-fill"></i> Hauptbild</span>
     </a>
 @else

@@ -2,16 +2,19 @@
 
 namespace App\Http\Controllers\BandManager;
 
+use App\Actions\BandManager\Profile\ListProfileLinksAction;
+use App\Actions\BandManager\RecordActivityAction;
+use App\Actions\BandManager\Team\ListTeamMemberFactsAction;
+use App\Enums\BandManager\CrewRoleEnum;
+use App\Enums\MediaCollectionEnum;
+use App\Enums\MediaConversionEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\BandManager\TeamMemberRequest;
-use App\Models\BandManager\ActivityLog;
 use App\Models\BandManager\Band;
-use App\Models\BandManager\GalleryImage;
 use App\Models\BandManager\TeamMember;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -26,7 +29,7 @@ class TeamController extends Controller
     public function index(Request $request): View|RedirectResponse
     {
         $user = $request->user();
-        $bands = $user->accessibleBands()->withCount([
+        $bands = Band::query()->accessibleBy($user)->withCount([
             'teamMembers as members_count' => fn ($query) => $query->where('type', TeamMember::TYPE_MEMBER),
             'teamMembers as crew_count' => fn ($query) => $query->where('type', TeamMember::TYPE_CREW),
         ])->orderBy('name')->get();
@@ -42,19 +45,20 @@ class TeamController extends Controller
     {
         Gate::authorize('access', $band);
 
-        $people = $band->teamMembers()->orderBy('first_name')->orderBy('last_name')->get();
+        $people = $band->teamMembers()->with('media')->orderBy('first_name')->orderBy('last_name')->get();
 
         return view('band-manager.team.band', [
             'band' => $band,
             'members' => $people->where('type', TeamMember::TYPE_MEMBER)->values(),
             'crew' => $people->where('type', TeamMember::TYPE_CREW)->values(),
-            'bands' => $request->user()->accessibleBands()->orderBy('name')->get(),
+            'bands' => Band::query()->accessibleBy($request->user())->orderBy('name')->get(),
             'canEdit' => $request->user()->can('team.edit'),
-            'profile' => $band->profileOrNew(),
+            'profile' => $band->profile,
+            'links' => app(ListProfileLinksAction::class)->execute($band->profile),
             'gallery' => $request->user()->can('gallery.view') ? [
-                'main' => GalleryImage::mainFor($band),
+                'main' => $band->mainGalleryImage,
                 'count' => $band->galleryImages()->count(),
-                'max' => GalleryImage::maxImages(),
+                'max' => (int) config('band-manager.gallery.max_images'),
             ] : null,
         ]);
     }
@@ -76,13 +80,13 @@ class TeamController extends Controller
             'created_by' => $request->user()->id,
         ]);
 
-        if ($request->hasFile('photo')) {
-            $member->photo = TeamMember::storePhoto($request->file('photo'), $band->id);
-        }
-
         $member->save();
 
-        ActivityLog::record('team.created', ['person_id' => $member->id, 'band_id' => $band->id, 'type' => $member->type]);
+        if ($request->hasFile('photo')) {
+            $member->addMediaFromRequest('photo')->toMediaCollection(MediaCollectionEnum::MemberPhotos->value);
+        }
+
+        app(RecordActivityAction::class)->execute('team.created', ['person_id' => $member->id, 'band_id' => $band->id, 'type' => $member->type]);
 
         return to_route('band-manager.team.show', $member)
             ->with('success', ($member->isCrew() ? 'Teammitglied' : 'Bandmitglied').' wurde angelegt.');
@@ -95,6 +99,7 @@ class TeamController extends Controller
         return view('band-manager.team.show', [
             'person' => $member,
             'band' => $member->band,
+            'facts' => app(ListTeamMemberFactsAction::class)->execute($member),
             'canEdit' => $request->user()->can('team.edit'),
         ]);
     }
@@ -108,23 +113,16 @@ class TeamController extends Controller
 
     public function update(TeamMemberRequest $request, TeamMember $member): RedirectResponse
     {
-        $oldPhoto = $member->photoPath();
-        $member->fill($request->personAttributes());
+        $member->fill($request->personAttributes())->save();
 
+        // Ein neues Foto ersetzt das alte erst, wenn es sicher gespeichert ist (singleFile)
         if ($request->hasFile('photo')) {
-            $member->photo = TeamMember::storePhoto($request->file('photo'), $member->band_id);
+            $member->addMediaFromRequest('photo')->toMediaCollection(MediaCollectionEnum::MemberPhotos->value);
         } elseif ($request->boolean('remove_photo')) {
-            $member->photo = null;
+            $member->clearMediaCollection(MediaCollectionEnum::MemberPhotos->value);
         }
 
-        $member->save();
-
-        // Altes Foto erst löschen, wenn das neue sicher gespeichert ist
-        if ($oldPhoto !== null && $oldPhoto !== $member->photoPath()) {
-            Storage::disk('band-manager')->delete($oldPhoto);
-        }
-
-        ActivityLog::record('team.updated', ['person_id' => $member->id, 'band_id' => $member->band_id]);
+        app(RecordActivityAction::class)->execute('team.updated', ['person_id' => $member->id, 'band_id' => $member->band_id]);
 
         return to_route('band-manager.team.show', $member)->with('success', 'Änderungen wurden gespeichert.');
     }
@@ -138,25 +136,22 @@ class TeamController extends Controller
 
         $member->delete();
 
-        ActivityLog::record('team.deleted', ['person_id' => $member->id, 'band_id' => $member->band_id]);
+        app(RecordActivityAction::class)->execute('team.deleted', ['person_id' => $member->id, 'band_id' => $member->band_id]);
 
-        return to_route('band-manager.team.band', $member->band_id)->with('success', $member->fullName().' wurde gelöscht.');
+        return to_route('band-manager.team.band', $member->band_id)->with('success', trim($member->first_name.' '.$member->last_name).' wurde gelöscht.');
     }
 
     /**
      * Foto nur für eingeloggte Benutzer mit Zugriff auf die Band.
      */
-    public function photo(TeamMember $member): StreamedResponse
+    public function photo(Request $request, TeamMember $member): StreamedResponse
     {
         Gate::authorize('access', $member->band);
 
-        $disk = Storage::disk('band-manager');
-        abort_if($member->photoPath() === null || ! $disk->exists($member->photoPath()), 404);
+        $media = $member->getFirstMedia(MediaCollectionEnum::MemberPhotos->value);
+        abort_if($media === null, 404);
 
-        return $disk->response($member->photoPath(), null, [
-            'X-Content-Type-Options' => 'nosniff',
-            'Cache-Control' => 'private, max-age=86400',
-        ]);
+        return $media->toInlineResponse($request, MediaConversionEnum::Preview->value);
     }
 
     private function form(Band $band, TeamMember $member): View
@@ -164,7 +159,7 @@ class TeamController extends Controller
         return view('band-manager.team.form', [
             'band' => $band,
             'person' => $member,
-            'crewRoles' => config('band-manager.team.crew_roles'),
+            'crewRoles' => CrewRoleEnum::cases(),
             'sizes' => config('band-manager.team.shirt_sizes'),
             'maxMb' => (int) config('band-manager.team.max_photo_mb'),
         ]);

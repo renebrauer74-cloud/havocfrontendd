@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\MediaCollectionEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\NewsRequest;
 use App\Models\News;
@@ -53,10 +54,10 @@ class NewsController extends Controller
     {
         $news->fill($request->safe()->except('image'));
 
-        if ($request->hasFile('image')) {
-            $news->replaceImage($request->file('image'));
-        }
-
         $news->save();
+
+        if ($request->hasFile('image')) {
+            $news->addMediaFromRequest('image')->toMediaCollection(MediaCollectionEnum::News->value);
+        }
     }
 }

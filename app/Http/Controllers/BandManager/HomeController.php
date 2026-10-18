@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\BandManager;
 
+use App\Actions\BandManager\Users\ResolveHomeUrlAction;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -14,7 +15,7 @@ class HomeController extends Controller
      */
     public function index(Request $request): RedirectResponse
     {
-        return redirect($request->user()->homeUrl());
+        return redirect(app(ResolveHomeUrlAction::class)->execute($request->user()));
     }
 
     /**

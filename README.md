@@ -25,14 +25,18 @@ app/
   Http/Controllers/        öffentliche Seiten (Home, Artist, Calendar, AgencyShow, Team, Contact)
   Http/Controllers/Admin/  Backend: CRUD pro Bereich (Künstler, Tourdaten, Galerie, News, Team, Shows, Anfragen)
   Http/Requests/           Validierung (Formular-Requests)
-  Models/                  Eloquent-Models; Concerns/HasUploadedImage = Bild-Upload, Collections/ShowDateCollection = Freitext-Datum sortieren
-  Console/Commands/        havoc:admin, havoc:import-json, band-manager:admin
-  helpers.php              media_url(), safe_link(), placeholder_image()
-config/havoc.php           Kontakt-Mail und Upload-Limit
+  Models/                  Eloquent-Models (nur Relationen + Media-Collections); Collections/ShowDateCollection = Freitext-Datum sortieren
+  Actions/                 Fachlogik mit execute() – z. B. BandManager/DeleteBandAction, MediaLibrary/MoveMediaToDiskAction
+  Enums/                   MediaCollectionEnum (Collection = Unterordner), MediaConversionEnum; BandManager/ = Status, Kategorien, Rollen, Plattformen
+  Services/MediaLibrary/   CollectionPathGenerator: Ablage <collection>/<uuid>/datei
+  Console/Commands/        havoc:admin, havoc:import-json, havoc:move-media, band-manager:admin
+  helpers.php              safe_link(), placeholder_image()
+config/havoc.php           Kontakt-Mail, Upload-Limit, Disk für Band-Manager-Uploads
+config/filesystems.php     Disks "uploads" und "band-manager" (Unterordner von uploads) – Details im Kommentar
 database/migrations/       Tabellen (überspringen bereits vorhandene Tabellen aus dem alten schema.sql)
 resources/views/           Blade: pages/, shows/, admin/, components/ (Layouts, Dropzone, Lösch-Button)
 routes/web.php             alle Routen inkl. 301-Weiterleitungen der alten *.php-URLs
-public/                    Webroot: assets/ (CSS, JS, Logo), uploads/ (hochgeladene Bilder, nicht im Git)
+public/                    Webroot: assets/ (CSS, JS, Logo), uploads/ (lokale Uploads, nicht im Git – auf Laravel Cloud im Bucket)
 lang/de/validation.php     deutsche Fehlermeldungen
 ```
 
@@ -64,18 +68,18 @@ app/Http/Controllers/BandManager/   Controller (Admin/ = Dashboard, Benutzer, Ba
 app/Models/BandManager/             Models (Tabellen mit Präfix bm_)
 app/Policies/BandManager/           Band-, Gig- und Dokument-Zugriff
 app/Services/BandManager/           Navigation, Impersonation, Markdown, PDF, Day Sheet, Pressekit, Bilder …
-config/band-manager.php             Rollen & Rechte, Status, Kategorien, Upload-Limits, Pressekit-Kontakt
+config/band-manager.php             Rechte je Rolle, Upload-Limits, Pressekit-Kontakt (feste Listen: app/Enums/BandManager)
 routes/band-manager.php             Routen (Präfix /band-manager, Namen band-manager.*)
 resources/views/band-manager/       Blade-Views, Layout unter components/band-manager/
 public/assets/band-manager/         CSS, JS (Kalender, Hell/Dunkel, Formatierung), Logo
-storage/app/private/band-manager/   Uploads (team/, gallery/, documents/) – nicht öffentlich, Auslieferung nur mit Rechteprüfung
+Disk "band-manager"                 Uploads (Media Library) unter band-manager/ der Disk "uploads" – Auslieferung nur über Controller mit Rechteprüfung
 ```
 
 Rechte stehen pro Rolle in `config/band-manager.php` und werden als Gate geprüft (`@can('gigs.view')`).
 Admins (`*`) dürfen alles, Bands nur Daten ihrer eigenen Bands.
 
 Voraussetzungen auf dem Server: PHP-Erweiterungen `gd` (Foto-Verkleinerung), `zip` (Pressekit), `fileinfo`, `mbstring`.
-`storage/` muss beschreibbar sein. Upload-Limits (bis 50 MB pro Datei) passen zu `public/.user.ini`.
+`storage/` und `public/uploads/` müssen beschreibbar sein. Upload-Limits (bis 50 MB pro Datei) passen zu `public/.user.ini`.
 
 ## Produktion (IONOS)
 
@@ -85,7 +89,7 @@ Die MariaDB 11.8 ist **nur vom IONOS-Webspace aus erreichbar**. Alle Befehle unt
 
 1. **Alte Dateien auf dem Server entfernen:** `src/`, `templates/`, `bin/`, `public/admin/` und die alten Seiten
    `public/*.php` (außer dem neuen `public/index.php`). Sonst liefert der Webserver sie weiter direkt aus.
-   `public/uploads/` **behalten** – die gespeicherten Bildpfade bleiben gültig.
+   Alte Bilder werden nicht übernommen, sondern im Admin neu hochgeladen (Media Library).
 2. Die Werte aus der alten `config/config.php` notieren (DB-Zugang, Admin-Hash, `contact.mail_to`)
    und die Datei danach löschen – Laravel würde sonst jede Datei in `config/` als Konfiguration laden.
 3. Code hochladen und Abhängigkeiten installieren: `composer install --no-dev --optimize-autoloader`

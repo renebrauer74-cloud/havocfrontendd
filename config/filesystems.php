@@ -38,14 +38,6 @@ return [
             'report' => false,
         ],
 
-        // Uploads des Band-Managers (Verträge, Rider, Fotos) – nur über Controller mit Rechteprüfung abrufbar
-        'band-manager' => [
-            'driver' => 'local',
-            'root' => storage_path('app/private/band-manager'),
-            'throw' => false,
-            'report' => false,
-        ],
-
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),
@@ -55,7 +47,22 @@ return [
             'report' => false,
         ],
 
-        // Bild-Uploads aus dem Admin: liegen direkt im Webroot, damit kein storage:link nötig ist (IONOS).
+        /*
+         * Alle Uploads (Media Library) landen auf zwei Disks, die sich einen Speicher teilen:
+         *
+         *   uploads       Website-Bilder aus dem Admin       <collection>/<uuid>/datei
+         *   band-manager  Verträge, Rider, Fotos, Logos      band-manager/<collection>/<uuid>/datei
+         *
+         * Lokal liegt alles unter public/uploads/. Auf Laravel Cloud ersetzt der angehängte öffentliche
+         * Bucket mit dem Disk-Namen "uploads" die Disk "uploads" (LARAVEL_CLOUD_DISK_CONFIG) – das
+         * Dateisystem dort ist flüchtig. "band-manager" ist nur ein Unterordner davon.
+         *
+         * Die Band-Manager-Dateien werden nur über Controller mit Rechteprüfung ausgeliefert. Im öffentlichen
+         * Bucket sind sie über ihre (unratbare) direkte URL trotzdem erreichbar. Umzug auf einen privaten Bucket:
+         *   1. Privaten Bucket in Cloud mit dem Disk-Namen "band-manager-private" anhängen (nicht default)
+         *   2. BAND_MANAGER_DISK=band-manager-private setzen, deployen – neue Uploads landen dort
+         *   3. php artisan havoc:move-media band-manager band-manager-private
+         */
         'uploads' => [
             'driver' => 'local',
             'root' => public_path('uploads'),
@@ -63,6 +70,12 @@ return [
             'visibility' => 'public',
             'throw' => false,
             'report' => false,
+        ],
+
+        'band-manager' => [
+            'driver' => 'scoped',
+            'disk' => 'uploads',
+            'prefix' => 'band-manager',
         ],
 
         's3' => [

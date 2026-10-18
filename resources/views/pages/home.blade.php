@@ -9,10 +9,10 @@
 @foreach ([false, true] as $isDuplicate)
 @foreach ($roster as $artist)
             <a class="carousel-item" href="{{ route('artists.show', $artist) }}" @if ($isDuplicate) aria-hidden="true" tabindex="-1" @endif>
-                <img src="{{ media_url($artist->image_url, asset('assets/img/havoc-logo.jpeg')) }}" alt="{{ $artist->name }}">
+                <img src="{{ $artist->getFirstMediaUrl(\App\Enums\MediaCollectionEnum::Artists->value) }}" alt="{{ $artist->name }}">
                 <div class="carousel-meta">
                     <div class="carousel-band-name">{{ $artist->name }}</div>
-                    <div class="carousel-band-genre">{{ $artist->displayGenre() }}</div>
+                    <div class="carousel-band-genre">{{ $artist->genre ?: 'Alternative' }}</div>
                 </div>
             </a>
 @endforeach
@@ -38,8 +38,8 @@
 @foreach ($latestNews as $item)
                 <article class="news-card">
                     <div class="news-img-box">
-@if ($item->image_url)
-                        <img src="{{ media_url($item->image_url) }}" alt="">
+@if ($item->hasMedia(\App\Enums\MediaCollectionEnum::News->value))
+                        <img src="{{ $item->getFirstMediaUrl(\App\Enums\MediaCollectionEnum::News->value) }}" alt="">
 @else
                         <div class="news-img-placeholder">HAVOC NEWS</div>
 @endif

@@ -1,4 +1,128 @@
 <laravel-boost-guidelines>
+=== .ai/actions rules ===
+
+# Actions
+
+Fachlogik, die über ein paar Zeilen Controller-Code hinausgeht, gehört in eine Action – nicht ins Model und nicht in einen Helper.
+
+- Ablage unter `app/Actions/<Bereich>/`, z. B. `app/Actions/BandManager/DeleteBandAction.php`
+- Klassenname endet auf `Action` und beschreibt, was passiert: `DeleteBandAction`, `MoveMediaToDiskAction`
+- Die öffentliche Methode heißt **immer** `execute()` – bei unterschiedlichen Fällen lieber zwei Actions als `executeForX()`
+- Actions werden per Dependency Injection geholt (Controller-Methode, Command `handle()`, Konstruktor) und mit `->execute(...)` aufgerufen
+- Commands und Controller bleiben dünn: Eingaben prüfen, Action aufrufen, Ergebnis ausgeben
+
+## Schlecht
+
+```php
+class Band extends Model
+{
+    protected static function booted(): void
+    {
+        static::deleting(function (Band $band): void {
+            $band->galleryImages->each->delete();
+            // ...
+        });
+    }
+}
+```
+
+## Gut
+
+```php
+class DeleteBandAction
+{
+    public function execute(Band $band): void
+    {
+        DB::transaction(function () use ($band): void {
+            $band->galleryImages->each->delete();
+            // ...
+            $band->delete();
+        });
+    }
+}
+
+// Controller
+public function destroy(Band $band, DeleteBandAction $deleteBand): RedirectResponse
+{
+    $deleteBand->execute($band);
+    // ...
+}
+```
+
+=== .ai/media-library rules ===
+
+# Uploads / Spatie Media Library
+
+Alle Uploads laufen über die Spatie Media Library – mit ihrer Standard-API, ohne eigene Datei-Helper.
+
+- Collection-Namen nur über `App\Enums\MediaCollectionEnum`, Conversions über `App\Enums\MediaConversionEnum` – keine String-Literale
+- Speichern: `$model->addMediaFromRequest('image')->toMediaCollection(MediaCollectionEnum::X->value)` (bei einem Bild pro Datensatz `singleFile()` an der Collection)
+- Verkleinern/Vorschauen: `registerMediaConversions()` mit `->nonQueued()` – kein eigener GD-Code
+- Öffentliche Bilder (Disk `uploads`): `getFirstMediaUrl()`; Platzhalter über `useFallbackUrl()` an der Collection
+- Geschützte Dateien (Band-Manager, Disk aus `havoc.uploads.band_manager_disk`): Controller mit Rechteprüfung, dann `$media->toInlineResponse($request, $conversion)` bzw. `$media->toResponse($request)` für Downloads
+- Datei-Inhalte lesen: `$media->stream($conversion)` – nie `$disk->path()`, das gibt es im Bucket (S3/R2) nicht
+- Größe für die Anzeige: `$media->human_readable_size`; zusätzliche Metadaten über `withCustomProperties()`
+- Ablage: `<collection>/<uuid>/datei` (`App\Services\MediaLibrary\CollectionPathGenerator`), auf Laravel Cloud im Bucket mit dem Disk-Namen `uploads`
+- Media auf eine andere Disk umziehen: `php artisan havoc:move-media {from} {to}`
+
+=== .ai/models rules ===
+
+# Eloquent Models
+
+Models bilden Relationen ab – nicht mehr.
+
+- Erlaubt: Relationen, Casts, einfache Scopes, Konstanten, `registerMediaCollections()` / `registerMediaConversions()`
+- Erlaubt: einfache Ja/Nein-Prüfungen auf eigenen Spalten wie `isAdmin()`, `isCrew()`, `isPast()` (naheliegendes Modellverhalten)
+- **Keine** Helper-Methoden für Labels, Namen, URLs, Dateipfade, Datei-Handling, Größen o. Ä. im Model
+- Fachliche Logik (Speichern mit Nebenwirkungen, Löschen mit Abhängigkeiten, Berechnen, Auflösen …) gehört in eine Action (siehe Actions)
+- Keine Model-Events (`booted()` mit `saved`/`deleting` …) für Fachlogik – das macht eine Action explizit
+- Keine statischen Zugriffe auf Config-Listen (`Model::statuses()`) – feste Listen sind Enums (siehe Enums)
+- Fehlt ein Datensatz, Laravel-Standards nutzen: `hasOne()->withDefault()` statt `profileOrNew()`, eine Relation wie `mainGalleryImage()` statt `GalleryImage::mainFor($band)`, ein Scope wie `Band::query()->accessibleBy($user)` statt `$user->accessibleBands()`
+- Views bauen URLs selbst über `route(...)` bzw. die Media-Library-API; wiederkehrendes Markup wird eine Blade-Komponente (z. B. `<x-band-manager.initials>`), eine Action in der View über `@inject`
+
+## Schlecht
+
+```php
+class TeamMember extends Model
+{
+    public function fullName(): string { /* ... */ }
+    public function roleLabel(): string { /* ... */ }
+    public function photoUrl(): ?string { /* ... */ }
+}
+```
+
+## Gut
+
+```php
+class TeamMember extends Model implements HasMedia
+{
+    use InteractsWithMedia;
+
+    protected function casts(): array
+    {
+        return ['crew_role' => CrewRoleEnum::class];
+    }
+
+    public function isCrew(): bool
+    {
+        return $this->type === self::TYPE_CREW;
+    }
+}
+```
+
+```blade
+@inject('describeRole', 'App\Actions\BandManager\Team\DescribeTeamMemberRoleAction')
+{{ $person->first_name }} {{ $person->last_name }} · {{ $describeRole->execute($person) }}
+```
+
+# Enums
+
+- Feste Listen (Status, Kategorien, Rollen, Plattformen …) sind Backed Enums unter `app/Enums/<Bereich>/`, Suffix `Enum`
+- Anzeige über Methoden am Enum: `label()`, bei Bedarf `color()`, `icon()` …
+- Am Model als Cast eintragen (`'status' => GigStatusEnum::class`) und im Code mit Cases vergleichen, nie mit Strings
+- Validierung mit `Rule::enum(GigStatusEnum::class)`, Auswahllisten mit `GigStatusEnum::cases()`
+- Grenzwerte und Schalter (Upload-Limits, `block_availability` …) bleiben in der Config
+
 === foundation rules ===
 
 # Laravel Boost Guidelines

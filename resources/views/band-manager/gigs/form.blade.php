@@ -72,8 +72,8 @@
             <div class="col-md-6">
                 <label class="form-label" for="status">Status</label>
                 <select name="status" id="status" class="form-select">
-                    @foreach ($statuses as $key => $status)
-                        <option value="{{ $key }}" @selected(old('status', $gig->status) === $key)>{{ $status['label'] }}</option>
+                    @foreach ($statuses as $status)
+                        <option value="{{ $status->value }}" @selected(old('status', $gig->status?->value) === $status->value)>{{ $status->label() }}</option>
                     @endforeach
                 </select>
             </div>

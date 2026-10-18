@@ -2,20 +2,23 @@
 
 namespace App\Models;
 
-use App\Models\Concerns\HasUploadedImage;
+use App\Enums\MediaCollectionEnum;
 use Database\Factories\NewsFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
 
 #[Fillable(['title', 'text'])]
-class News extends Model
+class News extends Model implements HasMedia
 {
     /** @use HasFactory<NewsFactory> */
-    use HasFactory, HasUploadedImage;
+    use HasFactory, InteractsWithMedia;
 
-    protected function imageFolder(): string
+    public function registerMediaCollections(): void
     {
-        return 'news';
+        $this->addMediaCollection(MediaCollectionEnum::News->value)
+            ->singleFile();
     }
 }

@@ -37,7 +37,7 @@
 @endif
 @foreach ($photos as $photo)
         <div class="gallery-manage-card">
-            <img src="{{ media_url($photo->image_url) }}" alt="">
+            <img src="{{ $photo->getFirstMediaUrl(\App\Enums\MediaCollectionEnum::Gallery->value) }}" alt="">
             <x-admin.delete-button :action="route('admin.gallery.destroy', $photo)" confirm="Bild entfernen?" label="ENTFERNEN" />
         </div>
 @endforeach

@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\MediaCollectionEnum;
 use App\Models\Artist;
 use App\Models\GalleryImage;
 use Illuminate\Http\UploadedFile;
@@ -11,10 +12,10 @@ beforeEach(function () {
 
 it('shows the gallery of the selected artist', function () {
     $artist = Artist::factory()->create();
-    GalleryImage::factory()->for($artist)->create(['image_url' => 'uploads/gallery/foto.jpg']);
+    $photo = GalleryImage::factory()->for($artist)->withImage()->create();
 
     actingAsAdmin()->get(route('admin.gallery.index'))->assertOk()->assertSee('Bitte wähle zuerst eine Band aus.');
-    actingAsAdmin()->get(route('admin.gallery.index', ['artist' => $artist->id]))->assertOk()->assertSee('uploads/gallery/foto.jpg');
+    actingAsAdmin()->get(route('admin.gallery.index', ['artist' => $artist->id]))->assertOk()->assertSee($photo->getFirstMediaUrl(MediaCollectionEnum::Gallery->value));
 });
 
 it('uploads a gallery image', function () {
@@ -27,7 +28,10 @@ it('uploads a gallery image', function () {
         ])
         ->assertRedirect(route('admin.gallery.index', ['artist' => $artist->id]));
 
-    expect($artist->galleryImages()->sole()->image_url)->toStartWith('uploads/gallery/');
+    $image = $artist->galleryImages()->sole()->getFirstMedia(MediaCollectionEnum::Gallery->value);
+
+    expect($image->getPathRelativeToRoot())->toStartWith('gallery/');
+    Storage::disk('uploads')->assertExists($image->getPathRelativeToRoot());
 });
 
 it('requires an image', function () {
@@ -53,10 +57,8 @@ it('allows at most eight images per artist', function () {
 });
 
 it('deletes a gallery image and its file', function () {
-    $photo = GalleryImage::factory()->make(['artist_id' => Artist::factory()->create()->id]);
-    $photo->replaceImage(UploadedFile::fake()->image('weg.jpg'));
-    $photo->save();
-    $file = str($photo->image_url)->after('uploads/')->toString();
+    $photo = GalleryImage::factory()->withImage()->create();
+    $file = $photo->getFirstMedia(MediaCollectionEnum::Gallery->value)->getPathRelativeToRoot();
 
     actingAsAdmin()
         ->delete(route('admin.gallery.destroy', $photo))

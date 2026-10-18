@@ -2,9 +2,13 @@
 
 namespace App\Http\Controllers\BandManager;
 
+use App\Actions\BandManager\Messages\HideThreadAction;
+use App\Actions\BandManager\Messages\MarkThreadReadAction;
+use App\Actions\BandManager\Messages\RefreshLastMessageAtAction;
+use App\Actions\BandManager\Messages\SendMessageAction;
+use App\Actions\BandManager\RecordActivityAction;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\BandManager\MessageThreadRequest;
-use App\Models\BandManager\ActivityLog;
 use App\Models\BandManager\Band;
 use App\Models\BandManager\Message;
 use App\Models\BandManager\MessageThread;
@@ -35,7 +39,7 @@ class MessageController extends Controller
                 ->orderByDesc('last_message_at')
                 ->orderByDesc('id')
                 ->get(),
-            'bands' => $user->accessibleBands()->orderBy('name')->get(),
+            'bands' => Band::query()->accessibleBy($user)->orderBy('name')->get(),
             'bandId' => $band?->id,
         ]);
     }
@@ -43,7 +47,7 @@ class MessageController extends Controller
     public function create(Request $request): View
     {
         return view('band-manager.messages.create', [
-            'bands' => $request->user()->accessibleBands()->orderBy('name')->get(),
+            'bands' => Band::query()->accessibleBy($request->user())->orderBy('name')->get(),
             'bandId' => $request->integer('band'),
             'seesAll' => $request->user()->can('messages.manage'),
         ]);
@@ -58,9 +62,9 @@ class MessageController extends Controller
             'subject' => $request->validated('subject'),
             'created_by' => $user->id,
         ]);
-        $thread->send($user, $request->validated('body'));
+        app(SendMessageAction::class)->execute($thread, $user, $request->validated('body'));
 
-        ActivityLog::record('message.sent', ['thread_id' => $thread->id, 'band_id' => $thread->band_id]);
+        app(RecordActivityAction::class)->execute('message.sent', ['thread_id' => $thread->id, 'band_id' => $thread->band_id]);
 
         $response = to_route('band-manager.messages.show', $thread)->with('success', 'Nachricht wurde gesendet.');
 
@@ -79,7 +83,7 @@ class MessageController extends Controller
 
         // Beim "Einloggen als" nichts für die Band als gelesen markieren
         if ($messages->isNotEmpty() && ! $this->impersonation->isActive()) {
-            $thread->markReadFor($request->user(), $messages->last()->id);
+            app(MarkThreadReadAction::class)->execute($thread, $request->user(), $messages->last()->id);
         }
 
         return view('band-manager.messages.show', [
@@ -100,9 +104,9 @@ class MessageController extends Controller
             'body.max' => 'Die Nachricht ist zu lang (max. '.Message::MAX_LENGTH.' Zeichen).',
         ]);
 
-        $thread->send($request->user(), $validated['body']);
+        app(SendMessageAction::class)->execute($thread, $request->user(), $validated['body']);
 
-        ActivityLog::record('message.sent', ['thread_id' => $thread->id, 'band_id' => $thread->band_id]);
+        app(RecordActivityAction::class)->execute('message.sent', ['thread_id' => $thread->id, 'band_id' => $thread->band_id]);
 
         return redirect(route('band-manager.messages.show', $thread).'#antwort')->with('success', 'Antwort wurde gesendet.');
     }
@@ -116,7 +120,7 @@ class MessageController extends Controller
 
         if ($request->user()->can('messages.manage')) {
             $thread->delete();   // Nachrichten + Gelesen-Status löscht die Datenbank mit
-            ActivityLog::record('message.thread_deleted', ['thread_id' => $thread->id, 'band_id' => $thread->band_id]);
+            app(RecordActivityAction::class)->execute('message.thread_deleted', ['thread_id' => $thread->id, 'band_id' => $thread->band_id]);
 
             return to_route('band-manager.messages.index')->with('success', 'Die Unterhaltung wurde für alle gelöscht.');
         }
@@ -126,8 +130,8 @@ class MessageController extends Controller
                 ->with('error', 'Beim „Einloggen als“ kannst du keine Unterhaltungen für den Künstler ausblenden.');
         }
 
-        $thread->hideFor($request->user());
-        ActivityLog::record('message.thread_hidden', ['thread_id' => $thread->id, 'band_id' => $thread->band_id]);
+        app(HideThreadAction::class)->execute($thread, $request->user());
+        app(RecordActivityAction::class)->execute('message.thread_hidden', ['thread_id' => $thread->id, 'band_id' => $thread->band_id]);
 
         return to_route('band-manager.messages.index')
             ->with('success', 'Die Unterhaltung wurde aus deiner Liste entfernt. Bei einer neuen Nachricht erscheint sie wieder.');
@@ -143,7 +147,7 @@ class MessageController extends Controller
 
         $message->delete();
 
-        ActivityLog::record('message.deleted', ['thread_id' => $thread->id, 'message_id' => $message->id, 'band_id' => $thread->band_id]);
+        app(RecordActivityAction::class)->execute('message.deleted', ['thread_id' => $thread->id, 'message_id' => $message->id, 'band_id' => $thread->band_id]);
 
         if (! $thread->messages()->exists()) {
             $thread->delete();
@@ -151,7 +155,7 @@ class MessageController extends Controller
             return to_route('band-manager.messages.index')->with('success', 'Nachricht gelöscht. Die Unterhaltung war danach leer und wurde entfernt.');
         }
 
-        $thread->refreshLastMessageAt();
+        app(RefreshLastMessageAtAction::class)->execute($thread);
 
         return to_route('band-manager.messages.show', $thread)->with('success', 'Nachricht wurde gelöscht.');
     }

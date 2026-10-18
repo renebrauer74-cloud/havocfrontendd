@@ -15,7 +15,7 @@
                 <a href="{{ route('band-manager.gallery.band', $band) }}" class="card h-100 shadow-sm overflow-hidden">
                     <div class="gl-thumb">
                         @if ($main)
-                            <img src="{{ $main->url() }}" alt="{{ $band->name }}" loading="lazy">
+                            <img src="{{ route('band-manager.gallery.image', $main) }}" alt="{{ $band->name }}" loading="lazy">
                             <span class="gl-main-badge"><i class="bi bi-star-fill"></i> Hauptbild</span>
                         @else
                             <div class="gl-thumb-empty"><i class="bi bi-image"></i></div>

@@ -2,12 +2,15 @@
 
 namespace Database\Factories\BandManager;
 
+use App\Enums\BandManager\GalleryCategoryEnum;
+use App\Enums\MediaCollectionEnum;
 use App\Models\BandManager\Band;
 use App\Models\BandManager\GalleryImage;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Http\UploadedFile;
 
 /**
- * Nur der Datensatz – Dateien legen die Tests bei Bedarf selbst auf dem Fake-Disk an.
+ * Nur der Datensatz – das Foto über ->withPhoto().
  *
  * @extends Factory<GalleryImage>
  */
@@ -20,8 +23,6 @@ class GalleryImageFactory extends Factory
      */
     public function definition(): array
     {
-        $name = bin2hex(random_bytes(16));
-
         return [
             'band_id' => Band::factory(),
             'category' => 'band',
@@ -29,18 +30,23 @@ class GalleryImageFactory extends Factory
             'credit' => fake()->name(),
             'is_main' => false,
             'sort_order' => 1,
-            'file' => $name.'.jpg',
-            'preview' => $name.'_p.jpg',
-            'original_name' => 'bandfoto.jpg',
-            'mime' => 'image/jpeg',
-            'width' => 3000,
-            'height' => 2000,
-            'size_bytes' => 2_500_000,
         ];
     }
 
     public function main(): static
     {
-        return $this->state(fn (): array => ['is_main' => true, 'category' => GalleryImage::MAIN_CATEGORY]);
+        return $this->state(fn (): array => ['is_main' => true, 'category' => GalleryCategoryEnum::Band]);
+    }
+
+    /**
+     * Mit Foto (inkl. Vorschau-Conversion) in der Media Library.
+     */
+    public function withPhoto(int $width = 2000, int $height = 1000): static
+    {
+        return $this->afterCreating(function (GalleryImage $image) use ($width, $height): void {
+            $image->addMedia(UploadedFile::fake()->image('bandfoto.jpg', $width, $height))
+                ->withCustomProperties(['width' => $width, 'height' => $height])
+                ->toMediaCollection(MediaCollectionEnum::BandPhotos->value);
+        });
     }
 }

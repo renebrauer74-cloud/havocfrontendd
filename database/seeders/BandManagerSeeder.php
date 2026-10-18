@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\BandManager\UserRoleEnum;
 use App\Models\BandManager\Band;
 use App\Models\BandManager\User;
 use Illuminate\Database\Seeder;
@@ -27,14 +28,14 @@ class BandManagerSeeder extends Seeder
         User::query()->updateOrCreate(['email' => 'admin@havoc.test'], [
             'name' => 'Agentur Admin',
             'password' => 'havoc-dev',
-            'role' => User::ROLE_ADMIN,
+            'role' => UserRoleEnum::Admin,
             'is_active' => true,
         ]);
 
         $artist = User::query()->updateOrCreate(['email' => 'band@havoc.test'], [
             'name' => 'Demo Band',
             'password' => 'havoc-dev',
-            'role' => User::ROLE_ARTIST,
+            'role' => UserRoleEnum::Artist,
             'is_active' => true,
         ]);
 
