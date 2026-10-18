@@ -25,10 +25,18 @@ it('shows the export menu only when an export is available', function () {
         ->assertForbidden();
 });
 
-it('lists the exports below the export heading in the menu', function () {
+it('shows a single highlighted export entry in the menu that leads to the tile page', function () {
     actingAsBandManager()
         ->get(route('band-manager.calendar.index'))
-        ->assertSeeInOrder(['Rider Creator', 'Export', 'Pressekit zusammenstellen', 'Technischer Rider', 'Verfügbarkeiten (CSV)', 'Administration']);
+        ->assertSeeInOrder(['Rider Creator', 'href="'.route('band-manager.exports.index').'" class="hv-side-link hv-side-link--export"', 'Export', 'Administration'], false)
+        ->assertDontSee('Pressekit zusammenstellen')
+        ->assertDontSee('Verfügbarkeiten (CSV)');
+});
+
+it('marks the export entry as active on the export pages', function () {
+    actingAsBandManager()
+        ->get(route('band-manager.tech-rider-export.index'))
+        ->assertSee('class="hv-side-link active hv-side-link--export"', false);
 });
 
 it('shows the tech rider pdf download of each own band on the export page', function () {

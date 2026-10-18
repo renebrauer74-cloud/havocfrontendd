@@ -5,8 +5,9 @@
     $back = $isEdit ? route('band-manager.team.show', $person) : route('band-manager.team.band', $band);
     $crewRole = old('crew_role', $person->crew_role?->value);
     $isOther = $crewRole === \App\Enums\BandManager\CrewRoleEnum::Other->value;
-    $allergy = old('allergy', $person->allergy?->value);
-    $isOtherAllergy = $allergy === \App\Enums\BandManager\AllergyEnum::Other->value;
+    // Nach einem Fehler gilt die Auswahl aus dem Formular – auch wenn dort keine Allergie mehr angehakt war
+    $chosenAllergies = session()->hasOldInput() ? (array) old('allergies', []) : collect($person->allergies)->map->value->all();
+    $isOtherAllergy = in_array(\App\Enums\BandManager\AllergyEnum::Other->value, $chosenAllergies, true);
 @endphp
 <x-band-manager.layout :title="$isEdit ? trim($person->first_name.' '.$person->last_name).' bearbeiten' : 'Neues '.$what">
     @push('styles')
@@ -98,22 +99,23 @@
             </div>
             <x-band-manager.field name="driver_license" label="Führerschein" :value="$person->driver_license" col="col-sm-6 col-md-3" placeholder="z.B. B, BE, C1" :max="50" />
             <x-band-manager.field name="diet" label="Ernährung" :value="$person->diet" placeholder="z.B. vegetarisch, vegan, halal" :max="255" />
-            <div class="col-sm-6 col-md-3">
-                <label class="form-label" for="tmAllergy">Allergie</label>
-                <select name="allergy" id="tmAllergy" class="form-select">
-                    <option value="">keine</option>
-                    @foreach ($allergies as $option)
-                        <option value="{{ $option->value }}" @selected($allergy === $option->value)>{{ $option->label() }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div @class(['col-sm-6 col-md-3', 'd-none' => ! $isOtherAllergy]) id="tmAllergyOther">
+            <fieldset class="col-sm-6">
+                <legend class="form-label mb-2">Allergien <span class="text-muted">(mehrere möglich)</span></legend>
+                @foreach ($allergies as $option)
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" name="allergies[]" value="{{ $option->value }}" id="tmAllergy-{{ $option->value }}"
+                               @checked(in_array($option->value, $chosenAllergies, true))>
+                        <label class="form-check-label" for="tmAllergy-{{ $option->value }}">{{ $option->label() }}</label>
+                    </div>
+                @endforeach
+            </fieldset>
+            <div @class(['col-sm-6', 'd-none' => ! $isOtherAllergy]) id="tmAllergyOther">
                 <label class="form-label" for="tmAllergyOtherInput">Welche Allergie? *</label>
                 <input name="allergy_other" id="tmAllergyOtherInput" class="form-control" maxlength="150"
-                       placeholder="z.B. Sellerie, Fisch, Nüsse + Gluten"
+                       placeholder="z.B. Sellerie, Fisch, Senf"
                        value="{{ old('allergy_other', $person->allergy_other) }}" @required($isOtherAllergy)>
             </div>
-            <div class="col-12 form-text mt-1">Ernährung und Allergie landen automatisch im Catering Rider der Band.</div>
+            <div class="col-12 form-text mt-1">Ernährung und Allergien landen automatisch im Catering Rider der Band.</div>
             <x-band-manager.field name="emergency_contact" label="Notfallkontakt" :value="$person->emergency_contact" col="col-12"
                                   placeholder="Name, Beziehung, Telefonnummer" :max="255" />
         </div>
@@ -135,14 +137,14 @@
                 document.getElementById('tmPhotoPreview').replaceChildren(img);
             });
 
-            // "Sonstiges" gewählt → Feld für eigenen Text einblenden (Aufgabe bzw. Allergie)
-            [['tmCrewRole', 'tmCrewOther', 'tmCrewOtherInput'], ['tmAllergy', 'tmAllergyOther', 'tmAllergyOtherInput']].forEach(([selectId, boxId, inputId]) => {
-                const select = document.getElementById(selectId);
-                if (!select) return;
+            // "Sonstiges" gewählt bzw. angehakt → Feld für eigenen Text einblenden (Aufgabe bzw. Allergie)
+            [['tmCrewRole', 'tmCrewOther', 'tmCrewOtherInput'], ['tmAllergy-other', 'tmAllergyOther', 'tmAllergyOtherInput']].forEach(([fieldId, boxId, inputId]) => {
+                const field = document.getElementById(fieldId);
+                if (!field) return;
                 const box = document.getElementById(boxId);
                 const input = document.getElementById(inputId);
-                select.addEventListener('change', () => {
-                    const on = select.value === 'other';
+                field.addEventListener('change', () => {
+                    const on = field.type === 'checkbox' ? field.checked : field.value === 'other';
                     box.classList.toggle('d-none', !on);
                     input.required = on;
                     if (on) input.focus();

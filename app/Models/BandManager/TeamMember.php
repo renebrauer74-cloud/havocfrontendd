@@ -9,6 +9,7 @@ use App\Enums\MediaConversionEnum;
 use Database\Factories\BandManager\TeamMemberFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Table;
+use Illuminate\Database\Eloquent\Casts\AsEnumCollection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -25,7 +26,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 #[Fillable([
     'band_id', 'type', 'first_name', 'last_name', 'stage_name', 'position', 'crew_role', 'crew_role_other', 'bio',
     'birth_date', 'nationality', 'email', 'phone', 'street', 'zip', 'city', 'country',
-    'shirt_size', 'diet', 'allergy', 'allergy_other', 'driver_license', 'emergency_contact', 'created_by',
+    'shirt_size', 'diet', 'allergies', 'allergy_other', 'driver_license', 'emergency_contact', 'created_by',
 ])]
 class TeamMember extends Model implements HasMedia
 {
@@ -47,7 +48,7 @@ class TeamMember extends Model implements HasMedia
     {
         return [
             'crew_role' => CrewRoleEnum::class,
-            'allergy' => AllergyEnum::class,
+            'allergies' => AsEnumCollection::of(AllergyEnum::class),
         ];
     }
 
