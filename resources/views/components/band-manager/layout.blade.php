@@ -17,6 +17,7 @@
     $navigation = $user ? app(Navigation::class)->for($user) : [];
     $mainNavigation = array_filter($navigation, fn (array $item): bool => $item['section'] === 'main');
     $riderNavigation = array_filter($navigation, fn (array $item): bool => $item['section'] === 'riders');
+    $cloudNavigation = array_filter($navigation, fn (array $item): bool => $item['section'] === 'cloud');
     $exportNavigation = array_filter($navigation, fn (array $item): bool => $item['section'] === 'exports');
     $adminNavigation = array_filter($navigation, fn (array $item): bool => $item['section'] === 'admin');
     $unreadTotal = array_sum(array_column($navigation, 'badge'));
@@ -38,7 +39,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link href="{{ asset('assets/band-manager/css/app.css') }}" rel="stylesheet">
-    <link href="{{ asset('assets/band-manager/css/havoc.css') }}?v=11" rel="stylesheet">
+    <link href="{{ asset('assets/band-manager/css/havoc.css') }}?v=12" rel="stylesheet">
     @stack('styles')
 </head>
 <body class="hv-body">
@@ -81,6 +82,14 @@
                         <div class="hv-side-label"><i class="bi bi-file-earmark-music"></i> Rider Creator</div>
                         @foreach ($riderNavigation as $item)
                             <x-band-manager.nav-link :item="$item" />
+                        @endforeach
+                    </div>
+                @endif
+
+                @if ($cloudNavigation)
+                    <div class="hv-side-section">
+                        @foreach ($cloudNavigation as $item)
+                            <x-band-manager.nav-link :item="$item" class="hv-side-link--cloud" />
                         @endforeach
                     </div>
                 @endif
