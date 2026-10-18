@@ -44,7 +44,7 @@ return [
             'gallery.edit',         // Bilder hochladen, Hauptbild festlegen
             'presskit.create',      // Pressekit für die eigene Band
             'logins.manage',        // Zugänge für Bandmitglieder, Team und Fotografen
-            'riders.view',          // Rider Creator (Tech Rider) ansehen & als PDF laden
+            'riders.view',          // Rider Creator (Tech & Catering Rider) ansehen & als PDF laden
             'riders.edit',          // Rider Creator bearbeiten
         ],
 
@@ -190,6 +190,37 @@ return [
             ],
             // Ideen für eigene Abschnitte (ein Klick legt den Abschnitt mit diesem Titel an)
             'section_ideas' => ['Pyro / Effekte', 'Video / Beamer', 'Funkstrecken', 'Nebel / Hazer', 'Merch-Stand', 'Aufnahme / Mitschnitt'],
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Rider Creator – Catering Rider
+    |--------------------------------------------------------------------------
+    |
+    | Reisegruppe und Ernährung kommen per Klick aus „Band/Team“. Mahlzeiten und
+    | Buyout: App\Enums\BandManager\CateringMealEnum, CateringBuyoutEnum.
+    |
+    */
+
+    'catering_rider' => [
+        'max_rows' => 96,           // Zeilen pro Liste
+        'text_max' => 5000,         // Zeichen pro Freitext
+        'max_buyout' => 999,        // Buyout pro Person in Euro
+
+        'templates' => [
+            // Typische Getränke für einen Show-Tag (Band mit 4–6 Personen)
+            'drinks' => [
+                ['item' => 'Stilles Wasser 0,5 l', 'amount' => '24 Flaschen', 'note' => 'gekühlt, davon 6 auf der Bühne'],
+                ['item' => 'Mineralwasser mit Kohlensäure 0,5 l', 'amount' => '12 Flaschen', 'note' => 'gekühlt'],
+                ['item' => 'Softdrinks (Cola, Cola Zero, Limo)', 'amount' => '12 Flaschen', 'note' => 'gekühlt'],
+                ['item' => 'Säfte (Apfel, Orange)', 'amount' => '2 Liter', 'note' => ''],
+                ['item' => 'Bier', 'amount' => '1 Kiste', 'note' => 'gekühlt, auch alkoholfrei'],
+                ['item' => 'Kaffee & Tee', 'amount' => 'ganztägig', 'note' => 'mit Milch, Hafermilch, Zucker, Honig'],
+                ['item' => 'Energy Drinks', 'amount' => '6 Dosen', 'note' => ''],
+            ],
+            // Ideen für eigene Abschnitte (ein Klick legt den Abschnitt mit diesem Titel an)
+            'section_ideas' => ['Hotel', 'Runner / Fahrer', 'Gästeliste', 'WLAN', 'Wäsche', 'Parkplätze', 'Merch-Verkauf'],
         ],
     ],
 

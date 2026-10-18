@@ -5,6 +5,8 @@
     $back = $isEdit ? route('band-manager.team.show', $person) : route('band-manager.team.band', $band);
     $crewRole = old('crew_role', $person->crew_role?->value);
     $isOther = $crewRole === \App\Enums\BandManager\CrewRoleEnum::Other->value;
+    $allergy = old('allergy', $person->allergy?->value);
+    $isOtherAllergy = $allergy === \App\Enums\BandManager\AllergyEnum::Other->value;
 @endphp
 <x-band-manager.layout :title="$isEdit ? trim($person->first_name.' '.$person->last_name).' bearbeiten' : 'Neues '.$what">
     @push('styles')
@@ -95,7 +97,23 @@
                 </select>
             </div>
             <x-band-manager.field name="driver_license" label="Führerschein" :value="$person->driver_license" col="col-sm-6 col-md-3" placeholder="z.B. B, BE, C1" :max="50" />
-            <x-band-manager.field name="diet" label="Ernährung / Allergien" :value="$person->diet" placeholder="z.B. vegetarisch, Nussallergie" :max="255" />
+            <x-band-manager.field name="diet" label="Ernährung" :value="$person->diet" placeholder="z.B. vegetarisch, vegan, halal" :max="255" />
+            <div class="col-sm-6 col-md-3">
+                <label class="form-label" for="tmAllergy">Allergie</label>
+                <select name="allergy" id="tmAllergy" class="form-select">
+                    <option value="">keine</option>
+                    @foreach ($allergies as $option)
+                        <option value="{{ $option->value }}" @selected($allergy === $option->value)>{{ $option->label() }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div @class(['col-sm-6 col-md-3', 'd-none' => ! $isOtherAllergy]) id="tmAllergyOther">
+                <label class="form-label" for="tmAllergyOtherInput">Welche Allergie? *</label>
+                <input name="allergy_other" id="tmAllergyOtherInput" class="form-control" maxlength="150"
+                       placeholder="z.B. Sellerie, Fisch, Nüsse + Gluten"
+                       value="{{ old('allergy_other', $person->allergy_other) }}" @required($isOtherAllergy)>
+            </div>
+            <div class="col-12 form-text mt-1">Ernährung und Allergie landen automatisch im Catering Rider der Band.</div>
             <x-band-manager.field name="emergency_contact" label="Notfallkontakt" :value="$person->emergency_contact" col="col-12"
                                   placeholder="Name, Beziehung, Telefonnummer" :max="255" />
         </div>
@@ -117,18 +135,19 @@
                 document.getElementById('tmPhotoPreview').replaceChildren(img);
             });
 
-            // "Sonstiges" gewählt → Feld für eigene Aufgabe einblenden
-            const tmRole = document.getElementById('tmCrewRole');
-            if (tmRole) {
-                const box = document.getElementById('tmCrewOther');
-                const input = document.getElementById('tmCrewOtherInput');
-                tmRole.addEventListener('change', () => {
-                    const on = tmRole.value === 'other';
+            // "Sonstiges" gewählt → Feld für eigenen Text einblenden (Aufgabe bzw. Allergie)
+            [['tmCrewRole', 'tmCrewOther', 'tmCrewOtherInput'], ['tmAllergy', 'tmAllergyOther', 'tmAllergyOtherInput']].forEach(([selectId, boxId, inputId]) => {
+                const select = document.getElementById(selectId);
+                if (!select) return;
+                const box = document.getElementById(boxId);
+                const input = document.getElementById(inputId);
+                select.addEventListener('change', () => {
+                    const on = select.value === 'other';
                     box.classList.toggle('d-none', !on);
                     input.required = on;
                     if (on) input.focus();
                 });
-            }
+            });
         </script>
     @endpush
 </x-band-manager.layout>

@@ -35,7 +35,7 @@
 @endphp
 <x-band-manager.layout :title="'Tech Rider – '.$band->name">
     @push('styles')
-        <link href="{{ asset('assets/band-manager/css/riders.css') }}?v=2" rel="stylesheet">
+        <link href="{{ asset('assets/band-manager/css/riders.css') }}?v=3" rel="stylesheet">
     @endpush
 
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
@@ -309,6 +309,6 @@
 
     @push('scripts')
         <script>window.RD_PRESETS = @json($presets);</script>
-        <script src="{{ asset('assets/band-manager/js/tech-rider.js') }}?v=3"></script>
+        <script src="{{ asset('assets/band-manager/js/tech-rider.js') }}?v=4"></script>
     @endpush
 </x-band-manager.layout>

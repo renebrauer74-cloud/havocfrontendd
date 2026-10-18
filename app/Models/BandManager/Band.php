@@ -106,6 +106,16 @@ class Band extends Model
     }
 
     /**
+     * Catering Rider (Rider Creator).
+     *
+     * @return HasOne<CateringRider, $this>
+     */
+    public function cateringRider(): HasOne
+    {
+        return $this->hasOne(CateringRider::class)->withDefault();
+    }
+
+    /**
      * Das Hauptbild der Galerie (Titelbild im Pressekit).
      *
      * @return HasOne<GalleryImage, $this>

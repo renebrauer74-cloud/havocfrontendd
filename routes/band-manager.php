@@ -6,6 +6,8 @@ use App\Http\Controllers\BandManager\Auth\LoginController;
 use App\Http\Controllers\BandManager\BandAccessController;
 use App\Http\Controllers\BandManager\BandProfileController;
 use App\Http\Controllers\BandManager\CalendarController;
+use App\Http\Controllers\BandManager\CateringRiderController;
+use App\Http\Controllers\BandManager\CateringRiderExportController;
 use App\Http\Controllers\BandManager\DocumentController;
 use App\Http\Controllers\BandManager\ExportController;
 use App\Http\Controllers\BandManager\GalleryController;
@@ -129,6 +131,12 @@ Route::middleware(['auth:band-manager', EnsureBandManagerUserIsActive::class])->
         Route::get('band/{band}/stage-plot', [TechRiderController::class, 'stagePlot'])->name('stage-plot');
         Route::put('band/{band}', [TechRiderController::class, 'update'])->middleware('can:riders.edit')->name('update');
     });
+    Route::middleware('can:riders.view')->prefix('riders/catering')->name('catering-riders.')->group(function () {
+        Route::get('/', [CateringRiderController::class, 'index'])->name('index');
+        Route::get('band/{band}', [CateringRiderController::class, 'band'])->name('band');
+        Route::get('band/{band}/pdf', [CateringRiderController::class, 'pdf'])->name('pdf');
+        Route::put('band/{band}', [CateringRiderController::class, 'update'])->middleware('can:riders.edit')->name('update');
+    });
 
     Route::get('export', [ExportController::class, 'index'])->name('exports.index');
     Route::middleware('can:presskit.create')->group(function () {
@@ -137,6 +145,8 @@ Route::middleware(['auth:band-manager', EnsureBandManagerUserIsActive::class])->
     });
     // Download über tech-riders.pdf
     Route::get('export/tech-rider', [TechRiderExportController::class, 'index'])->middleware('can:riders.view')->name('tech-rider-export.index');
+    // Download über catering-riders.pdf
+    Route::get('export/catering-rider', [CateringRiderExportController::class, 'index'])->middleware('can:riders.view')->name('catering-rider-export.index');
 
     Route::prefix('admin')->name('admin.')->middleware('can:band-manager.admin')->group(function () {
         Route::get('/', Admin\DashboardController::class)->name('dashboard');
