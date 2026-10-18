@@ -44,7 +44,7 @@ return [
             'gallery.edit',         // Bilder hochladen, Hauptbild festlegen
             'presskit.create',      // Pressekit für die eigene Band
             'logins.manage',        // Zugänge für Bandmitglieder, Team und Fotografen
-            'riders.view',          // Rider Creator (Tech & Catering Rider) ansehen & als PDF laden
+            'riders.view',          // Rider Creator (Tech & Catering Rider, Stage Plot) ansehen & als PDF laden
             'riders.edit',          // Rider Creator bearbeiten
         ],
 
@@ -221,6 +221,48 @@ return [
             ],
             // Ideen für eigene Abschnitte (ein Klick legt den Abschnitt mit diesem Titel an)
             'section_ideas' => ['Hotel', 'Runner / Fahrer', 'Gästeliste', 'WLAN', 'Wäsche', 'Parkplätze', 'Merch-Verkauf'],
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Rider Creator – Stage Plot Designer
+    |--------------------------------------------------------------------------
+    |
+    | Elemente: App\Enums\BandManager\StagePlotElementEnum. Position (x, y = Mitte),
+    | Breite w und Tiefe h in cm ab der linken hinteren Bühnenecke (aus Sicht des
+    | Publikums), Drehung in Grad. Das PNG zeichnet der Browser beim Speichern.
+    |
+    */
+
+    'stage_plot' => [
+        'max_items' => 200,         // Elemente pro Plot
+        'min_stage_m' => 2,         // Bühnenbreite und -tiefe
+        'max_stage_m' => 30,
+        'max_image_mb' => 10,       // gezeichnetes PNG
+        'text_max' => 5000,         // Zeichen für die Hinweise
+
+        'templates' => [
+            // Rockband auf 8 × 6 m: Drums auf Riser, Bass links, Gitarre rechts, Gesang vorne Mitte
+            'rock' => [
+                ['type' => 'riser', 'x' => 400, 'y' => 110, 'w' => 300, 'h' => 200, 'rotation' => 0, 'label' => ''],
+                ['type' => 'drums', 'x' => 400, 'y' => 105, 'w' => 220, 'h' => 179, 'rotation' => 0, 'label' => 'Drums (Riser 3 × 2 m)'],
+                ['type' => 'drumfill', 'x' => 600, 'y' => 150, 'w' => 100, 'h' => 58, 'rotation' => 270, 'label' => 'Drumfill'],
+                ['type' => 'power', 'x' => 230, 'y' => 40, 'w' => 40, 'h' => 48, 'rotation' => 0, 'label' => ''],
+                ['type' => 'bass_amp', 'x' => 110, 'y' => 120, 'w' => 100, 'h' => 70, 'rotation' => 0, 'label' => ''],
+                ['type' => 'power', 'x' => 40, 'y' => 200, 'w' => 40, 'h' => 48, 'rotation' => 0, 'label' => ''],
+                ['type' => 'guitar_amp', 'x' => 700, 'y' => 290, 'w' => 100, 'h' => 56, 'rotation' => 0, 'label' => ''],
+                ['type' => 'power', 'x' => 770, 'y' => 230, 'w' => 40, 'h' => 48, 'rotation' => 0, 'label' => ''],
+                ['type' => 'person', 'x' => 170, 'y' => 330, 'w' => 70, 'h' => 70, 'rotation' => 0, 'label' => 'Bass'],
+                ['type' => 'person', 'x' => 400, 'y' => 330, 'w' => 70, 'h' => 70, 'rotation' => 0, 'label' => 'Lead Vocals'],
+                ['type' => 'person', 'x' => 630, 'y' => 330, 'w' => 70, 'h' => 70, 'rotation' => 0, 'label' => 'Guitar'],
+                ['type' => 'microphone', 'x' => 170, 'y' => 430, 'w' => 60, 'h' => 60, 'rotation' => 0, 'label' => ''],
+                ['type' => 'microphone', 'x' => 400, 'y' => 430, 'w' => 60, 'h' => 60, 'rotation' => 0, 'label' => ''],
+                ['type' => 'microphone', 'x' => 630, 'y' => 430, 'w' => 60, 'h' => 60, 'rotation' => 0, 'label' => ''],
+                ['type' => 'wedge', 'x' => 170, 'y' => 530, 'w' => 80, 'h' => 56, 'rotation' => 0, 'label' => 'Mon 1'],
+                ['type' => 'wedge', 'x' => 400, 'y' => 530, 'w' => 80, 'h' => 56, 'rotation' => 0, 'label' => 'Mon 2'],
+                ['type' => 'wedge', 'x' => 630, 'y' => 530, 'w' => 80, 'h' => 56, 'rotation' => 0, 'label' => 'Mon 3'],
+            ],
         ],
     ],
 

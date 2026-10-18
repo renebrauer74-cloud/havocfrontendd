@@ -116,6 +116,16 @@ class Band extends Model
     }
 
     /**
+     * Stage Plot (Rider Creator → Stage Plot Designer).
+     *
+     * @return HasOne<StagePlot, $this>
+     */
+    public function stagePlot(): HasOne
+    {
+        return $this->hasOne(StagePlot::class)->withDefault();
+    }
+
+    /**
      * Das Hauptbild der Galerie (Titelbild im Pressekit).
      *
      * @return HasOne<GalleryImage, $this>

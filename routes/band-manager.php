@@ -16,6 +16,8 @@ use App\Http\Controllers\BandManager\HomeController;
 use App\Http\Controllers\BandManager\ImpersonationController;
 use App\Http\Controllers\BandManager\MessageController;
 use App\Http\Controllers\BandManager\PresskitController;
+use App\Http\Controllers\BandManager\StagePlotController;
+use App\Http\Controllers\BandManager\StagePlotExportController;
 use App\Http\Controllers\BandManager\TeamController;
 use App\Http\Controllers\BandManager\TechRiderController;
 use App\Http\Controllers\BandManager\TechRiderExportController;
@@ -137,6 +139,13 @@ Route::middleware(['auth:band-manager', EnsureBandManagerUserIsActive::class])->
         Route::get('band/{band}/pdf', [CateringRiderController::class, 'pdf'])->name('pdf');
         Route::put('band/{band}', [CateringRiderController::class, 'update'])->middleware('can:riders.edit')->name('update');
     });
+    Route::middleware('can:riders.view')->prefix('riders/stage-plot')->name('stage-plots.')->group(function () {
+        Route::get('/', [StagePlotController::class, 'index'])->name('index');
+        Route::get('band/{band}', [StagePlotController::class, 'band'])->name('band');
+        Route::get('band/{band}/pdf', [StagePlotController::class, 'pdf'])->name('pdf');
+        Route::get('band/{band}/image', [StagePlotController::class, 'image'])->name('image');
+        Route::put('band/{band}', [StagePlotController::class, 'update'])->middleware('can:riders.edit')->name('update');
+    });
 
     Route::get('export', [ExportController::class, 'index'])->name('exports.index');
     Route::middleware('can:presskit.create')->group(function () {
@@ -147,6 +156,8 @@ Route::middleware(['auth:band-manager', EnsureBandManagerUserIsActive::class])->
     Route::get('export/tech-rider', [TechRiderExportController::class, 'index'])->middleware('can:riders.view')->name('tech-rider-export.index');
     // Download über catering-riders.pdf
     Route::get('export/catering-rider', [CateringRiderExportController::class, 'index'])->middleware('can:riders.view')->name('catering-rider-export.index');
+    // Download über stage-plots.pdf bzw. stage-plots.image
+    Route::get('export/stage-plot', [StagePlotExportController::class, 'index'])->middleware('can:riders.view')->name('stage-plot-export.index');
 
     Route::prefix('admin')->name('admin.')->middleware('can:band-manager.admin')->group(function () {
         Route::get('/', Admin\DashboardController::class)->name('dashboard');

@@ -20,6 +20,7 @@ class DeleteBandAction
             $band->documents->each->delete();
             $band->profile?->delete();
             $band->techRider?->delete();
+            $band->stagePlot?->delete();
 
             $band->delete();
         });

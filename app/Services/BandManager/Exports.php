@@ -41,6 +41,14 @@ class Exports
                 'description' => 'Reisegruppe mit Ernährung, Mahlzeiten, Buyout, Getränke und Garderobe – als PDF.',
             ],
             [
+                'ability' => 'riders.view',
+                'route' => 'band-manager.stage-plot-export.index',
+                'active' => ['band-manager.stage-plot-export.*'],
+                'icon' => 'easel2',
+                'title' => 'Stage Plot',
+                'description' => 'Bühnenplan aus dem Stage Plot Designer mit Legende – als PDF oder PNG-Bild.',
+            ],
+            [
                 'ability' => 'export.csv',
                 'route' => 'band-manager.admin.availability-export.index',
                 'active' => ['band-manager.admin.availability-export.*'],

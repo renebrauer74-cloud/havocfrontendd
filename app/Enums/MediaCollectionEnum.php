@@ -20,4 +20,5 @@ enum MediaCollectionEnum: string
     case MemberPhotos = 'member-photos';
     case Documents = 'documents';
     case StagePlots = 'stage-plots';
+    case StagePlotImages = 'stage-plot-images';
 }
