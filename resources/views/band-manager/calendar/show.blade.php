@@ -14,7 +14,7 @@
     </div>
 
     @if ($canEdit)
-        <p class="text-muted small">Klicke auf einen Tag oder ziehe über mehrere Tage (mobil: lange tippen), um den Status zu setzen.</p>
+        <p class="text-muted small">Klicke auf einen Tag oder ziehe über mehrere Tage (mobil: lange tippen), um den Status, eine Probe oder einen anderen Termin einzutragen.</p>
     @else
         <p class="text-muted small">Nur Leseansicht.</p>
     @endif
@@ -33,19 +33,42 @@
             <div class="modal-dialog">
                 <form class="modal-content" id="statusForm">
                     <div class="modal-header">
-                        <h5 class="modal-title">Status setzen</h5>
+                        <h5 class="modal-title">Eintrag im Kalender</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
                     </div>
                     <div class="modal-body">
                         <p class="fw-semibold" id="statusRange"></p>
                         <div class="d-grid gap-2 mb-3">
                             @foreach ($statuses as $status)
-                                <input type="radio" class="btn-check" name="status" id="st-{{ $status->value }}" value="{{ $status->value }}" required>
+                                <input type="radio" class="btn-check" name="status" id="st-{{ $status->value }}" value="{{ $status->value }}" required
+                                       @if ($status->requiresTitle()) data-requires-title @endif>
                                 <label class="btn btn-outline-secondary text-start" for="st-{{ $status->value }}">
                                     <span class="status-dot" style="background:{{ $status->color() }}"></span>{{ $status->label() }}
                                 </label>
                             @endforeach
                         </div>
+
+                        <div class="mb-3">
+                            <label class="form-label" for="statusTitle">Titel <span id="statusTitleHint">(optional)</span></label>
+                            <input type="text" name="title" id="statusTitle" class="form-control" maxlength="100"
+                                   placeholder="z. B. Musikvideo-Dreh, Fotoshooting, Probe im Proberaum …">
+                        </div>
+
+                        <div class="form-check form-switch mb-2">
+                            <input class="form-check-input" type="checkbox" name="all_day" id="statusAllDay" value="1" checked>
+                            <label class="form-check-label" for="statusAllDay">Ganztägig</label>
+                        </div>
+                        <div class="row g-2 mb-3 d-none" id="statusTimes">
+                            <div class="col-6">
+                                <label class="form-label" for="statusStart">Von</label>
+                                <input type="time" name="start_time" id="statusStart" class="form-control">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label" for="statusEnd">Bis (optional)</label>
+                                <input type="time" name="end_time" id="statusEnd" class="form-control">
+                            </div>
+                        </div>
+
                         <label class="form-label" for="statusNote">Notiz (optional)</label>
                         <textarea name="note" id="statusNote" class="form-control" rows="2" maxlength="500"
                                   placeholder="z.B. nur abends möglich, Anreise ab 14 Uhr …"></textarea>
@@ -73,6 +96,6 @@
         </script>
         <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.15/locales-all.global.min.js"></script>
-        <script src="{{ asset('assets/band-manager/js/calendar.js') }}?v=2"></script>
+        <script src="{{ asset('assets/band-manager/js/calendar.js') }}?v=3"></script>
     @endpush
 </x-band-manager.layout>

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\BandManager\Admin;
 
+use App\Actions\BandManager\Availability\DescribeAvailabilityTimeAction;
 use App\Actions\BandManager\RecordActivityAction;
 use App\Http\Controllers\Controller;
 use App\Models\BandManager\Availability;
@@ -24,7 +25,7 @@ class AvailabilityExportController extends Controller
         ]);
     }
 
-    public function download(Request $request): StreamedResponse
+    public function download(Request $request, DescribeAvailabilityTimeAction $describeTime): StreamedResponse
     {
         $month = preg_match('/^\d{4}-(0[1-9]|1[0-2])$/', (string) $request->query('month')) ? $request->query('month') : now()->format('Y-m');
         $bandId = $request->integer('band') ?: null;
@@ -36,20 +37,25 @@ class AvailabilityExportController extends Controller
             ->when($bandId, fn ($query) => $query->where('bm_availabilities.band_id', $bandId))
             ->orderBy('bm_bands.name')
             ->orderBy('bm_availabilities.date')
-            ->get(['bm_bands.name AS band_name', 'bm_availabilities.date', 'bm_availabilities.status', 'bm_availabilities.note']);
+            ->get([
+                'bm_bands.name AS band_name', 'bm_availabilities.date', 'bm_availabilities.status', 'bm_availabilities.title',
+                'bm_availabilities.start_time', 'bm_availabilities.end_time', 'bm_availabilities.note',
+            ]);
 
         app(RecordActivityAction::class)->execute('export.csv', ['month' => $month, 'band_id' => $bandId]);
 
-        return response()->streamDownload(function () use ($rows): void {
+        return response()->streamDownload(function () use ($rows, $describeTime): void {
             $out = fopen('php://output', 'w');
             fwrite($out, "\xEF\xBB\xBF"); // BOM für Excel
-            fputcsv($out, ['Band', 'Datum', 'Status', 'Notiz'], ';', escape: '');
+            fputcsv($out, ['Band', 'Datum', 'Status', 'Titel', 'Uhrzeit', 'Notiz'], ';', escape: '');
 
             foreach ($rows as $row) {
                 fputcsv($out, [
                     $row->band_name,
                     CarbonImmutable::parse($row->date)->format('d.m.Y'),
                     $row->status->label(),
+                    $row->title,
+                    $describeTime->execute($row) ?? 'ganztägig',
                     $row->note,
                 ], ';', escape: '');
             }

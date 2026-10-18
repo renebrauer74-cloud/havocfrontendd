@@ -11,11 +11,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * Ampel-Status einer Band an einem Tag. "date" bleibt bewusst ein Y-m-d-String,
+ * Status einer Band an einem Tag. "date" bleibt bewusst ein Y-m-d-String,
  * damit Vergleiche auf SQLite und MariaDB gleich funktionieren.
+ * Ohne start_time gilt der Eintrag als ganztägig.
  */
 #[Table('bm_availabilities')]
-#[Fillable(['band_id', 'date', 'status', 'note', 'updated_by'])]
+#[Fillable(['band_id', 'date', 'status', 'title', 'start_time', 'end_time', 'note', 'updated_by'])]
 class Availability extends Model
 {
     /** @use HasFactory<AvailabilityFactory> */
@@ -31,6 +32,11 @@ class Availability extends Model
         return [
             'status' => AvailabilityStatusEnum::class,
         ];
+    }
+
+    public function isAllDay(): bool
+    {
+        return $this->start_time === null;
     }
 
     /**

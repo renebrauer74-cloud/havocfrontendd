@@ -26,7 +26,8 @@
   --hv-topbar-bg:     rgba(255, 255, 255, .88);
   --hv-logo-border:   #e2e2e8;
   --hv-card-shadow:   0 1px 2px rgba(16, 16, 24, .05);
-  --hv-fc-bg-opacity: .45;
+  --hv-fc-bg-opacity: .85;
+  --hv-today-ring:    #ffd000;
   --hv-backdrop:      .45;
 
   --bs-body-bg-rgb: 244, 244, 246;
@@ -59,7 +60,8 @@
   --hv-topbar-bg:     rgba(19, 19, 23, .88);
   --hv-logo-border:   transparent;
   --hv-card-shadow:   none;
-  --hv-fc-bg-opacity: .35;
+  --hv-fc-bg-opacity: .8;
+  --hv-today-ring:    #ffe600;
   --hv-backdrop:      .7;
 
   --bs-body-bg-rgb: 11, 11, 14;
@@ -529,7 +531,7 @@ a.card:hover { border-color: var(--hv-border-strong); transform: translateY(-1px
   --fc-border-color: var(--hv-border);
   --fc-page-bg-color: var(--hv-surface);
   --fc-neutral-bg-color: var(--hv-surface-2);
-  --fc-today-bg-color: rgba(var(--hv-accent-rgb), .08);
+  --fc-today-bg-color: transparent;
   --fc-highlight-color: rgba(var(--hv-accent-rgb), .2);
   --fc-button-text-color: var(--hv-text);
   --fc-button-bg-color: var(--hv-surface-2);
@@ -551,6 +553,32 @@ a.card:hover { border-color: var(--hv-border-strong); transform: translateY(-1px
 .fc .fc-daygrid-day-number { color: var(--hv-text); font-size: .8rem; }
 .fc .fc-bg-event { opacity: var(--hv-fc-bg-opacity); }
 .fc .fc-bg-event .fc-event-title { color: var(--hv-heading); }
+
+/* Kalendereintrag im Kästchen: Uhrzeit + Titel */
+.fc .hv-av-label {
+  display: flex; flex-direction: column;
+  padding: 1.5rem .3rem .2rem;
+  color: #0b0b0e; font-size: .72rem; line-height: 1.2;
+  overflow: hidden;
+}
+.fc .fc-bg-event { overflow: hidden; }
+.fc .hv-av-time { font-weight: 700; }
+.fc .hv-av-text {
+  font-weight: 600;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden; word-break: break-word;
+}
+.fc .fc-multimonth .hv-av-label { display: none; }
+
+/* Heute: kräftiger gelber Rahmen über allen Einträgen */
+.fc .fc-daygrid-day.fc-day-today { position: relative; background: transparent; }
+.fc .fc-daygrid-day.fc-day-today::after {
+  content: ""; display: block; position: absolute; inset: 0; z-index: 5;
+  border: 4px solid var(--hv-today-ring); border-radius: 3px;
+  box-shadow: 0 0 10px 1px var(--hv-today-ring), inset 0 0 6px var(--hv-today-ring);
+  pointer-events: none;
+}
+.fc .fc-daygrid-day.fc-day-today .fc-daygrid-day-number { font-weight: 700; color: var(--hv-heading); }
 .fc .fc-multimonth-title { color: var(--hv-heading); font-size: 1rem; }
 @media (max-width: 575.98px) {
   .fc .fc-toolbar-title { font-size: 1rem; }

@@ -1,3 +1,4 @@
+@inject('describeTime', 'App\Actions\BandManager\Availability\DescribeAvailabilityTimeAction')
 <div class="col-lg-5">
     <div class="card shadow-sm h-100">
         <div class="card-header fw-semibold">Wer kann an diesem Tag?</div>
@@ -9,9 +10,10 @@
             <ul class="list-group list-group-flush">
                 @foreach ($bands as $band)
                     @php($availability = $band->availabilities->first())
+                    @php($details = $availability ? array_filter([$describeTime->execute($availability), $availability->title, $availability->note]) : [])
                     <li class="list-group-item d-flex justify-content-between align-items-center px-0">
                         <span>{{ $band->name }}
-                            @if ($availability?->note)<br><small class="text-muted">{{ $availability->note }}</small>@endif
+                            @if ($details)<br><small class="text-muted">{{ implode(' · ', $details) }}</small>@endif
                         </span>
                         <x-band-manager.availability-badge :availability="$availability" />
                     </li>

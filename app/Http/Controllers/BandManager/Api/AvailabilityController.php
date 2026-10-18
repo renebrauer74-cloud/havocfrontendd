@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\BandManager\Api;
 
 use App\Actions\BandManager\Availability\ClearAvailabilityAction;
+use App\Actions\BandManager\Availability\DescribeAvailabilityTimeAction;
 use App\Actions\BandManager\Availability\SetAvailabilityAction;
 use App\Actions\BandManager\RecordActivityAction;
 use App\Enums\BandManager\AvailabilityStatusEnum;
@@ -26,7 +27,7 @@ class AvailabilityController extends Controller
     /**
      * Events im Zeitraum ?start=Y-m-d&end=Y-m-d (Ende exklusiv, wie bei FullCalendar).
      */
-    public function index(Request $request, Band $band): JsonResponse
+    public function index(Request $request, Band $band, DescribeAvailabilityTimeAction $describeTime): JsonResponse
     {
         Gate::authorize('access', $band);
 
@@ -38,14 +39,24 @@ class AvailabilityController extends Controller
             ->where('date', '<', $to->format('Y-m-d'))
             ->orderBy('date')
             ->get()
+            // Im Kästchen: Uhrzeit + Titel (sonst Notiz, sonst Status)
             ->map(fn (Availability $availability): array => [
                 'id' => 'av-'.$availability->id,
                 'start' => $availability->date,
                 'allDay' => true,
                 'display' => 'background',
                 'color' => $availability->status->color(),
-                'title' => $availability->status->label(),
-                'extendedProps' => ['type' => 'availability', 'status' => $availability->status->value, 'note' => $availability->note],
+                'title' => $availability->title ?: ($availability->note ?: $availability->status->label()),
+                'extendedProps' => [
+                    'type' => 'availability',
+                    'status' => $availability->status->value,
+                    'statusLabel' => $availability->status->label(),
+                    'title' => $availability->title,
+                    'time' => $describeTime->execute($availability),
+                    'startTime' => $availability->isAllDay() ? null : substr((string) $availability->start_time, 0, 5),
+                    'endTime' => $availability->end_time !== null ? substr((string) $availability->end_time, 0, 5) : null,
+                    'note' => $availability->note,
+                ],
             ]);
 
         // Gigs der Band (ohne abgesagte) als normale Termine darüber
@@ -75,7 +86,10 @@ class AvailabilityController extends Controller
         $to = $request->to();
         $status = AvailabilityStatusEnum::from($request->validated('status'));
 
-        $count = app(SetAvailabilityAction::class)->execute($band, $from, $to, $status, $request->validated('note'), $request->user()->id);
+        $count = app(SetAvailabilityAction::class)->execute(
+            $band, $from, $to, $status, $request->validated('note'), $request->user()->id,
+            $request->title(), $request->isAllDay() ? null : $request->startTime(), $request->isAllDay() ? null : $request->endTime(),
+        );
 
         app(RecordActivityAction::class)->execute('availability.saved', [
             'band_id' => $band->id, 'from' => $from->format('Y-m-d'), 'to' => $to->format('Y-m-d'), 'status' => $status->value,
