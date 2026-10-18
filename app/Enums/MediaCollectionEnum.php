@@ -14,7 +14,7 @@ enum MediaCollectionEnum: string
     case Team = 'team';
     case Shows = 'shows';
 
-    // Band-Manager (Disk aus havoc.uploads.band_manager_disk)
+    // Band-Manager (Disk "band-manager")
     case BandPhotos = 'photos';
     case BandLogos = 'logos';
     case MemberPhotos = 'member-photos';

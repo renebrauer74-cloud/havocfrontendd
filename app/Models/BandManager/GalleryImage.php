@@ -69,7 +69,7 @@ class GalleryImage extends Model implements HasMedia
     {
         $this->addMediaCollection(MediaCollectionEnum::BandPhotos->value)
             ->singleFile()
-            ->useDisk(config('havoc.uploads.band_manager_disk'))
+            ->useDisk('band-manager')
             ->acceptsMimeTypes(array_keys(self::TYPES));
     }
 

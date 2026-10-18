@@ -43,7 +43,7 @@ class Document extends Model implements HasMedia
     {
         $this->addMediaCollection(MediaCollectionEnum::Documents->value)
             ->singleFile()
-            ->useDisk(config('havoc.uploads.band_manager_disk'))
+            ->useDisk('band-manager')
             ->acceptsMimeTypes(['application/pdf']);
     }
 

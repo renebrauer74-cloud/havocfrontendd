@@ -26,13 +26,13 @@ app/
   Http/Controllers/Admin/  Backend: CRUD pro Bereich (Künstler, Tourdaten, Galerie, News, Team, Shows, Anfragen)
   Http/Requests/           Validierung (Formular-Requests)
   Models/                  Eloquent-Models (nur Relationen + Media-Collections); Collections/ShowDateCollection = Freitext-Datum sortieren
-  Actions/                 Fachlogik mit execute() – z. B. BandManager/DeleteBandAction, MediaLibrary/MoveMediaToDiskAction
+  Actions/                 Fachlogik mit execute() – z. B. BandManager/DeleteBandAction, MediaLibrary/CreatePdfImageAction
   Enums/                   MediaCollectionEnum (Collection = Unterordner), MediaConversionEnum; BandManager/ = Status, Kategorien, Rollen, Plattformen
   Services/MediaLibrary/   CollectionPathGenerator: Ablage <collection>/<uuid>/datei
-  Console/Commands/        havoc:admin, havoc:import-json, havoc:move-media, band-manager:admin
+  Console/Commands/        havoc:admin, havoc:import-json, band-manager:admin
   helpers.php              safe_link(), placeholder_image()
 config/havoc.php           Kontakt-Mail, Upload-Limit, Disk für Band-Manager-Uploads
-config/filesystems.php     Disks "uploads" und "band-manager" (Unterordner von uploads) – Details im Kommentar
+config/filesystems.php     Disks "uploads" (öffentlich) und "band-manager" (privat) – auf Cloud je ein Bucket
 database/migrations/       Tabellen (überspringen bereits vorhandene Tabellen aus dem alten schema.sql)
 resources/views/           Blade: pages/, shows/, admin/, components/ (Layouts, Dropzone, Lösch-Button)
 routes/web.php             alle Routen inkl. 301-Weiterleitungen der alten *.php-URLs
@@ -72,7 +72,7 @@ config/band-manager.php             Rechte je Rolle, Upload-Limits, Pressekit-Ko
 routes/band-manager.php             Routen (Präfix /band-manager, Namen band-manager.*)
 resources/views/band-manager/       Blade-Views, Layout unter components/band-manager/
 public/assets/band-manager/         CSS, JS (Kalender, Hell/Dunkel, Formatierung), Logo
-Disk "band-manager"                 Uploads (Media Library) unter band-manager/ der Disk "uploads" – Auslieferung nur über Controller mit Rechteprüfung
+Disk "band-manager"                 Uploads (Media Library), lokal storage/app/private/band-manager/, auf Cloud privater Bucket – Auslieferung nur über Controller mit Rechteprüfung
 ```
 
 Rechte stehen pro Rolle in `config/band-manager.php` und werden als Gate geprüft (`@can('gigs.view')`).

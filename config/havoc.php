@@ -25,14 +25,10 @@ return [
     | Maximale Größe in Kilobyte. Muss zu upload_max_filesize / post_max_size
     | in public/.user.ini passen.
     |
-    | band_manager_disk: Disk für neue Band-Manager-Uploads – Umzug auf einen privaten
-    | Bucket siehe config/filesystems.php.
-    |
     */
 
     'uploads' => [
         'max_kilobytes' => (int) env('UPLOAD_MAX_KILOBYTES', 500 * 1024),
-        'band_manager_disk' => env('BAND_MANAGER_DISK', 'band-manager'),
     ],
 
 ];
