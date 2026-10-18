@@ -1,11 +1,13 @@
 <?php
 
+use App\Enums\MediaCollectionEnum;
 use App\Models\AgencyShow;
 use App\Models\Artist;
 use App\Models\Message;
 use App\Models\News;
 use App\Models\TeamMember;
 use App\Models\TourDate;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 
 beforeEach(function () {
@@ -79,6 +81,25 @@ it('creates, updates and deletes agency shows', function () {
     actingAsAdmin()->delete(route('admin.shows.destroy', $show));
     $this->assertModelMissing($show);
 });
+
+it('removes the image of news, team members and agency shows when requested', function (string $model, string $route, MediaCollectionEnum $collection, array $input) {
+    $record = $model::factory()->create();
+    $record->addMedia(UploadedFile::fake()->image('bild.jpg'))->toMediaCollection($collection->value);
+    $oldFile = $record->getFirstMedia($collection->value)->getPathRelativeToRoot();
+
+    actingAsAdmin()->get(route("admin.{$route}.edit", $record))->assertOk()->assertSee('name="remove_image"', false);
+
+    actingAsAdmin()
+        ->put(route("admin.{$route}.update", $record), [...$input, 'remove_image' => '1'])
+        ->assertRedirect(route("admin.{$route}.index"));
+
+    expect($record->refresh()->getMedia($collection->value))->toHaveCount(0);
+    Storage::disk('uploads')->assertMissing($oldFile);
+})->with([
+    'news' => [News::class, 'news', MediaCollectionEnum::News, ['title' => 'Tour!', 'text' => 'Infos']],
+    'team' => [TeamMember::class, 'team', MediaCollectionEnum::Team, ['name' => 'Rene', 'email' => 'rene@havoc-agency.com']],
+    'shows' => [AgencyShow::class, 'shows', MediaCollectionEnum::Shows, ['title' => 'Havoc Fest', 'date' => '12.-14. JUNI 2027', 'city' => 'Witten', 'venue' => 'Park']],
+]);
 
 it('lists and deletes contact requests', function () {
     $message = Message::factory()->create(['name' => 'Anfragende Person']);

@@ -24,6 +24,7 @@ class ArtistRequest extends AdminFormRequest
             'instagram_url' => ['nullable', 'string', 'max:1024'],
             'tiktok_url' => ['nullable', 'string', 'max:1024'],
             'image' => $this->imageRules(),
+            'remove_image' => ['nullable', 'boolean'],
         ];
     }
 }

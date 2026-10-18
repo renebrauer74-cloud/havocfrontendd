@@ -52,12 +52,14 @@ class TeamMemberController extends Controller
 
     private function save(TeamMember $member, TeamMemberRequest $request): void
     {
-        $member->fill($request->safe()->except('image'));
+        $member->fill($request->safe()->except(['image', 'remove_image']));
 
         $member->save();
 
         if ($request->hasFile('image')) {
             $member->addMediaFromRequest('image')->toMediaCollection(MediaCollectionEnum::Team->value);
+        } elseif ($request->boolean('remove_image')) {
+            $member->clearMediaCollection(MediaCollectionEnum::Team->value);
         }
     }
 }

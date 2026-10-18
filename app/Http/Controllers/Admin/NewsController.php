@@ -52,12 +52,14 @@ class NewsController extends Controller
 
     private function save(News $news, NewsRequest $request): void
     {
-        $news->fill($request->safe()->except('image'));
+        $news->fill($request->safe()->except(['image', 'remove_image']));
 
         $news->save();
 
         if ($request->hasFile('image')) {
             $news->addMediaFromRequest('image')->toMediaCollection(MediaCollectionEnum::News->value);
+        } elseif ($request->boolean('remove_image')) {
+            $news->clearMediaCollection(MediaCollectionEnum::News->value);
         }
     }
 }

@@ -15,7 +15,7 @@
         <div class="form-group"><label for="agencyShowInfoText">Ausführlicher Infotext (Detailseite)</label><textarea id="agencyShowInfoText" name="info_text" rows="6" placeholder="Bands, Zeitplan, zusätzliche Infos...">{{ old('info_text', $editing?->info_text) }}</textarea></div>
         <div class="form-group">
             <label>Festival-Plakat / Show-Bild (Drag & Drop)</label>
-            <x-admin.dropzone label="Show-Bild ablegen oder klicken" :current="$editing?->getFirstMedia(\App\Enums\MediaCollectionEnum::Shows->value)?->getUrl()" />
+            <x-admin.dropzone label="Show-Bild ablegen oder klicken" :current="$editing?->getFirstMedia(\App\Enums\MediaCollectionEnum::Shows->value)?->getUrl()" removable />
         </div>
 
         <button type="submit" class="submit-btn">{{ $editing ? 'ÄNDERUNGEN SPEICHERN' : 'SHOW VERÖFFENTLICHEN' }}</button>

@@ -52,12 +52,14 @@ class AgencyShowController extends Controller
 
     private function save(AgencyShow $show, AgencyShowRequest $request): void
     {
-        $show->fill($request->safe()->except('image'));
+        $show->fill($request->safe()->except(['image', 'remove_image']));
 
         $show->save();
 
         if ($request->hasFile('image')) {
             $show->addMediaFromRequest('image')->toMediaCollection(MediaCollectionEnum::Shows->value);
+        } elseif ($request->boolean('remove_image')) {
+            $show->clearMediaCollection(MediaCollectionEnum::Shows->value);
         }
     }
 }
