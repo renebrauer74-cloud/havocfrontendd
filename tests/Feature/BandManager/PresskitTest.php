@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\BandManager\GalleryCategoryEnum;
 use App\Models\BandManager\ActivityLog;
 use App\Models\BandManager\Band;
 use App\Models\BandManager\BandProfile;
@@ -72,6 +73,7 @@ it('shows what is available for the presskit', function () {
 it('builds the presskit as zip with pdfs, photos and riders', function () {
     $band = completeBand();
     $rider = $band->documents()->sole();
+    GalleryImage::factory()->for($band)->withPhoto(800, 600)->create(['category' => GalleryCategoryEnum::Live, 'caption' => 'Bühne', 'credit' => null]);
 
     $response = actingAsBandManager()
         ->post(route('band-manager.presskit.store'), [
@@ -91,6 +93,7 @@ it('builds the presskit as zip with pdfs, photos and riders', function () {
         $root.'02_Fotos.pdf',
         $root.'03_Live-Termine.pdf',
         $root.'Fotos/01_Hauptbild.jpg',
+        $root.'Fotos/02_Live-Buehne.jpg',
         $root.'Fotos/Bildnachweise.txt',
         $root.'Rider/Technical-Rider-Tech-Rider.pdf',
     ])->and(ActivityLog::query()->where('action', 'presskit.created')->exists())->toBeTrue();
