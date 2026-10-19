@@ -6,6 +6,7 @@
     $isEmpty = $folders->isEmpty() && $files->isEmpty();
     $isRoot = $folder?->is($link->folder) ?? true;
     $canUpload = $link->type->allowsUpload() && $isRoot;
+    $accept = implode(',', ['image/*', 'video/*', ...array_map(fn (string $extension): string => '.'.$extension, (array) config('band-manager.cloud.link_upload_extensions'))]);
 @endphp
 <x-band-manager.layout :title="$title.' – '.$band->name">
     @push('styles')
@@ -58,7 +59,7 @@
                 <div class="cl-drop" id="clDrop"
                      data-url="{{ route('band-manager.share.upload', $link) }}" data-max-bytes="{{ $maxBytes }}" data-csrf="{{ csrf_token() }}"
                      @unless ($link->allow_all_types) data-accept="image/,video/" @endunless>
-                    <input type="file" id="clFiles" multiple class="visually-hidden" @unless ($link->allow_all_types) accept="image/*,video/*" @endunless>
+                    <input type="file" id="clFiles" multiple class="visually-hidden" @unless ($link->allow_all_types) accept="{{ $accept }}" @endunless>
                     <i class="bi bi-cloud-arrow-up"></i>
                     <span>Hierher ziehen oder <label for="clFiles" class="cl-drop-link">auswählen</label></span>
                     <small class="text-muted">

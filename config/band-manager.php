@@ -167,6 +167,11 @@ return [
         'link_expiry_days' => [7, 30, 90],  // Auswahl beim Freigabe-Link, dazu „unbegrenzt“; vorgewählt der mittlere Wert
         'link_uploads_per_hour' => 300,     // Uploads pro Stunde und Besucher über einen Upload-Link (Schutz vor Missbrauch)
         'link_upload_types' => ['image/*', 'video/*'],   // Upload-Links ohne „alle Dateitypen“: nur Fotos & Videos
+        // Zusätzlich im Dateidialog anbieten – Windows kennt z. B. HEIC (iPhone) oder WebP oft nicht als image/* und blendet sie sonst aus
+        'link_upload_extensions' => [
+            'jpg', 'jpeg', 'png', 'gif', 'webp', 'heic', 'heif', 'avif', 'tif', 'tiff', 'bmp', 'dng',
+            'mp4', 'mov', 'm4v', 'avi', 'mkv', 'webm', '3gp',
+        ],
         'photo_drop_folder' => 'Fotos',     // Photo Drop: neue Ordner landen vorgewählt in diesem Hauptordner (sonst oberste Ebene)
 
         // Ausführbare Dateien – zusätzlich sperrt die Media Library z. B. php, cgi, asp (FileAdder::$defaultDisallowedExtensions)
