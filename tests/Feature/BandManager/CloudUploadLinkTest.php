@@ -103,6 +103,24 @@ it('only accepts photos and videos unless all types are allowed', function () {
     expect($folder->files()->count())->toBe(1);
 });
 
+it('offers iphone photos in the file dialog and accepts them', function () {
+    $folder = CloudFolder::factory()->create();
+    $link = CloudLink::factory()->forFolder($folder)->upload()->create();
+    $heic = "\x00\x00\x00\x18ftypheic\x00\x00\x00\x00mif1heic".str_repeat("\x00", 64);
+
+    // Windows kennt .heic oft nicht als image/* – ohne die Endung blendet der Dateidialog die Fotos aus
+    $this->get(route('band-manager.share.show', $link))
+        ->assertOk()
+        ->assertSee('accept="image/*,video/*,.jpg,', false)
+        ->assertSee('.heic,', false)
+        ->assertSee('.webp,', false);
+
+    $this->postJson(route('band-manager.share.upload', $link), ['file' => UploadedFile::fake()->createWithContent('IMG_0042.HEIC', $heic)])
+        ->assertCreated();
+
+    expect($folder->files()->count())->toBe(1);
+});
+
 it('refuses uploads over read links, expired links and revoked links', function () {
     $folder = CloudFolder::factory()->create();
     $read = CloudLink::factory()->forFolder($folder)->create();
