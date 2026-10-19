@@ -9,7 +9,7 @@
 @endphp
 <x-band-manager.layout :title="$title.' – '.$band->name">
     @push('styles')
-        <link href="{{ asset('assets/band-manager/css/cloud.css') }}?v=4" rel="stylesheet">
+        <link href="{{ asset('assets/band-manager/css/cloud.css') }}?v=5" rel="stylesheet">
     @endpush
 
     <div class="cl-share mx-auto">
@@ -60,7 +60,8 @@
                      @unless ($link->allow_all_types) data-accept="image/,video/" @endunless>
                     <input type="file" id="clFiles" multiple class="visually-hidden" @unless ($link->allow_all_types) data-mobile-accept="image/*,video/*" @endunless>
                     <i class="bi bi-cloud-arrow-up"></i>
-                    <span>Hierher ziehen oder <label for="clFiles" class="cl-drop-link">auswählen</label></span>
+                    <label for="clFiles" class="btn btn-primary my-1"><i class="bi bi-images"></i> {{ $link->allow_all_types ? 'Dateien' : 'Fotos & Videos' }} auswählen</label>
+                    <span>oder hierher ziehen</span>
                     <small class="text-muted">
                         {{ $link->allow_all_types ? 'Alle Dateitypen außer Programmen' : 'Fotos und Videos' }} · max. {{ (int) floor($maxBytes / 1048576) }} MB pro Datei
                     </small>
@@ -134,7 +135,7 @@
 
     @if ($canUpload)
         @push('scripts')
-            <script src="{{ asset('assets/band-manager/js/cloud.js') }}?v=5"></script>
+            <script src="{{ asset('assets/band-manager/js/cloud.js') }}?v=6"></script>
         @endpush
     @endif
 </x-band-manager.layout>

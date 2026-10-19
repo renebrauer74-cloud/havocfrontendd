@@ -8,7 +8,9 @@
   border: 2px dashed var(--hv-border-strong); border-radius: 12px;
   color: var(--hv-muted); background: var(--hv-surface);
   transition: border-color .15s, background .15s;
+  cursor: pointer;
 }
+.cl-drop:hover { border-color: var(--hv-accent); }
 .cl-drop > .bi { font-size: 1.8rem; color: var(--hv-accent-text); }
 .cl-drop.is-over { border-color: var(--hv-accent); background: var(--hv-accent-soft); }
 .cl-drop-link { color: var(--hv-accent-text); text-decoration: underline; cursor: pointer; }

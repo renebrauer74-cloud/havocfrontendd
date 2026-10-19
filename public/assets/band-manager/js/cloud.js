@@ -120,6 +120,9 @@
 
         input.addEventListener('change', () => { add(input.files); input.value = ''; });
 
+        // Die ganze Fläche öffnet den Dateidialog – nicht nur Knopf bzw. Link (die sind Labels und öffnen ihn selbst)
+        drop.addEventListener('click', e => { if (!e.target.closest('label, input, a, button')) input.click(); });
+
         ['dragenter', 'dragover'].forEach(type => drop.addEventListener(type, e => { e.preventDefault(); drop.classList.add('is-over'); }));
         ['dragleave', 'drop'].forEach(type => drop.addEventListener(type, e => { e.preventDefault(); drop.classList.remove('is-over'); }));
         drop.addEventListener('drop', e => add(e.dataTransfer.files));
