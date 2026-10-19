@@ -2,7 +2,7 @@
     <table class="table align-middle mb-0">
         <thead><tr>
             @if ($showBand)<th>Band</th>@endif
-            <th>Titel</th><th>{{ $infoLabel }}</th><th>Hochgeladen</th>
+            <th>Titel</th>@if ($infoLabel)<th>{{ $infoLabel }}</th>@endif<th>Hochgeladen</th>
             <th class="text-end">Größe</th><th class="text-end">Aktionen</th>
         </tr></thead>
         <tbody>
@@ -13,15 +13,17 @@
                     {{ $document->title }}<br>
                     <small class="text-muted">{{ $document->getFirstMedia(\App\Enums\MediaCollectionEnum::Documents->value)?->file_name }}</small>
                 </td>
-                <td>
-                    @if (! $document->isContract())
-                        {{ $document->category?->label() ?? '–' }}
-                    @elseif ($document->gig)
-                        {{ \Carbon\CarbonImmutable::parse($document->gig->date)->format('d.m.Y') }} · {{ $document->gig->title }}
-                    @else
-                        <span class="text-muted">–</span>
-                    @endif
-                </td>
+                @if ($infoLabel)
+                    <td>
+                        @if (! $document->isContract())
+                            {{ $document->category?->label() ?? '–' }}
+                        @elseif ($document->gig)
+                            {{ \Carbon\CarbonImmutable::parse($document->gig->date)->format('d.m.Y') }} · {{ $document->gig->title }}
+                        @else
+                            <span class="text-muted">–</span>
+                        @endif
+                    </td>
+                @endif
                 <td class="text-nowrap">{{ $document->created_at->format('d.m.Y') }}</td>
                 <td class="text-end text-nowrap">{{ $document->getFirstMedia(\App\Enums\MediaCollectionEnum::Documents->value)?->human_readable_size }}</td>
                 <td class="text-end text-nowrap">
@@ -39,7 +41,7 @@
                 </td>
             </tr>
         @empty
-            <tr><td colspan="6" class="text-muted">{{ $empty }}</td></tr>
+            <tr><td colspan="{{ 4 + ($showBand ? 1 : 0) + ($infoLabel ? 1 : 0) }}" class="text-muted">{{ $empty }}</td></tr>
         @endforelse
         </tbody>
     </table>

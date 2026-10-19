@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\BandManager\ContractKindEnum;
 use App\Enums\BandManager\RiderCategoryEnum;
 use App\Enums\MediaCollectionEnum;
 use App\Models\BandManager\ActivityLog;
@@ -19,25 +20,27 @@ function pdf(string $name = 'vertrag.pdf'): UploadedFile
     return UploadedFile::fake()->createWithContent($name, "%PDF-1.4\n%Test\n");
 }
 
-it('lets the agency upload a contract linked to a gig', function () {
+it('lets the agency upload a gig contract linked to a gig', function () {
     $band = Band::factory()->create();
     $gig = Gig::factory()->for($band)->create();
 
     actingAsBandManager()
         ->post(route('band-manager.documents.store'), [
             'type' => 'contract',
+            'contract_kind' => 'gig',
             'band_id' => $band->id,
             'gig_id' => $gig->id,
             'file' => pdf('Vertrag Stadtfest.pdf'),
             'filter' => $band->id,
         ])
         ->assertRedirect(route('band-manager.documents.index', ['band' => $band->id]))
-        ->assertSessionHas('success', 'Vertrag wurde hinterlegt.');
+        ->assertSessionHas('success', 'Gastspielvertrag wurde hinterlegt.');
 
     $document = Document::sole();
 
     expect($document)
         ->title->toBe('Vertrag Stadtfest')
+        ->contract_kind->toBe(ContractKindEnum::Gig)
         ->gig_id->toBe($gig->id)
         ->category->toBeNull()
         ->and(ActivityLog::query()->where('action', 'document.uploaded')->exists())->toBeTrue();
@@ -45,6 +48,37 @@ it('lets the agency upload a contract linked to a gig', function () {
     expect($document->getFirstMedia(MediaCollectionEnum::Documents->value)->getPathRelativeToRoot())->toStartWith('documents/')->toEndWith('.pdf');
     Storage::disk('band-manager')->assertExists($document->getFirstMedia(MediaCollectionEnum::Documents->value)->getPathRelativeToRoot());
 });
+
+it('stores an agency contract without a gig', function () {
+    $band = Band::factory()->create();
+
+    actingAsBandManager()
+        ->post(route('band-manager.documents.store'), [
+            'type' => 'contract',
+            'contract_kind' => 'agency',
+            'band_id' => $band->id,
+            'gig_id' => Gig::factory()->for($band)->create()->id,
+            'file' => pdf('Agenturvertrag 2026.pdf'),
+        ])
+        ->assertSessionHas('success', 'Agenturvertrag wurde hinterlegt.');
+
+    expect(Document::sole())
+        ->contract_kind->toBe(ContractKindEnum::Agency)
+        ->gig_id->toBeNull()
+        ->title->toBe('Agenturvertrag 2026');
+});
+
+it('requires the kind of contract and a gig for gig contracts', function (array $data, string $field, string $message) {
+    actingAsBandManager()
+        ->post(route('band-manager.documents.store'), array_merge(['type' => 'contract', 'band_id' => Band::factory()->create()->id, 'file' => pdf()], $data))
+        ->assertSessionHasErrors([$field => $message]);
+
+    expect(Document::count())->toBe(0);
+})->with([
+    'missing kind' => [[], 'contract_kind', 'Bitte wählen: Agenturvertrag oder Gastspielvertrag.'],
+    'unknown kind' => [['contract_kind' => 'invoice'], 'contract_kind', 'Bitte wählen: Agenturvertrag oder Gastspielvertrag.'],
+    'gig contract without gig' => [['contract_kind' => 'gig'], 'gig_id', 'Bitte den Gig zum Gastspielvertrag wählen.'],
+]);
 
 it('lets bands upload riders for their own band only', function () {
     $artist = User::factory()->create();
@@ -91,6 +125,7 @@ it('rejects gigs of other bands', function () {
     actingAsBandManager()
         ->post(route('band-manager.documents.store'), [
             'type' => 'contract',
+            'contract_kind' => 'gig',
             'band_id' => Band::factory()->create()->id,
             'gig_id' => Gig::factory()->create()->id,
             'file' => pdf(),
@@ -113,6 +148,45 @@ it('lists contracts and riders of the own bands only', function () {
         ->assertDontSee('Fremder Rider')
         ->assertDontSee('Vertrag hinterlegen')
         ->assertSee('Rider hochladen');
+});
+
+it('pins the latest agency contract per band and keeps older versions', function () {
+    $band = Band::factory()->create(['name' => 'Demo Band']);
+    Band::factory()->create(['name' => 'Neue Band']);
+    Document::factory()->for($band)->contract()->create(['title' => 'Agenturvertrag 2024', 'created_at' => now()->subYears(2)]);
+    Document::factory()->for($band)->contract()->create(['title' => 'Agenturvertrag 2026']);
+
+    actingAsBandManager()
+        ->get(route('band-manager.documents.index'))
+        ->assertSuccessful()
+        ->assertSeeInOrder(['Agenturverträge', 'Demo Band', 'Agenturvertrag 2026', 'Frühere Versionen (1)', 'Agenturvertrag 2024', 'Neue Band', 'Noch kein Agenturvertrag hinterlegt', 'Gastspielverträge']);
+});
+
+it('groups gig contracts by year of the gig', function () {
+    $band = Band::factory()->create();
+    Document::factory()->forGig(Gig::factory()->for($band)->create(['date' => '2025-06-14']))->create(['title' => 'Vertrag Stadtfest']);
+    Document::factory()->forGig(Gig::factory()->for($band)->create(['date' => '2026-08-01']))->create(['title' => 'Vertrag Festival']);
+    $deletedGig = Gig::factory()->for($band)->create(['date' => '2024-05-01']);
+    Document::factory()->forGig($deletedGig)->create(['title' => 'Vertrag ohne Gig']);
+    $deletedGig->delete();
+
+    actingAsBandManager()
+        ->get(route('band-manager.documents.index'))
+        ->assertSuccessful()
+        ->assertSeeInOrder(['Gastspielverträge', '2026', 'Vertrag Festival', '2025', 'Vertrag Stadtfest', 'Ohne Gig', 'Vertrag ohne Gig', 'Rider'])
+        ->assertSee('id="gigContracts0"', false);
+});
+
+it('opens the contract form with the gig preselected when coming from a gig', function () {
+    $gig = Gig::factory()->create(['date' => now()->subYears(3)->format('Y-m-d')]);
+
+    $response = actingAsBandManager()
+        ->get(route('band-manager.documents.index', ['gig' => $gig->id]))
+        ->assertSuccessful()
+        ->assertSee('class="collapse show" id="contractUpload"', false)
+        ->assertSee('<option value="'.$gig->id.'" selected', false);
+
+    expect($response->getContent())->toMatch('/id="contract_kind_gig"[^>]*checked/');
 });
 
 it('shows and downloads the pdf', function () {
@@ -152,16 +226,16 @@ it('lets bands delete riders but not contracts', function () {
 
 it('keeps the contract when its gig is deleted', function () {
     $gig = Gig::factory()->create();
-    $contract = Document::factory()->for($gig->band)->contract()->create(['gig_id' => $gig->id]);
+    $contract = Document::factory()->forGig($gig)->create();
 
     actingAsBandManager()->delete(route('band-manager.gigs.destroy', $gig));
 
-    expect($contract->fresh())->not->toBeNull()->gig_id->toBeNull();
+    expect($contract->fresh())->not->toBeNull()->gig_id->toBeNull()->contract_kind->toBe(ContractKindEnum::Gig);
 });
 
 it('shows linked contracts in the gig form and the latest documents on the dashboard', function () {
     $gig = Gig::factory()->create();
-    Document::factory()->for($gig->band)->contract()->create(['gig_id' => $gig->id, 'title' => 'Vertrag Festival']);
+    Document::factory()->forGig($gig)->create(['title' => 'Vertrag Festival']);
 
     actingAsBandManager()->get(route('band-manager.gigs.edit', $gig))->assertSee('Vertrag Festival')->assertSee('+ Vertrag für diesen Gig hochladen');
     actingAsBandManager()->get(route('band-manager.admin.dashboard'))->assertSee('Neueste Dokumente')->assertSee('Vertrag Festival');

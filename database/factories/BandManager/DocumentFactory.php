@@ -2,9 +2,11 @@
 
 namespace Database\Factories\BandManager;
 
+use App\Enums\BandManager\ContractKindEnum;
 use App\Enums\MediaCollectionEnum;
 use App\Models\BandManager\Band;
 use App\Models\BandManager\Document;
+use App\Models\BandManager\Gig;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Http\UploadedFile;
 
@@ -30,9 +32,29 @@ class DocumentFactory extends Factory
         ];
     }
 
+    /**
+     * Agenturvertrag (ohne Gig).
+     */
     public function contract(): static
     {
-        return $this->state(fn (): array => ['type' => Document::TYPE_CONTRACT, 'category' => null, 'title' => 'Vertrag']);
+        return $this->state(fn (): array => [
+            'type' => Document::TYPE_CONTRACT,
+            'contract_kind' => ContractKindEnum::Agency,
+            'category' => null,
+            'title' => 'Vertrag',
+        ]);
+    }
+
+    /**
+     * Gastspielvertrag zum Gig – gehört zur Band des Gigs.
+     */
+    public function forGig(Gig $gig): static
+    {
+        return $this->contract()->state(fn (): array => [
+            'band_id' => $gig->band_id,
+            'gig_id' => $gig->id,
+            'contract_kind' => ContractKindEnum::Gig,
+        ]);
     }
 
     /**

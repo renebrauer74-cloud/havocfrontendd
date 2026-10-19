@@ -11,7 +11,7 @@
                 <a href="{{ route('band-manager.messages.create') }}" class="btn btn-outline-primary">+ Nachricht</a>
             @endcan
             @can('documents.manage')
-                <a href="{{ route('band-manager.documents.index') }}#vertrag" class="btn btn-outline-primary">+ Vertrag</a>
+                <a href="{{ route('band-manager.documents.index', ['upload' => 1]) }}#vertrag" class="btn btn-outline-primary">+ Vertrag</a>
             @endcan
         </div>
     </div>
