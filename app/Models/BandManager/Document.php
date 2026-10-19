@@ -2,6 +2,7 @@
 
 namespace App\Models\BandManager;
 
+use App\Enums\BandManager\ContractKindEnum;
 use App\Enums\BandManager\RiderCategoryEnum;
 use App\Enums\MediaCollectionEnum;
 use Database\Factories\BandManager\DocumentFactory;
@@ -14,10 +15,10 @@ use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
 /**
- * Vertrag oder Rider (PDF). Die Datei liegt in der Media Library.
+ * Vertrag (Agentur- oder Gastspielvertrag, siehe contract_kind) oder Rider (PDF). Die Datei liegt in der Media Library.
  */
 #[Table('bm_documents')]
-#[Fillable(['band_id', 'gig_id', 'type', 'category', 'title', 'uploaded_by'])]
+#[Fillable(['band_id', 'gig_id', 'type', 'contract_kind', 'category', 'title', 'uploaded_by'])]
 class Document extends Model implements HasMedia
 {
     /** @use HasFactory<DocumentFactory> */
@@ -35,6 +36,7 @@ class Document extends Model implements HasMedia
     protected function casts(): array
     {
         return [
+            'contract_kind' => ContractKindEnum::class,
             'category' => RiderCategoryEnum::class,
         ];
     }

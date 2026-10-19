@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\BandManager;
 
+use App\Enums\BandManager\ContractKindEnum;
 use App\Enums\BandManager\RiderCategoryEnum;
 use App\Models\BandManager\Band;
 use App\Models\BandManager\Document;
@@ -13,6 +14,7 @@ use Illuminate\Validation\Rule;
 
 /**
  * Vertrag (nur Agentur) oder Rider (Bands und Agentur) als PDF hochladen.
+ * Ein Gastspielvertrag braucht einen Gig der Band, ein Agenturvertrag hat keinen.
  */
 class DocumentRequest extends FormRequest
 {
@@ -38,12 +40,14 @@ class DocumentRequest extends FormRequest
     public function rules(): array
     {
         $isRider = $this->input('type') === Document::TYPE_RIDER;
+        $isGigContract = ! $isRider && $this->input('contract_kind') === ContractKindEnum::Gig->value;
 
         return [
             'type' => ['required', Rule::in([Document::TYPE_CONTRACT, Document::TYPE_RIDER])],
             'band_id' => ['required', 'integer', $this->accessibleBand()],
+            'contract_kind' => $isRider ? ['exclude'] : ['required', Rule::enum(ContractKindEnum::class)],
             'category' => $isRider ? ['required', Rule::enum(RiderCategoryEnum::class)] : ['exclude'],
-            'gig_id' => $isRider ? ['exclude'] : ['nullable', 'integer', $this->gigOfBand()],
+            'gig_id' => $isGigContract ? ['required', 'integer', $this->gigOfBand()] : ['exclude'],
             'title' => ['nullable', 'string', 'max:190'],
             'file' => ['required', 'file', 'mimetypes:application/pdf', 'max:'.$this->maxMb() * 1024],
             'filter' => ['nullable', 'integer'],
@@ -61,6 +65,9 @@ class DocumentRequest extends FormRequest
             'type.*' => 'Ungültiger Dokumenttyp.',
             'band_id.required' => 'Bitte eine Band wählen.',
             'band_id.integer' => 'Bitte eine Band wählen.',
+            'contract_kind.*' => 'Bitte wählen: Agenturvertrag oder Gastspielvertrag.',
+            'gig_id.required' => 'Bitte den Gig zum Gastspielvertrag wählen.',
+            'gig_id.integer' => 'Bitte den Gig zum Gastspielvertrag wählen.',
             'category.*' => 'Bitte die Art des Riders wählen.',
             'file.required' => 'Bitte eine PDF-Datei auswählen.',
             'file.max' => "Die Datei ist zu groß (max. {$maxMb} MB).",
