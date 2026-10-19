@@ -8,7 +8,7 @@ use App\Models\BandManager\User;
 
 /**
  * Menü der Seitenleiste (Icons: https://icons.getbootstrap.com).
- * Einträge mit section "riders" landen unter der Überschrift "Rider Creator",
+ * Einträge mit section "riders" landen unter der Überschrift "Rider Creator", section "website" unter "Website Builder",
  * darunter steht die farbig hervorgehobene "Cloud" (section "cloud") für sich,
  * der hervorgehobene Punkt "Export" (section "exports") führt zur Kachel-Seite mit allen Exporten,
  * Einträge mit section "admin" im abgetrennten Bereich "Administration".
@@ -42,6 +42,8 @@ class Navigation
             ['route' => 'band-manager.tech-riders.index', 'active' => ['band-manager.tech-riders.*'], 'label' => 'Tech Rider', 'icon' => 'sliders2-vertical', 'order' => 10, 'section' => 'riders', 'visible' => $user->can('riders.view')],
             ['route' => 'band-manager.catering-riders.index', 'active' => ['band-manager.catering-riders.*'], 'label' => 'Catering Rider', 'icon' => 'cup-hot', 'order' => 20, 'section' => 'riders', 'visible' => $user->can('riders.view')],
             ['route' => 'band-manager.stage-plots.index', 'active' => ['band-manager.stage-plots.*'], 'label' => 'Stage Plot Designer', 'icon' => 'easel2', 'order' => 30, 'section' => 'riders', 'visible' => $user->can('riders.view')],
+
+            ['route' => 'band-manager.website-creator.index', 'active' => ['band-manager.website-creator.*'], 'label' => 'Website Creator', 'icon' => 'globe2', 'order' => 10, 'section' => 'website', 'visible' => $user->can('website.view')],
 
             ['route' => 'band-manager.cloud.index', 'active' => ['band-manager.cloud.*'], 'label' => 'Cloud', 'icon' => 'cloud', 'order' => 10, 'section' => 'cloud', 'visible' => $user->can('cloud.view')],
 

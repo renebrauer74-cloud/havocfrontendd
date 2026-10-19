@@ -17,6 +17,7 @@
     $navigation = $user ? app(Navigation::class)->for($user) : [];
     $mainNavigation = array_filter($navigation, fn (array $item): bool => $item['section'] === 'main');
     $riderNavigation = array_filter($navigation, fn (array $item): bool => $item['section'] === 'riders');
+    $websiteNavigation = array_filter($navigation, fn (array $item): bool => $item['section'] === 'website');
     $cloudNavigation = array_filter($navigation, fn (array $item): bool => $item['section'] === 'cloud');
     $exportNavigation = array_filter($navigation, fn (array $item): bool => $item['section'] === 'exports');
     $adminNavigation = array_filter($navigation, fn (array $item): bool => $item['section'] === 'admin');
@@ -81,6 +82,15 @@
                     <div class="hv-side-section">
                         <div class="hv-side-label"><i class="bi bi-file-earmark-music"></i> Rider Creator</div>
                         @foreach ($riderNavigation as $item)
+                            <x-band-manager.nav-link :item="$item" />
+                        @endforeach
+                    </div>
+                @endif
+
+                @if ($websiteNavigation)
+                    <div class="hv-side-section">
+                        <div class="hv-side-label"><i class="bi bi-window-stack"></i> Website Builder</div>
+                        @foreach ($websiteNavigation as $item)
                             <x-band-manager.nav-link :item="$item" />
                         @endforeach
                     </div>
