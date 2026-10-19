@@ -5,6 +5,8 @@ namespace App\Actions\BandManager\Website;
 use App\Actions\BandManager\Profile\ListProfileLinksAction;
 use App\Enums\BandManager\GigStatusEnum;
 use App\Enums\BandManager\PlatformEnum;
+use App\Enums\BandManager\WebsiteBodyFontEnum;
+use App\Enums\BandManager\WebsiteFontEnum;
 use App\Enums\BandManager\WebsiteLanguageEnum;
 use App\Enums\BandManager\WebsiteSectionEnum;
 use App\Enums\MediaCollectionEnum;
@@ -17,7 +19,8 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 /**
  * Alles, was die Band-Website anzeigt – live aus dem Band-Manager: Bandprofil (Biografie, Logo, Links),
- * Galerie, Bandmitglieder und bestätigte kommende Gigs. Abschnitte ohne Inhalt fallen weg.
+ * Galerie, Bandmitglieder und bestätigte kommende Gigs – ohne das, was die Band abgewählt hat (Logo, hidden_*).
+ * Dazu Schriften und Überschriften (eigene oder Standardtext in der Sprache der Website). Abschnitte ohne Inhalt fallen weg.
  * "media_ids" sind die Dateien, die die öffentliche Website ausliefern darf.
  */
 class CollectWebsiteContentAction
@@ -32,6 +35,10 @@ class CollectWebsiteContentAction
     /**
      * @return array{
      *     colors: array{bg: string, surface: string, text: string, muted: string, accent: string},
+     *     heading_font: WebsiteFontEnum,
+     *     body_font: WebsiteBodyFontEnum,
+     *     titles: array<string, string>,
+     *     intros: array<string, string>,
      *     tagline: ?string,
      *     about: string,
      *     logo: ?Media,
@@ -56,22 +63,33 @@ class CollectWebsiteContentAction
         $profile = $band->profile;
         $images = $band->galleryImages()->with('media')->ordered()->get();
 
-        $logo = $profile->exists ? $profile->getFirstMedia(MediaCollectionEnum::BandLogos->value) : null;
+        $logo = $profile->exists && $website->show_logo ? $profile->getFirstMedia(MediaCollectionEnum::BandLogos->value) : null;
         $heroImage = $images->firstWhere('id', $website->hero_image_id) ?? $images->firstWhere('is_main', true) ?? $images->first();
         $hero = $heroImage?->getFirstMedia(MediaCollectionEnum::BandPhotos->value);
 
         $gallery = $this->gallery($images, $website->gallery_image_ids);
-        $members = $this->members($band->teamMembers()->with('media')->where('type', TeamMember::TYPE_MEMBER)->orderBy('first_name')->orderBy('last_name')->get());
+        $members = $this->members($band->teamMembers()
+            ->with('media')
+            ->where('type', TeamMember::TYPE_MEMBER)
+            ->whereNotIn('id', $website->hidden_member_ids ?? [])
+            ->orderBy('first_name')
+            ->orderBy('last_name')
+            ->get());
 
         $shows = $band->gigs()
             ->upcoming()
             ->where('status', GigStatusEnum::Confirmed)
+            ->whereNotIn('id', $website->hidden_gig_ids ?? [])
             ->orderBy('date')
             ->limit((int) config('band-manager.website.max_shows'))
             ->get(['id', 'band_id', 'date', 'title', 'venue', 'city', 'venue_country']);
 
         $about = md($website->about_text ?: $this->bio($profile->bio_de, $profile->bio_en, $website->language));
-        $links = $profile->exists ? $this->listLinks->execute($profile) : [];
+        $hiddenLinks = $website->hidden_link_platforms ?? [];
+        $links = array_values(array_filter(
+            $profile->exists ? $this->listLinks->execute($profile) : [],
+            fn (array $link): bool => ! in_array($link['platform']->value, $hiddenLinks, true),
+        ));
         $spotify = $this->resolveSpotify->execute($website->spotify_url ?: ($profile->links[PlatformEnum::Spotify->value] ?? null));
         $youtube = $this->resolveYouTube->execute($website->youtube_url);
         $email = $website->contact_email ?: $band->contact_email;
@@ -98,8 +116,21 @@ class CollectWebsiteContentAction
 
         $visible = fn (WebsiteSectionEnum $section): bool => in_array($section, $sections, true);
 
+        $titles = [];
+        $intros = [];
+
+        foreach (WebsiteSectionEnum::cases() as $section) {
+            $texts = (array) ($website->section_texts[$section->value] ?? []);
+            $titles[$section->value] = ($texts['title'] ?? '') ?: __('band-website.sections.'.$section->value, [], $website->language->value);
+            $intros[$section->value] = md($texts['intro'] ?? null);
+        }
+
         return [
             'colors' => array_merge($website->theme->colors(), array_filter(['accent' => $website->accent_color])),
+            'heading_font' => $website->font,
+            'body_font' => $website->body_font ?? $website->font->defaultBodyFont(),
+            'titles' => $titles,
+            'intros' => $intros,
             'tagline' => $website->tagline ?: $band->genre,
             'about' => $about,
             'logo' => $logo,

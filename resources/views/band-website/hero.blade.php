@@ -29,10 +29,10 @@
 
             <div class="bw-hero-actions">
                 @if ($hasSection(WebsiteSectionEnum::Music))
-                    <a href="#music" class="bw-btn bw-btn--accent"><i class="bi bi-play-fill"></i> {{ $t('sections.music') }}</a>
+                    <a href="#music" class="bw-btn bw-btn--accent"><i class="bi bi-play-fill"></i> {{ $content['titles']['music'] }}</a>
                 @endif
                 @if ($hasSection(WebsiteSectionEnum::Shows))
-                    <a href="#shows" class="bw-btn bw-btn--ghost"><i class="bi bi-ticket-perforated"></i> {{ $t('sections.shows') }}</a>
+                    <a href="#shows" class="bw-btn bw-btn--ghost"><i class="bi bi-ticket-perforated"></i> {{ $content['titles']['shows'] }}</a>
                 @endif
             </div>
         </div>

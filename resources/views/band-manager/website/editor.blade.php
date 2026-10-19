@@ -1,5 +1,6 @@
 @inject('listSections', 'App\Actions\BandManager\Website\ListWebsiteSectionsAction')
 @php
+    use App\Enums\BandManager\WebsiteBodyFontEnum;
     use App\Enums\BandManager\WebsiteFontEnum;
     use App\Enums\MediaCollectionEnum;
 
@@ -22,12 +23,30 @@
         ['Links', 'share', $sources['links'].' Plattformen', $sources['links'] > 0, 'team.edit', route('band-manager.team.profile.edit', $band)],
         ['Live-Termine', 'ticket-perforated', $sources['shows'].' bestätigt', $sources['shows'] > 0, 'gigs.view', route('band-manager.gigs.index')],
     ];
-    $fontQuery = collect($fonts)->map(fn (WebsiteFontEnum $font): string => $font->googleFontsQuery())->map(fn (string $query): string => explode('&display', $query)[0])->implode('&');
+    $fontQuery = collect($fonts)->map(fn (WebsiteFontEnum $font): string => $font->googleFamily())
+        ->merge(collect($bodyFonts)->map(fn (WebsiteBodyFontEnum $font): string => $font->googleFamily()))
+        ->unique()
+        ->implode('&');
+
+    // Mitglieder, Links und Gigs: eingeblendet, solange nicht abgewählt (nach einem Fehler aus old())
+    $hidden = [
+        'members' => array_map('strval', $website->hidden_member_ids ?? []),
+        'links' => array_map('strval', $website->hidden_link_platforms ?? []),
+        'gigs' => array_map('strval', $website->hidden_gig_ids ?? []),
+    ];
+    // [Feldname => [Überschrift, Liste aus [Schlüssel, Name, Zusatz, Icon]]]
+    $pickGroups = [
+        'members' => ['Bandmitglieder', $members->map(fn ($member): array => [$member->id, $member->stage_name ?: trim($member->first_name.' '.$member->last_name), $member->position, 'person'])],
+        'links' => ['Social Media & Streaming', collect($links)->map(fn (array $link): array => [$link['platform']->value, $link['platform']->label(), $link['display'], $link['platform']->icon()])],
+        'gigs' => ['Live-Termine', $shows->map(fn ($gig): array => [$gig->id, \Carbon\CarbonImmutable::parse($gig->date)->format('d.m.Y').' · '.$gig->city, $gig->venue, 'ticket-perforated'])],
+    ];
+    $isShown = fn (string $group, int|string $key): bool => (bool) old($group.'.'.$key, ! in_array((string) $key, $hidden[$group], true));
+    $sectionText = fn (string $section, string $field): string => (string) old('section_texts.'.$section.'.'.$field, $website->section_texts[$section][$field] ?? '');
 @endphp
 <x-band-manager.layout :title="'Website Creator – '.$band->name">
     @push('styles')
         <link href="https://fonts.googleapis.com/css2?{{ $fontQuery }}&display=swap" rel="stylesheet">
-        <link href="{{ asset('assets/band-manager/css/website.css') }}?v=3" rel="stylesheet">
+        <link href="{{ asset('assets/band-manager/css/website.css') }}?v=4" rel="stylesheet">
     @endpush
 
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
@@ -87,7 +106,8 @@
                 @endforeach
             </ul>
 
-            <fieldset class="wc-panel-body tab-content" @disabled(! $canEdit)>
+            <div class="wc-panel-body" data-wc-panel-body>
+            <fieldset class="tab-content" @disabled(! $canEdit)>
 
                 {{-- ---------- Design ---------- --}}
                 <div class="tab-pane fade show active" id="wcTab-design" role="tabpanel">
@@ -123,13 +143,30 @@
                         </label>
                     </div>
 
-                    <div class="wc-label mt-4">Schrift</div>
+                    <div class="wc-label mt-4">Schrift der Überschriften</div>
                     <div class="wc-fonts">
                         @foreach ($fonts as $font)
+                            @php($fontStyle = $font->style())
                             <label class="wc-font">
                                 <input type="radio" name="font" value="{{ $font->value }}" @checked($value('font') === $font->value)>
-                                <span class="wc-font-sample" style="font-family: '{{ $font->headingFamily() }}'">{{ \Illuminate\Support\Str::limit($band->name, 12, '') }}</span>
+                                <span class="wc-font-sample" style="font-family: '{{ $font->headingFamily() }}'; font-weight: {{ $fontStyle['weight'] }}; text-transform: {{ $fontStyle['transform'] }}">{{ \Illuminate\Support\Str::limit($band->name, 12, '') }}</span>
                                 <span class="wc-font-name">{{ $font->label() }}</span>
+                            </label>
+                        @endforeach
+                    </div>
+
+                    <div class="wc-label mt-4">Schrift des Fließtexts</div>
+                    <div class="wc-fonts wc-fonts--body">
+                        <label class="wc-font wc-font--auto">
+                            <input type="radio" name="body_font" value="" @checked(! $value('body_font'))>
+                            <span class="wc-font-body"><i class="bi bi-magic"></i> Passend zur Überschrift</span>
+                            <span class="wc-font-name">automatisch</span>
+                        </label>
+                        @foreach ($bodyFonts as $bodyFont)
+                            <label class="wc-font">
+                                <input type="radio" name="body_font" value="{{ $bodyFont->value }}" @checked($value('body_font') === $bodyFont->value)>
+                                <span class="wc-font-body" style="font-family: '{{ $bodyFont->family() }}'">Wir spielen laut und gern.</span>
+                                <span class="wc-font-name">{{ $bodyFont->label() }} · {{ $bodyFont->family() }}</span>
                             </label>
                         @endforeach
                     </div>
@@ -170,7 +207,35 @@
                         @endforeach
                     </div>
 
-                    <div class="row g-3 mt-1">
+                    {{-- Was davon auf die Website kommt – Neues erscheint automatisch, Abgewähltes bleibt weg --}}
+                    <div class="wc-label mt-4">Was davon auf die Website soll</div>
+                    <p class="wc-hint">Alles ist zunächst übernommen. Entfernt den Haken bei allem, was nicht auf die Website soll – neue Einträge aus dem Band-Manager erscheinen automatisch.</p>
+
+                    @if ($sources['logo'])
+                        <div class="form-check form-switch wc-switch">
+                            <input type="hidden" name="show_logo" value="0">
+                            <input class="form-check-input" type="checkbox" role="switch" name="show_logo" value="1" id="show_logo" @checked($isOn('show_logo'))>
+                            <label class="form-check-label" for="show_logo"><strong>Bandlogo verwenden</strong><span>In der Navigation und beim Kopfbereich „Großes Logo“.</span></label>
+                        </div>
+                    @endif
+
+                    @foreach ($pickGroups as $group => [$groupLabel, $items])
+                        @if ($items->isNotEmpty())
+                            <div class="wc-picks-label">{{ $groupLabel }}</div>
+                            <div class="wc-picks">
+                                @foreach ($items as [$key, $label, $detail, $icon])
+                                    <label class="wc-pick">
+                                        <input type="hidden" name="{{ $group }}[{{ $key }}]" value="0">
+                                        <input type="checkbox" name="{{ $group }}[{{ $key }}]" value="1" @checked($isShown($group, $key))>
+                                        <i class="bi bi-{{ $icon }}"></i>
+                                        <span><strong>{{ $label }}</strong>@if ($detail)<small>{{ $detail }}</small>@endif</span>
+                                    </label>
+                                @endforeach
+                            </div>
+                        @endif
+                    @endforeach
+
+                    <div class="row g-3 mt-2">
                         <div class="col-sm-5">
                             <label class="form-label" for="language">Sprache der Website</label>
                             <select name="language" id="language" class="form-select">
@@ -247,12 +312,12 @@
 
                 {{-- ---------- Abschnitte ---------- --}}
                 <div class="tab-pane fade" id="wcTab-sections" role="tabpanel">
-                    <p class="wc-hint">Zieht die Abschnitte in die gewünschte Reihenfolge und blendet aus, was ihr nicht braucht. Abschnitte ohne Inhalt erscheinen automatisch nicht.</p>
+                    <p class="wc-hint">Zieht die Abschnitte in die gewünschte Reihenfolge und blendet aus, was ihr nicht braucht. Über <i class="bi bi-pencil"></i> gebt ihr jedem Abschnitt eine eigene Überschrift und einen Einleitungstext. Abschnitte ohne Inhalt erscheinen automatisch nicht.</p>
                     <div class="wc-section wc-section--fixed"><i class="bi bi-pin-angle"></i><span><strong>Kopfbereich</strong><small>immer ganz oben</small></span></div>
                     <ol class="wc-sections" data-wc-sections>
                         @foreach ($currentSections as $entry)
                             @php($section = $entry['section'])
-                            <li class="wc-section" draggable="true" data-wc-section>
+                            <li class="wc-section" data-wc-section>
                                 <span class="wc-section-handle" title="Ziehen zum Sortieren"><i class="bi bi-grip-vertical"></i></span>
                                 <i class="bi bi-{{ $section->icon() }}"></i>
                                 <span><strong>{{ $section->label() }}</strong><small>{{ $section->source() }}</small></span>
@@ -266,6 +331,18 @@
                                     <input class="form-check-input" type="checkbox" role="switch" name="sections[{{ $loop->index }}][enabled]" value="1" @checked($entry['enabled'])
                                            aria-label="{{ $section->label() }} anzeigen" data-wc-section-on>
                                 </span>
+                                <details class="wc-section-texts" @if ($sectionText($section->value, 'title') !== '' || $sectionText($section->value, 'intro') !== '') open @endif>
+                                    <summary title="Überschrift und Einleitung ändern"><i class="bi bi-pencil"></i><span class="visually-hidden">Texte</span></summary>
+                                    <div class="wc-section-fields">
+                                        <label class="form-label small mb-1" for="title_{{ $section->value }}">Überschrift</label>
+                                        <input type="text" class="form-control form-control-sm" id="title_{{ $section->value }}" name="section_texts[{{ $section->value }}][title]"
+                                               maxlength="{{ config('band-manager.website.section_title_max') }}" value="{{ $sectionText($section->value, 'title') }}"
+                                               placeholder="{{ __('band-website.sections.'.$section->value, [], $value('language')) }}">
+                                        <label class="form-label small mb-1 mt-2" for="intro_{{ $section->value }}">Einleitung <span class="text-muted">(optional)</span></label>
+                                        <textarea class="form-control form-control-sm" id="intro_{{ $section->value }}" name="section_texts[{{ $section->value }}][intro]" rows="2"
+                                                  maxlength="{{ config('band-manager.website.section_intro_max') }}" placeholder="Ein, zwei Sätze unter der Überschrift">{{ $sectionText($section->value, 'intro') }}</textarea>
+                                    </div>
+                                </details>
                             </li>
                         @endforeach
                     </ol>
@@ -317,6 +394,7 @@
                     <div class="form-text"><i class="bi bi-exclamation-triangle"></i> Websites aus Deutschland brauchen ein Impressum mit Name, Anschrift und E-Mail. Es erscheint unten auf der Website.</div>
                 </div>
             </fieldset>
+            </div>
 
             @if ($canEdit)
                 <div class="wc-panel-foot">
@@ -347,6 +425,6 @@
     </form>
 
     @push('scripts')
-        <script src="{{ asset('assets/band-manager/js/website-creator.js') }}?v=2"></script>
+        <script src="{{ asset('assets/band-manager/js/website-creator.js') }}?v=3"></script>
     @endpush
 </x-band-manager.layout>

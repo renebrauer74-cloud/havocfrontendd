@@ -15,6 +15,11 @@
     let controller = null;
     let firstRender = true;
 
+    // Panel und Vorschau passen unter Überschrift & Hinweise ins Fenster – „Speichern“ bleibt sichtbar
+    const fitToWindow = () => form.style.setProperty('--wc-offset', Math.max(16, Math.round(form.getBoundingClientRect().top + window.scrollY + 16)) + 'px');
+    fitToWindow();
+    window.addEventListener('resize', fitToWindow);
+
     const setState = (kind, html) => {
         state.className = 'wc-stage-state' + (kind ? ' is-' + kind : '');
         state.innerHTML = html;
@@ -93,6 +98,7 @@
 
     form.querySelectorAll('[data-wc-theme]').forEach(radio => radio.addEventListener('change', () => {
         form.querySelector(`input[name="font"][value="${radio.dataset.font}"]`).checked = true;
+        form.querySelector('input[name="body_font"][value=""]').checked = true;
         form.querySelector(`input[name="hero_style"][value="${radio.dataset.hero}"]`).checked = true;
         accentInput.value = '';
         picker.value = radio.dataset.accent;
@@ -117,6 +123,13 @@
     };
     let dragged = null;
 
+    // Nur am Griff ziehbar – sonst lassen sich Überschrift und Einleitung nicht markieren
+    list?.addEventListener('pointerdown', event => {
+        const handle = event.target.closest('.wc-section-handle');
+        if (handle) handle.closest('[data-wc-section]').draggable = true;
+    });
+    list?.addEventListener('pointerup', () => list.querySelectorAll('[draggable="true"]').forEach(item => { item.draggable = false; }));
+
     list?.addEventListener('dragstart', event => {
         dragged = event.target.closest('[data-wc-section]');
         dragged?.classList.add('is-dragging');
@@ -139,6 +152,7 @@
     });
     list?.addEventListener('dragend', () => {
         dragged?.classList.remove('is-dragging');
+        if (dragged) dragged.draggable = false;
         list.querySelectorAll('.is-over').forEach(item => item.classList.remove('is-over'));
         dragged = null;
     });

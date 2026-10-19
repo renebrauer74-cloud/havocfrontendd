@@ -4,12 +4,15 @@ namespace App\Http\Requests\BandManager;
 
 use App\Actions\BandManager\Website\ResolveSpotifyEmbedUrlAction;
 use App\Actions\BandManager\Website\ResolveYouTubeEmbedUrlAction;
+use App\Enums\BandManager\PlatformEnum;
+use App\Enums\BandManager\WebsiteBodyFontEnum;
 use App\Enums\BandManager\WebsiteFontEnum;
 use App\Enums\BandManager\WebsiteHeroStyleEnum;
 use App\Enums\BandManager\WebsiteLanguageEnum;
 use App\Enums\BandManager\WebsiteSectionEnum;
 use App\Enums\BandManager\WebsiteThemeEnum;
 use App\Models\BandManager\Band;
+use App\Models\BandManager\TeamMember;
 use Closure;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -47,6 +50,7 @@ class BandWebsiteRequest extends FormRequest
 
             'theme' => ['required', Rule::enum(WebsiteThemeEnum::class)],
             'font' => ['required', Rule::enum(WebsiteFontEnum::class)],
+            'body_font' => ['nullable', Rule::enum(WebsiteBodyFontEnum::class)],
             'hero_style' => ['required', Rule::enum(WebsiteHeroStyleEnum::class)],
             'accent_color' => ['nullable', 'string', 'regex:/^#[0-9a-fA-F]{6}$/'],
             'effect_grain' => ['boolean'],
@@ -63,6 +67,19 @@ class BandWebsiteRequest extends FormRequest
             'sections.*' => ['array'],
             'sections.*.key' => ['required', 'distinct', Rule::enum(WebsiteSectionEnum::class)],
             'sections.*.enabled' => ['boolean'],
+            'section_texts' => ['nullable', 'array:'.implode(',', array_column(WebsiteSectionEnum::cases(), 'value'))],
+            'section_texts.*' => ['array:title,intro'],
+            'section_texts.*.title' => ['nullable', 'string', 'max:'.(int) config('band-manager.website.section_title_max')],
+            'section_texts.*.intro' => ['nullable', 'string', 'max:'.(int) config('band-manager.website.section_intro_max')],
+
+            // Was aus dem Band-Manager auf die Website kommt: [Schlüssel => 0/1]
+            'show_logo' => ['boolean'],
+            'members' => ['nullable', 'array', $this->hasKeysIn($this->band()->teamMembers()->where('type', TeamMember::TYPE_MEMBER)->pluck('id')->all())],
+            'members.*' => ['boolean'],
+            'links' => ['nullable', 'array', $this->hasKeysIn(array_column(PlatformEnum::cases(), 'value'))],
+            'links.*' => ['boolean'],
+            'gigs' => ['nullable', 'array', $this->hasKeysIn($this->band()->gigs()->pluck('id')->all())],
+            'gigs.*' => ['boolean'],
 
             'spotify_url' => ['nullable', 'string', 'max:255', $this->isEmbeddable(ResolveSpotifyEmbedUrlAction::class, 'Bitte einen Link von open.spotify.com einfügen (Künstler, Album, Song oder Playlist).')],
             'youtube_url' => ['nullable', 'string', 'max:255', $this->isEmbeddable(ResolveYouTubeEmbedUrlAction::class, 'Bitte den Link zu einem YouTube-Video einfügen (kein Kanal).')],
@@ -92,7 +109,13 @@ class BandWebsiteRequest extends FormRequest
         return [
             'slug' => 'Adresse',
             'theme' => 'Theme',
-            'font' => 'Schrift',
+            'font' => 'Schrift der Überschriften',
+            'body_font' => 'Schrift des Fließtexts',
+            'section_texts.*.title' => 'Überschrift',
+            'section_texts.*.intro' => 'Einleitung',
+            'members' => 'Bandmitglieder',
+            'links' => 'Links',
+            'gigs' => 'Live-Termine',
             'hero_style' => 'Kopfbereich',
             'accent_color' => 'Akzentfarbe',
             'language' => 'Sprache',
@@ -111,6 +134,26 @@ class BandWebsiteRequest extends FormRequest
     public function band(): Band
     {
         return $this->route('band');
+    }
+
+    /**
+     * Schlüssel der Liste müssen aus $allowed stammen (z. B. Bandmitglieder der eigenen Band).
+     *
+     * @param  array<int|string>  $allowed
+     */
+    private function hasKeysIn(array $allowed): Closure
+    {
+        return function (string $attribute, mixed $value, Closure $fail) use ($allowed): void {
+            $allowed = array_map('strval', $allowed);
+
+            foreach (array_keys((array) $value) as $key) {
+                if (! in_array((string) $key, $allowed, true)) {
+                    $fail('Die Auswahl ist ungültig – bitte die Seite neu laden.');
+
+                    return;
+                }
+            }
+        };
     }
 
     /**

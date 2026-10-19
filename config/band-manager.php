@@ -338,6 +338,8 @@ return [
     'website' => [
         'slug_max' => 60,           // Zeichen für die Adresse
         'tagline_max' => 160,
+        'section_title_max' => 60,      // eigene Überschrift eines Abschnitts
+        'section_intro_max' => 500,     // eigener Einleitungstext unter der Überschrift
         'imprint_max' => 5000,      // Impressum (Pflicht für Websites in Deutschland)
         'max_shows' => 12,          // kommende bestätigte Gigs auf der Website
         'accent_presets' => ['#e5383b', '#ff2bd6', '#ffc400', '#ff7a2f', '#22c55e', '#06b6d4', '#2563eb', '#a855f7', '#b08d57', '#f5f5f5'],
