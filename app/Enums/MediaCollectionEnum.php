@@ -19,6 +19,7 @@ enum MediaCollectionEnum: string
     case BandLogos = 'logos';
     case MemberPhotos = 'member-photos';
     case Documents = 'documents';
+    case LocationSheets = 'location-sheets';
     case StagePlots = 'stage-plots';
     case StagePlotImages = 'stage-plot-images';
     case CloudFiles = 'cloud';

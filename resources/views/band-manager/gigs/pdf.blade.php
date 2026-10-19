@@ -96,6 +96,9 @@
     .team td { padding: 4px 6px; border-bottom: 1px solid #ececf0; vertical-align: top; }
     .muted { color: #6b6b77; }
     .link  { color: #dc2f32; font-size: 8.5px; }
+
+    .sheet    { page-break-before: always; text-align: center; }
+    .sheet h2 { margin-top: 0; text-align: left; }
 </style>
 </head>
 <body>
@@ -149,6 +152,7 @@
         {!! $row('Venue', '<strong>'.e($venue).'</strong>') !!}
         {!! $row('Adresse', $address !== '' ? e($address).'<br><a class="link" href="'.e($maps($venue.', '.$address)).'">» In Google Maps öffnen</a>' : '') !!}
         {!! $row('Anfahrt / Parken', $text('parking_info')) !!}
+        {!! $row('Location Sheets', $locationSheets ? e(implode(', ', $locationSheets)).'<br><span class="muted">Im Anhang am Ende dieses Day Sheets.</span>' : '') !!}
     </table>
 </div>
 
@@ -231,6 +235,15 @@
     </table>
 </div>
 @endif
+
+{{-- Location Sheets als Bild: je eine Seite, auf die Seitenfläche skaliert (PDFs hängt DaySheet danach an) --}}
+@foreach ($locationSheetImages as $sheet)
+    @php($scale = min(510 / $sheet['image']['w'], 690 / $sheet['image']['h']))
+    <div class="sheet">
+        <h2>Location Sheet · {{ $sheet['name'] }}</h2>
+        <img src="{{ $sheet['image']['src'] }}" width="{{ (int) round($sheet['image']['w'] * $scale) }}" height="{{ (int) round($sheet['image']['h'] * $scale) }}" alt="Location Sheet">
+    </div>
+@endforeach
 
 </body>
 </html>

@@ -159,7 +159,26 @@ it('pins the latest agency contract per band and keeps older versions', function
     actingAsBandManager()
         ->get(route('band-manager.documents.index'))
         ->assertSuccessful()
-        ->assertSeeInOrder(['Agenturverträge', 'Demo Band', 'Agenturvertrag 2026', 'Frühere Versionen (1)', 'Agenturvertrag 2024', 'Neue Band', 'Noch kein Agenturvertrag hinterlegt', 'Gastspielverträge']);
+        ->assertSeeInOrder([
+            'Agenturverträge', 'Hinterlegt', '1 Band', 'Demo Band', 'Agenturvertrag 2026', 'Frühere Versionen (1)', 'Agenturvertrag 2024',
+            'Ohne Agenturvertrag', '1 Band', 'Neue Band', 'Noch kein Agenturvertrag hinterlegt', 'Gastspielverträge',
+        ]);
+});
+
+it('collapses the agency contracts unless only one band is shown', function () {
+    $band = Band::factory()->create();
+    Band::factory()->count(2)->create();
+
+    actingAsBandManager()
+        ->get(route('band-manager.documents.index'))
+        ->assertSee('3 Bands')
+        ->assertSee('id="agencyWithout" class="accordion-collapse collapse"', false)
+        ->assertDontSee('id="agencyWith"', false);
+
+    actingAsBandManager()
+        ->get(route('band-manager.documents.index', ['band' => $band->id]))
+        ->assertSee('1 Band')
+        ->assertSee('id="agencyWithout" class="accordion-collapse collapse show"', false);
 });
 
 it('groups gig contracts by year of the gig', function () {

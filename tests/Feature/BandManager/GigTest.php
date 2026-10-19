@@ -8,22 +8,6 @@ use App\Models\BandManager\Gig;
 use App\Models\BandManager\TeamMember;
 use App\Models\BandManager\User;
 
-/**
- * @return array<string, mixed>
- */
-function gigData(Band $band, array $overrides = []): array
-{
-    return array_merge([
-        'band_id' => $band->id,
-        'date' => today()->addMonth()->format('Y-m-d'),
-        'title' => 'Club Show',
-        'venue' => 'Kulturfabrik',
-        'city' => 'Köln',
-        'fee' => '1.500,50',
-        'status' => 'request',
-    ], $overrides);
-}
-
 it('lists upcoming gigs for the agency including fees', function () {
     Gig::factory()->create(['title' => 'Release Party', 'fee' => 1200]);
     Gig::factory()->past()->create(['title' => 'Alte Show']);

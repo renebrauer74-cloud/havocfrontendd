@@ -85,6 +85,13 @@ return [
             'buyout' => 'Buy-out',
             'both' => 'Catering + Buy-out',
         ],
+
+        // Location Sheets (PDF, JPG, PNG) – kommen hinten ans Day Sheet
+        'location_sheets' => [
+            'max_files' => 10,
+            'max_size_mb' => 20,
+            'image_px' => 2000,   // Bilder werden fürs Day Sheet auf diese Kantenlänge verkleinert
+        ],
     ],
 
     /*

@@ -247,6 +247,8 @@ it('lists the selected travel party on the day sheet', function () {
         'logo' => null,
         'team' => app(DaySheet::class)->travelParty($gig),
         'catering' => [],
+        'locationSheets' => [],
+        'locationSheetImages' => [],
     ])->render();
 
     expect($html)->toContain('Reisegruppe (2 Personen)')

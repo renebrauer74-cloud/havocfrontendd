@@ -87,59 +87,32 @@
             </div>
         @endif
 
-        {{-- Agenturverträge: je Band der aktuelle, frühere Versionen aufklappbar --}}
+        {{-- Agenturverträge: eingeklappt, getrennt nach Bands mit und ohne Vertrag (bei einer Band direkt offen) --}}
         <h3 class="h6 mb-2"><i class="bi bi-pin-angle"></i> Agenturverträge</h3>
-        <div class="card shadow-sm mb-3">
-            <div class="list-group list-group-flush">
-                @foreach ($agencyContracts as $entry)
-                    @php($current = $entry['current'])
-                    <div class="list-group-item">
-                        <div class="d-flex flex-wrap align-items-center gap-3">
-                            <i @class(['bi fs-4', 'bi-file-earmark-check text-primary' => $current, 'bi-file-earmark-x text-warning' => ! $current])></i>
-                            <div class="flex-grow-1">
-                                <div class="fw-semibold">{{ $entry['band']->name }}</div>
-                                @if ($current)
-                                    <small class="text-muted">{{ $current->title }} · seit {{ $current->created_at->format('d.m.Y') }}</small>
-                                @else
-                                    <small class="text-warning">Noch kein Agenturvertrag hinterlegt</small>
-                                @endif
-                            </div>
-                            <div class="d-flex flex-wrap gap-1">
-                                @if ($entry['previous']->isNotEmpty())
-                                    <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#agencyHistory{{ $entry['band']->id }}"
-                                            aria-expanded="false" aria-controls="agencyHistory{{ $entry['band']->id }}">
-                                        Frühere Versionen ({{ $entry['previous']->count() }})
-                                    </button>
-                                @endif
-                                @if ($current)
-                                    <a href="{{ route('band-manager.documents.show', $current) }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-secondary">Ansehen</a>
-                                    <a href="{{ route('band-manager.documents.show', [$current, 'download' => 1]) }}" class="btn btn-sm btn-outline-secondary">Download</a>
-                                    @can('delete', $current)
-                                        <form method="post" action="{{ route('band-manager.documents.destroy', $current) }}" class="d-inline"
-                                              onsubmit="return confirm('Agenturvertrag wirklich löschen?')">
-                                            @csrf
-                                            @method('DELETE')
-                                            <input type="hidden" name="filter" value="{{ $bandId }}">
-                                            <button class="btn btn-sm btn-outline-danger">Löschen</button>
-                                        </form>
-                                    @endcan
-                                @elseif ($canManage)
-                                    <button class="btn btn-sm btn-outline-primary" type="button" data-upload-agency="{{ $entry['band']->id }}">Hochladen</button>
-                                @endif
-                            </div>
+        <div class="accordion shadow-sm mb-3" id="agencyContracts">
+            @foreach ([
+                ['id' => 'agencyWith', 'label' => 'Hinterlegt', 'badge' => 'text-bg-light border', 'entries' => $agencyContracts->filter(fn (array $entry): bool => $entry['current'] !== null)],
+                ['id' => 'agencyWithout', 'label' => 'Ohne Agenturvertrag', 'badge' => 'text-bg-warning', 'entries' => $agencyContracts->filter(fn (array $entry): bool => $entry['current'] === null)],
+            ] as $group)
+                @continue($group['entries']->isEmpty())
+                @php($open = $agencyContracts->count() === 1)
+                <div class="accordion-item">
+                    <h4 class="accordion-header">
+                        <button @class(['accordion-button', 'collapsed' => ! $open]) type="button" data-bs-toggle="collapse" data-bs-target="#{{ $group['id'] }}"
+                                aria-expanded="{{ $open ? 'true' : 'false' }}" aria-controls="{{ $group['id'] }}">
+                            <span class="fw-semibold">{{ $group['label'] }}</span>
+                            <span class="badge {{ $group['badge'] }} ms-2 fw-normal">{{ $group['entries']->count() }} {{ $group['entries']->count() === 1 ? 'Band' : 'Bands' }}</span>
+                        </button>
+                    </h4>
+                    <div id="{{ $group['id'] }}" @class(['accordion-collapse collapse', 'show' => $open])>
+                        <div class="list-group list-group-flush">
+                            @foreach ($group['entries'] as $entry)
+                                @include('band-manager.documents.agency-contract')
+                            @endforeach
                         </div>
-                        @if ($entry['previous']->isNotEmpty())
-                            <div class="collapse mt-2" id="agencyHistory{{ $entry['band']->id }}">
-                                <div class="border rounded">
-                                    @include('band-manager.documents.table', [
-                                        'documents' => $entry['previous'], 'showBand' => false, 'infoLabel' => null, 'empty' => '',
-                                    ])
-                                </div>
-                            </div>
-                        @endif
                     </div>
-                @endforeach
-            </div>
+                </div>
+            @endforeach
         </div>
 
         {{-- Gastspielverträge nach Jahr des Gigs --}}
