@@ -3,11 +3,14 @@
 namespace App\Http\Requests\BandManager;
 
 use App\Enums\BandManager\GigStatusEnum;
+use App\Enums\MediaCollectionEnum;
 use App\Models\BandManager\Band;
 use App\Models\BandManager\Gig;
+use App\Services\BandManager\Pdf;
 use Closure;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Validation\Rule;
 
 /**
@@ -80,6 +83,13 @@ class GigRequest extends FormRequest
             ],
             'travelers' => ['nullable', 'array'],
             'travelers.*' => ['integer', 'distinct', Rule::exists('bm_team_members', 'id')->where('band_id', $this->integer('band_id'))],
+            'location_sheets' => ['nullable', 'array', 'max:'.$this->freeLocationSheetSlots()],
+            'location_sheets.*' => [
+                'file',
+                'mimetypes:'.implode(',', Gig::LOCATION_SHEET_TYPES),
+                'max:'.$this->locationSheetMaxMb() * 1024,
+                $this->readablePdf(),
+            ],
         ];
 
         foreach (self::DAYSHEET_TEXT as $field => $max) {
@@ -98,7 +108,14 @@ class GigRequest extends FormRequest
      */
     public function messages(): array
     {
+        $maxMb = $this->locationSheetMaxMb();
+
         return [
+            'location_sheets.max' => 'Zu viele Location Sheets – erlaubt sind insgesamt '.config('band-manager.gigs.location_sheets.max_files').' pro Gig.',
+            'location_sheets.*.mimetypes' => 'Location Sheets bitte als PDF, JPG oder PNG hochladen.',
+            'location_sheets.*.max' => "Ein Location Sheet ist zu groß (max. {$maxMb} MB).",
+            'location_sheets.*.uploaded' => "Ein Location Sheet ist zu groß (max. {$maxMb} MB) oder konnte nicht hochgeladen werden.",
+            'location_sheets.*.file' => 'Ein Location Sheet konnte nicht hochgeladen werden.',
             'band_id.required' => 'Bitte eine Band wählen.',
             'band_id.integer' => 'Bitte eine Band wählen.',
             'date.*' => 'Ungültiges Datum.',
@@ -131,7 +148,7 @@ class GigRequest extends FormRequest
      */
     public function gigAttributes(): array
     {
-        $attributes = $this->safe()->except([...Gig::TIME_FIELDS, 'travelers']) + ['buyout_amount' => null];
+        $attributes = $this->safe()->except([...Gig::TIME_FIELDS, 'travelers', 'location_sheets']) + ['buyout_amount' => null];
 
         foreach (Gig::TIME_FIELDS as $field) {
             $attributes[$field] = $this->validated($field);
@@ -148,6 +165,48 @@ class GigRequest extends FormRequest
     public function travelerIds(): array
     {
         return array_values(array_map('intval', $this->validated('travelers') ?? []));
+    }
+
+    /**
+     * Neu hochgeladene Location Sheets.
+     *
+     * @return list<UploadedFile>
+     */
+    public function locationSheets(): array
+    {
+        return array_values($this->validated('location_sheets') ?? []);
+    }
+
+    /**
+     * Wie viele Location Sheets der Gig noch aufnehmen kann.
+     */
+    private function freeLocationSheetSlots(): int
+    {
+        $gig = $this->route('gig');
+        $existing = $gig instanceof Gig ? $gig->getMedia(MediaCollectionEnum::LocationSheets->value)->count() : 0;
+
+        return max(0, (int) config('band-manager.gigs.location_sheets.max_files') - $existing);
+    }
+
+    /**
+     * PDFs müssen sich ins Day Sheet übernehmen lassen – verschlüsselte oder beschädigte nicht.
+     */
+    private function readablePdf(): Closure
+    {
+        return function (string $attribute, mixed $value, Closure $fail): void {
+            if (! $value instanceof UploadedFile || $value->getMimeType() !== 'application/pdf') {
+                return;
+            }
+
+            if (app(Pdf::class)->pageCount((string) $value->get()) === null) {
+                $fail('„'.$value->getClientOriginalName().'“ lässt sich nicht ins Day Sheet übernehmen (z. B. passwortgeschützt). Bitte die Datei neu als PDF speichern oder als Bild hochladen.');
+            }
+        };
+    }
+
+    private function locationSheetMaxMb(): int
+    {
+        return (int) config('band-manager.gigs.location_sheets.max_size_mb');
     }
 
     /**

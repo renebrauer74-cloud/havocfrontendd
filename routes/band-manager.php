@@ -20,6 +20,7 @@ use App\Http\Controllers\BandManager\DocumentController;
 use App\Http\Controllers\BandManager\ExportController;
 use App\Http\Controllers\BandManager\GalleryController;
 use App\Http\Controllers\BandManager\GigController;
+use App\Http\Controllers\BandManager\GigLocationSheetController;
 use App\Http\Controllers\BandManager\HomeController;
 use App\Http\Controllers\BandManager\ImpersonationController;
 use App\Http\Controllers\BandManager\MessageController;
@@ -81,6 +82,10 @@ Route::middleware(['auth:band-manager', EnsureBandManagerUserIsActive::class])->
     Route::middleware('can:gigs.view')->group(function () {
         Route::resource('gigs', GigController::class)->except('show');
         Route::get('gigs/{gig}/pdf', [GigController::class, 'pdf'])->name('gigs.pdf');
+        Route::scopeBindings()->group(function () {
+            Route::get('gigs/{gig}/location-sheets/{media}', [GigLocationSheetController::class, 'show'])->name('gigs.location-sheets.show');
+            Route::delete('gigs/{gig}/location-sheets/{media}', [GigLocationSheetController::class, 'destroy'])->name('gigs.location-sheets.destroy');
+        });
     });
 
     // Band & Team – Band-Zugriff prüfen Controller bzw. Form-Requests

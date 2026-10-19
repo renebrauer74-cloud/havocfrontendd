@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\BandManager;
 
 use App\Actions\BandManager\BlockCalendarDayForGigAction;
+use App\Actions\BandManager\Gigs\AddLocationSheetsAction;
 use App\Actions\BandManager\RecordActivityAction;
 use App\Enums\BandManager\GigStatusEnum;
+use App\Enums\MediaCollectionEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\BandManager\GigRequest;
 use App\Models\BandManager\Band;
@@ -67,7 +69,7 @@ class GigController extends Controller
         return $this->form($request, $gig);
     }
 
-    public function store(GigRequest $request): RedirectResponse
+    public function store(GigRequest $request, AddLocationSheetsAction $addLocationSheets): RedirectResponse
     {
         $user = $request->user();
         $attributes = $request->gigAttributes();
@@ -82,6 +84,7 @@ class GigController extends Controller
             'booked_by' => $user->can('gigs.manage') ? Gig::BOOKED_BY_AGENCY : Gig::BOOKED_BY_BAND,
         ]);
         $gig->travelers()->sync($request->travelerIds());
+        $addLocationSheets->execute($gig, $request->locationSheets());
 
         app(BlockCalendarDayForGigAction::class)->execute($gig);
 
@@ -108,7 +111,7 @@ class GigController extends Controller
         return $this->form($request, $gig);
     }
 
-    public function update(GigRequest $request, Gig $gig): RedirectResponse
+    public function update(GigRequest $request, Gig $gig, AddLocationSheetsAction $addLocationSheets): RedirectResponse
     {
         $attributes = $request->gigAttributes();
 
@@ -122,6 +125,7 @@ class GigController extends Controller
 
         $gig->update($attributes);
         $gig->travelers()->sync($request->travelerIds());
+        $addLocationSheets->execute($gig, $request->locationSheets());
         app(BlockCalendarDayForGigAction::class)->execute($gig);
 
         $this->logSaved('gig.updated', $gig, $conflicts['blocking'] !== []);
@@ -178,6 +182,8 @@ class GigController extends Controller
                 ->get()
                 ->groupBy('band_id'),
             'travelerIds' => array_map('intval', (array) old('travelers', $gig->exists ? $gig->travelers()->pluck('bm_team_members.id')->all() : [])),
+            'locationSheets' => $gig->getMedia(MediaCollectionEnum::LocationSheets->value),
+            'locationSheetLimits' => config('band-manager.gigs.location_sheets'),
             'statuses' => GigStatusEnum::cases(),
             'cateringOptions' => config('band-manager.gigs.catering_options'),
             'canManage' => $user->can('gigs.manage'),

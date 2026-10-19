@@ -17,6 +17,7 @@
 <x-band-manager.field name="venue_country" label="Land" :value="$gig->venue_country" col="col-8 col-md-4" placeholder="Deutschland" :max="60" />
 <x-band-manager.textarea name="parking_info" label="Anfahrt / Parken / Ladezone" :value="$gig->parking_info"
                          placeholder="z.B. Ladezone im Hinterhof, Sprinter-Parkplatz am Bühneneingang …" />
+@include('band-manager.gigs.location-sheets')
 
 {!! $heading('clock', 'Zeitplan') !!}
 <x-band-manager.field name="time_get_in" label="Get In" :value="$gig->time_get_in" col="col-6 col-md-3" type="time" />

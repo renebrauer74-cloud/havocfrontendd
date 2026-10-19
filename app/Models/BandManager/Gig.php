@@ -4,6 +4,8 @@ namespace App\Models\BandManager;
 
 use App\Casts\TimeOfDayCast;
 use App\Enums\BandManager\GigStatusEnum;
+use App\Enums\MediaCollectionEnum;
+use App\Enums\MediaConversionEnum;
 use Carbon\CarbonImmutable;
 use Database\Factories\BandManager\GigFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -15,10 +17,15 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Spatie\Image\Enums\Fit;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 /**
  * Auftritt einer Band inkl. Day Sheet. "date" bleibt ein Y-m-d-String (siehe Availability).
  * Bestätigte Gigs blockieren den Tag im Ampel-Kalender (BlockCalendarDayForGigAction).
+ * Location Sheets der Veranstalter liegen in der Media Library und kommen hinten ans Day Sheet.
  */
 #[Table('bm_gigs')]
 #[Fillable([
@@ -31,14 +38,20 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'contact_venue_name', 'contact_venue_phone', 'contact_tech_name', 'contact_tech_phone',
     'guestlist', 'wifi', 'backline_info', 'merch_info', 'info_notes',
 ])]
-class Gig extends Model
+class Gig extends Model implements HasMedia
 {
     /** @use HasFactory<GigFactory> */
-    use HasFactory;
+    use HasFactory, InteractsWithMedia;
 
     public const BOOKED_BY_AGENCY = 'agency';
 
     public const BOOKED_BY_BAND = 'band';
+
+    /** Erlaubte Formate für Location Sheets */
+    public const LOCATION_SHEET_TYPES = ['application/pdf', 'image/jpeg', 'image/png'];
+
+    /** Location Sheets als Bild – werden fürs Day Sheet verkleinert */
+    public const LOCATION_SHEET_IMAGE_TYPES = ['image/jpeg', 'image/png'];
 
     /**
      * Uhrzeit-Felder des Day Sheets (als HH:MM, siehe TimeOfDayCast).
@@ -60,6 +73,31 @@ class Gig extends Model
             'buyout_amount' => 'decimal:2',
             'set_length' => 'integer',
         ] + array_fill_keys(self::TIME_FIELDS, TimeOfDayCast::class);
+    }
+
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection(MediaCollectionEnum::LocationSheets->value)
+            ->useDisk('band-manager')
+            ->acceptsMimeTypes(self::LOCATION_SHEET_TYPES);
+    }
+
+    /**
+     * Verkleinertes JPEG für Location Sheets als Bild (PDFs bleiben, wie sie sind).
+     */
+    public function registerMediaConversions(?Media $media = null): void
+    {
+        if ($media === null || ! in_array($media->mime_type, self::LOCATION_SHEET_IMAGE_TYPES, true)) {
+            return;
+        }
+
+        $size = (int) config('band-manager.gigs.location_sheets.image_px');
+
+        $this->addMediaConversion(MediaConversionEnum::Preview->value)
+            ->performOnCollections(MediaCollectionEnum::LocationSheets->value)
+            ->fit(Fit::Max, $size, $size)
+            ->format('jpg')
+            ->nonQueued();
     }
 
     /**

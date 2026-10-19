@@ -13,7 +13,7 @@
                     <li>{{ $message }}</li>
                 @endforeach
             </ul>
-            <div class="small mt-2">Der Gig wurde <strong>noch nicht</strong> gespeichert. Ändere das Datum oder bestätige unten.</div>
+            <div class="small mt-2">Der Gig wurde <strong>noch nicht</strong> gespeichert. Ändere das Datum oder bestätige unten. Location Sheets bitte erneut auswählen.</div>
         </div>
     @endif
 
@@ -34,7 +34,7 @@
     @endif
 
     <form method="post" action="{{ $isEdit ? route('band-manager.gigs.update', $gig) : route('band-manager.gigs.store') }}"
-          class="card card-body shadow-sm" style="max-width:760px">
+          enctype="multipart/form-data" class="card card-body shadow-sm" style="max-width:760px">
         @csrf
         @if ($isEdit)
             @method('PUT')
@@ -110,4 +110,13 @@
             @endif
         </div>
     </form>
+
+    {{-- Location Sheets löschen – eigene Formulare, die Buttons sitzen im Gig-Formular (form="…") --}}
+    @foreach ($locationSheets as $sheet)
+        <form method="post" action="{{ route('band-manager.gigs.location-sheets.destroy', [$gig, $sheet]) }}" id="deleteLocationSheet{{ $sheet->id }}"
+              class="d-none" onsubmit="return confirm('Location Sheet wirklich löschen?')">
+            @csrf
+            @method('DELETE')
+        </form>
+    @endforeach
 </x-band-manager.layout>
