@@ -103,17 +103,16 @@ it('only accepts photos and videos unless all types are allowed', function () {
     expect($folder->files()->count())->toBe(1);
 });
 
-it('offers iphone photos in the file dialog and accepts them', function () {
+it('shows all files in the desktop file dialog and accepts iphone photos', function () {
     $folder = CloudFolder::factory()->create();
     $link = CloudLink::factory()->forFolder($folder)->upload()->create();
     $heic = "\x00\x00\x00\x18ftypheic\x00\x00\x00\x00mif1heic".str_repeat("\x00", 64);
 
-    // Windows kennt .heic oft nicht als image/* – ohne die Endung blendet der Dateidialog die Fotos aus
+    // Der Windows-Dialog zeigt mit accept="image/*,video/*" je nach Rechner keine Fotos – den Filter setzt cloud.js nur auf Handys
     $this->get(route('band-manager.share.show', $link))
         ->assertOk()
-        ->assertSee('accept="image/*,video/*,.jpg,', false)
-        ->assertSee('.heic,', false)
-        ->assertSee('.webp,', false);
+        ->assertDontSee(' accept="', false)
+        ->assertSee('data-mobile-accept="image/*,video/*"', false);
 
     $this->postJson(route('band-manager.share.upload', $link), ['file' => UploadedFile::fake()->createWithContent('IMG_0042.HEIC', $heic)])
         ->assertCreated();

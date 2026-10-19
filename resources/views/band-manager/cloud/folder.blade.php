@@ -280,7 +280,7 @@
 
     @if ($canEdit || auth('band-manager')->user()->can('cloud.share'))
         @push('scripts')
-            <script src="{{ asset('assets/band-manager/js/cloud.js') }}?v=4"></script>
+            <script src="{{ asset('assets/band-manager/js/cloud.js') }}?v=5"></script>
         @endpush
     @endif
 </x-band-manager.layout>

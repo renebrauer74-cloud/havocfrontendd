@@ -17,6 +17,12 @@
     // ---- Upload ---------------------------------------------------------------------------------
 
     if (drop && input && queue) {
+        // Dateifilter nur auf Handys (öffnet dort direkt die Fotogalerie). Am PC zeigt der Windows-Dialog mit
+        // image/*,video/* je nach Rechner keine Fotos an – dort entscheiden die Prüfung unten und der Server.
+        if (input.dataset.mobileAccept && window.matchMedia('(pointer: coarse)').matches) {
+            input.accept = input.dataset.mobileAccept;
+        }
+
         const maxBytes = +drop.dataset.maxBytes;
         // Upload-Link-Seite: kein Speicherstand (prüft der Server), evtl. nur bestimmte Typen ("image/,video/")
         let free = drop.dataset.free ? +drop.dataset.free : Infinity;
