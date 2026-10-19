@@ -39,10 +39,7 @@ body.bw {
 }
 .bw-skip:focus { position: fixed; top: 1rem; left: 1rem; z-index: 100; background: var(--bw-accent); color: var(--bw-accent-ink); padding: .5rem 1rem; }
 
-/* Schriften mit nur einem Schnitt nicht künstlich fetten */
-.bw-font-condensed, .bw-font-display, .bw-font-blackletter, .bw-font-marker { --bw-heading-weight: 400; }
-.bw-font-condensed, .bw-font-display { --bw-heading-transform: uppercase; --bw-heading-spacing: .02em; }
-.bw-font-grotesk { --bw-heading-spacing: -.03em; }
+/* Schnitt, Großschreibung und Laufweite der Überschriften kommen aus der Seite (WebsiteFontEnum::style()) */
 
 h1, h2, h3, .bw-heading, .bw-footer-name, .bw-show-day, .bw-show-city {
     font-family: var(--bw-font-heading);
@@ -276,6 +273,10 @@ body:not(.bw-fx-anim) .bw-marquee-track { animation: none; }
     color: var(--bw-accent); text-transform: none;
     padding: .15rem .55rem; border: 1px solid currentColor; border-radius: 999px; translate: 0 -.6em;
 }
+
+/* Eigener Einleitungstext unter der Überschrift */
+.bw-intro { max-width: 720px; margin: calc(-1 * clamp(1rem, 3vw, 2rem)) 0 clamp(2rem, 4vw, 3rem); font-size: 1.15rem; color: var(--bw-muted); }
+.bw-theme-doom .bw-intro { margin-inline: auto; text-align: center; }
 
 /* Erscheinen beim Scrollen */
 .bw-fx-anim [data-bw-reveal] { opacity: 0; transform: translateY(28px); transition: opacity .8s ease, transform .8s cubic-bezier(.2, .7, .2, 1); transition-delay: var(--bw-delay, 0ms); }

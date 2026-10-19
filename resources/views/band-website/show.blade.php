@@ -11,6 +11,7 @@
         : route('band-websites.media', [$website->slug, $media]);
 
     $colors = $content['colors'];
+    $headingStyle = $content['heading_font']->style();
     [$red, $green, $blue] = sscanf($colors['accent'], '#%02x%02x%02x');
     $accentInk = (0.299 * $red + 0.587 * $green + 0.114 * $blue) > 160 ? '#111111' : '#ffffff';
 
@@ -67,9 +68,9 @@
     @endif
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?{{ $website->font->googleFontsQuery() }}" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?{{ $content['heading_font']->googleFamily() }}&{{ $content['body_font']->googleFamily() }}&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-    <link href="{{ asset('assets/band-website/site.css') }}?v=1" rel="stylesheet">
+    <link href="{{ asset('assets/band-website/site.css') }}?v=2" rel="stylesheet">
     <style>
         :root {
             --bw-bg: {{ $colors['bg'] }};
@@ -78,8 +79,11 @@
             --bw-muted: {{ $colors['muted'] }};
             --bw-accent: {{ $colors['accent'] }};
             --bw-accent-ink: {{ $accentInk }};
-            --bw-font-heading: '{{ $website->font->headingFamily() }}', system-ui, sans-serif;
-            --bw-font-body: '{{ $website->font->bodyFamily() }}', system-ui, sans-serif;
+            --bw-font-heading: '{{ $content['heading_font']->headingFamily() }}', system-ui, sans-serif;
+            --bw-font-body: '{{ $content['body_font']->family() }}', system-ui, sans-serif;
+            --bw-heading-weight: {{ $headingStyle['weight'] }};
+            --bw-heading-transform: {{ $headingStyle['transform'] }};
+            --bw-heading-spacing: {{ $headingStyle['spacing'] }};
         }
     </style>
     <script type="application/ld+json">{!! json_encode($structuredData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) !!}</script>
@@ -87,7 +91,7 @@
 <body @class([
     'bw',
     'bw-theme-'.$website->theme->value,
-    'bw-font-'.$website->font->value,
+    'bw-font-'.$content['heading_font']->value,
     'bw-hero-'.$heroStyle->value,
     $website->theme->isDark() ? 'bw-dark' : 'bw-light',
     'bw-fx-grain' => $website->effect_grain,
@@ -111,7 +115,7 @@
         </button>
         <nav class="bw-nav-links" id="bwMenu">
             @foreach ($content['sections'] as $section)
-                <a href="#{{ $section->value }}">{{ $t('sections.'.$section->value) }}</a>
+                <a href="#{{ $section->value }}">{{ $content['titles'][$section->value] }}</a>
             @endforeach
         </nav>
     @endif
@@ -136,8 +140,11 @@
             <div class="bw-container">
                 <h2 class="bw-heading" data-bw-reveal>
                     <span class="bw-heading-number">{{ str_pad((string) $loop->iteration, 2, '0', STR_PAD_LEFT) }}</span>
-                    <span class="bw-heading-text">{{ $t('sections.'.$section->value) }}</span>
+                    <span class="bw-heading-text">{{ $content['titles'][$section->value] }}</span>
                 </h2>
+                @if ($content['intros'][$section->value] !== '')
+                    <p class="bw-intro" data-bw-reveal>{!! $content['intros'][$section->value] !!}</p>
+                @endif
                 @include('band-website.sections.'.$section->value)
             </div>
         </section>

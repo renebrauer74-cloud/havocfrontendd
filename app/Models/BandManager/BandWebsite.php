@@ -2,6 +2,7 @@
 
 namespace App\Models\BandManager;
 
+use App\Enums\BandManager\WebsiteBodyFontEnum;
 use App\Enums\BandManager\WebsiteFontEnum;
 use App\Enums\BandManager\WebsiteHeroStyleEnum;
 use App\Enums\BandManager\WebsiteLanguageEnum;
@@ -16,15 +17,17 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * Website einer Band (Website Builder → Website Creator) – ein Datensatz pro Band, öffentlich unter /sites/{slug}.
- * Gespeichert werden nur Design, Fotoauswahl und Abschnitte (Reihenfolge + ein/aus als JSON) –
- * Biografie, Logo, Fotos, Links, Mitglieder und Shows kommen bei jedem Aufruf frisch aus dem Band-Manager.
+ * Gespeichert werden nur Design, Fotoauswahl, Abschnitte (Reihenfolge + ein/aus, eigene Überschriften als JSON)
+ * und was die Band nicht zeigen will (hidden_*) – Biografie, Logo, Fotos, Links, Mitglieder und Shows kommen
+ * bei jedem Aufruf frisch aus dem Band-Manager. Neue Mitglieder, Links und Gigs erscheinen so automatisch.
  */
 #[Table('bm_band_websites', key: 'band_id')]
 #[WithoutIncrementing]
 #[Fillable([
     'band_id', 'slug', 'is_published', 'published_at',
-    'theme', 'font', 'hero_style', 'accent_color', 'effect_grain', 'effect_animations',
-    'language', 'tagline', 'about_text', 'hero_image_id', 'gallery_image_ids', 'sections',
+    'theme', 'font', 'body_font', 'hero_style', 'accent_color', 'effect_grain', 'effect_animations',
+    'language', 'show_logo', 'tagline', 'about_text', 'hero_image_id', 'gallery_image_ids', 'sections', 'section_texts',
+    'hidden_member_ids', 'hidden_link_platforms', 'hidden_gig_ids',
     'spotify_url', 'youtube_url', 'contact_email', 'show_agency_booking', 'imprint', 'updated_by',
 ])]
 class BandWebsite extends Model
@@ -45,6 +48,7 @@ class BandWebsite extends Model
         'effect_grain' => true,
         'effect_animations' => true,
         'language' => 'de',
+        'show_logo' => true,
         'show_agency_booking' => true,
     ];
 
@@ -60,13 +64,19 @@ class BandWebsite extends Model
             'published_at' => 'datetime',
             'theme' => WebsiteThemeEnum::class,
             'font' => WebsiteFontEnum::class,
+            'body_font' => WebsiteBodyFontEnum::class,
             'hero_style' => WebsiteHeroStyleEnum::class,
             'language' => WebsiteLanguageEnum::class,
             'effect_grain' => 'boolean',
             'effect_animations' => 'boolean',
+            'show_logo' => 'boolean',
             'show_agency_booking' => 'boolean',
             'gallery_image_ids' => 'array',
             'sections' => 'array',
+            'section_texts' => 'array',
+            'hidden_member_ids' => 'array',
+            'hidden_link_platforms' => 'array',
+            'hidden_gig_ids' => 'array',
         ];
     }
 

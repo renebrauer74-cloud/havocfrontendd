@@ -112,6 +112,55 @@ it('serves only the photos shown on the website', function () {
     $this->get(route('band-websites.media', [$website->slug, $shownMedia]))->assertNotFound();
 });
 
+it('leaves out the logo, members, links and shows the band switched off', function () {
+    $band = Band::factory()->create();
+    BandProfile::query()->create(['band_id' => $band->id, 'links' => [
+        'instagram' => 'https://www.instagram.com/ironkittens/',
+        'tiktok' => 'https://www.tiktok.com/@ironkittens',
+    ]]);
+    $shown = TeamMember::factory()->create(['band_id' => $band->id, 'stage_name' => 'Kitty K']);
+    $hidden = TeamMember::factory()->create(['band_id' => $band->id, 'stage_name' => 'Geheimer Gast']);
+    $secretShow = Gig::factory()->confirmed()->create(['band_id' => $band->id, 'city' => 'Geheimstadt']);
+    Gig::factory()->confirmed()->create(['band_id' => $band->id, 'city' => 'Köln']);
+    $website = BandWebsite::factory()->published()->create([
+        'band_id' => $band->id,
+        'hidden_member_ids' => [$hidden->id],
+        'hidden_link_platforms' => ['tiktok'],
+        'hidden_gig_ids' => [$secretShow->id],
+    ]);
+
+    $this->get(route('band-websites.show', $website->slug))
+        ->assertSuccessful()
+        ->assertSee('Kitty K')
+        ->assertDontSee('Geheimer Gast')
+        ->assertSee('https://www.instagram.com/ironkittens/')
+        ->assertDontSee('https://www.tiktok.com/@ironkittens')
+        ->assertSee('Köln')
+        ->assertDontSee('Geheimstadt');
+
+    expect($shown->exists)->toBeTrue();
+});
+
+it('uses own headings, intros and fonts', function () {
+    $band = Band::factory()->create();
+    BandProfile::query()->create(['band_id' => $band->id, 'bio_de' => 'Biografie']);
+    $website = BandWebsite::factory()->published()->create([
+        'band_id' => $band->id,
+        'font' => 'neon',
+        'body_font' => 'lora',
+        'section_texts' => ['about' => ['title' => 'Wer wir sind', 'intro' => 'Seit **2016** laut.'], 'shows' => ['title' => 'Auf Tour']],
+    ]);
+
+    $this->get(route('band-websites.show', $website->slug))
+        ->assertSuccessful()
+        ->assertSee('family=Monoton&family=Lora', false)
+        ->assertSee("--bw-font-body: 'Lora'", false)
+        ->assertSee('<span class="bw-heading-text">Wer wir sind</span>', false)
+        ->assertSee('Seit <strong>2016</strong> laut.', false)
+        ->assertSee('href="#shows">Auf Tour</a>', false)
+        ->assertDontSee('>Über uns</a>', false);
+});
+
 it('falls back to the band name when there is no photo', function () {
     $website = BandWebsite::factory()->published()->create(['hero_style' => 'fullscreen']);
 

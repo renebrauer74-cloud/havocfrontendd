@@ -11,6 +11,7 @@ use App\Actions\BandManager\Website\RespondWithWebsiteMediaAction;
 use App\Actions\BandManager\Website\SaveBandWebsiteAction;
 use App\Actions\BandManager\Website\SuggestWebsiteSlugAction;
 use App\Enums\BandManager\GigStatusEnum;
+use App\Enums\BandManager\WebsiteBodyFontEnum;
 use App\Enums\BandManager\WebsiteFontEnum;
 use App\Enums\BandManager\WebsiteHeroStyleEnum;
 use App\Enums\BandManager\WebsiteLanguageEnum;
@@ -58,6 +59,9 @@ class WebsiteCreatorController extends Controller
         $website->slug ??= $suggestSlug->execute($band);
         $profile = $band->profile;
         $images = $band->galleryImages()->with('media')->ordered()->get();
+        $members = $band->teamMembers()->where('type', TeamMember::TYPE_MEMBER)->orderBy('first_name')->orderBy('last_name')->get();
+        $links = $profile->exists ? $listLinks->execute($profile) : [];
+        $shows = $band->gigs()->upcoming()->where('status', GigStatusEnum::Confirmed)->orderBy('date')->limit((int) config('band-manager.website.max_shows'))->get();
 
         return view('band-manager.website.editor', [
             'band' => $band,
@@ -66,6 +70,10 @@ class WebsiteCreatorController extends Controller
             'canEdit' => $request->user()->can('website.edit'),
             'themes' => WebsiteThemeEnum::cases(),
             'fonts' => WebsiteFontEnum::cases(),
+            'bodyFonts' => WebsiteBodyFontEnum::cases(),
+            'members' => $members,
+            'links' => $links,
+            'shows' => $shows,
             'heroStyles' => WebsiteHeroStyleEnum::cases(),
             'languages' => WebsiteLanguageEnum::cases(),
             'sections' => $listSections->execute($website->sections),
@@ -76,8 +84,8 @@ class WebsiteCreatorController extends Controller
                 'bio' => filled($profile->bio_de) || filled($profile->bio_en),
                 'logo' => $profile->exists && $profile->hasMedia(MediaCollectionEnum::BandLogos->value),
                 'photos' => $images->count(),
-                'members' => $band->teamMembers()->where('type', TeamMember::TYPE_MEMBER)->count(),
-                'links' => $profile->exists ? count($listLinks->execute($profile)) : 0,
+                'members' => $members->count(),
+                'links' => count($links),
                 'shows' => $band->gigs()->upcoming()->where('status', GigStatusEnum::Confirmed)->count(),
             ],
         ]);

@@ -10,6 +10,8 @@ use App\Models\BandManager\Band;
 use App\Models\BandManager\BandProfile;
 use App\Models\BandManager\BandWebsite;
 use App\Models\BandManager\GalleryImage;
+use App\Models\BandManager\Gig;
+use App\Models\BandManager\TeamMember;
 use App\Models\BandManager\User;
 use Illuminate\Support\Facades\Storage;
 
@@ -236,6 +238,71 @@ it('warns that forwarding only works once the website is online', function () {
         ->assertSee('Die Weiterleitung funktioniert erst, wenn eure Website');
 
     expect($response->getContent())->not->toMatch('/data-wc-domain-offline\s+hidden/');
+});
+
+it('saves fonts, own headings and what should not be imported', function () {
+    $band = Band::factory()->create();
+    $member = TeamMember::factory()->create(['band_id' => $band->id]);
+    $other = TeamMember::factory()->create(['band_id' => $band->id]);
+    $gig = Gig::factory()->confirmed()->create(['band_id' => $band->id]);
+
+    actingAsBandManager()
+        ->put(route('band-manager.website-creator.update', $band), websiteFormData([
+            'font' => 'glitch',
+            'body_font' => 'karla',
+            'show_logo' => '0',
+            'section_texts' => ['about' => ['title' => ' Wer wir sind ', 'intro' => ''], 'shows' => ['title' => '', 'intro' => '']],
+            'members' => [$member->id => '0', $other->id => '1'],
+            'links' => ['tiktok' => '0', 'instagram' => '1'],
+            'gigs' => [$gig->id => '0'],
+        ]))
+        ->assertSessionHasNoErrors();
+
+    $website = $band->website()->first();
+
+    expect($website->font->value)->toBe('glitch')
+        ->and($website->body_font->value)->toBe('karla')
+        ->and($website->show_logo)->toBeFalse()
+        ->and($website->section_texts)->toBe(['about' => ['title' => 'Wer wir sind']])
+        ->and($website->hidden_member_ids)->toBe([$member->id])
+        ->and($website->hidden_link_platforms)->toBe(['tiktok'])
+        ->and($website->hidden_gig_ids)->toBe([$gig->id]);
+});
+
+it('rejects members, gigs and platforms of other bands or unknown ones', function () {
+    $band = Band::factory()->create();
+    $foreignMember = TeamMember::factory()->create();
+    $foreignGig = Gig::factory()->create();
+
+    actingAsBandManager()
+        ->put(route('band-manager.website-creator.update', $band), websiteFormData([
+            'body_font' => 'comic-sans',
+            'members' => [$foreignMember->id => '0'],
+            'gigs' => [$foreignGig->id => '0'],
+            'links' => ['myspace' => '0'],
+            'section_texts' => ['karaoke' => ['title' => 'x']],
+        ]))
+        ->assertSessionHasErrors(['body_font', 'members', 'gigs', 'links', 'section_texts']);
+});
+
+it('offers members, links and shows to switch off in the editor', function () {
+    $band = Band::factory()->create();
+    BandProfile::query()->create(['band_id' => $band->id, 'links' => ['instagram' => 'https://www.instagram.com/ironkittens/']]);
+    $member = TeamMember::factory()->create(['band_id' => $band->id, 'stage_name' => 'Kitty K']);
+    $gig = Gig::factory()->confirmed()->create(['band_id' => $band->id, 'city' => 'Köln']);
+    BandWebsite::factory()->create(['band_id' => $band->id, 'hidden_member_ids' => [$member->id]]);
+
+    $response = actingAsBandManager()
+        ->get(route('band-manager.website-creator.band', $band))
+        ->assertSuccessful()
+        ->assertSee('Was davon auf die Website soll')
+        ->assertSee('name="members['.$member->id.']" value="1"', false)
+        ->assertSee('name="links[instagram]" value="1" checked', false)
+        ->assertSee('name="gigs['.$gig->id.']" value="1" checked', false)
+        ->assertSee('name="section_texts[about][title]"', false)
+        ->assertSee('name="body_font" value="lora"', false);
+
+    expect($response->getContent())->not->toContain('name="members['.$member->id.']" value="1" checked');
 });
 
 it('deletes the website together with the band', function () {
