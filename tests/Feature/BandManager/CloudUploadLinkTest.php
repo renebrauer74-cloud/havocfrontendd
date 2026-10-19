@@ -112,7 +112,8 @@ it('shows all files in the desktop file dialog and accepts iphone photos', funct
     $this->get(route('band-manager.share.show', $link))
         ->assertOk()
         ->assertDontSee(' accept="', false)
-        ->assertSee('data-mobile-accept="image/*,video/*"', false);
+        ->assertSee('data-mobile-accept="image/*,video/*"', false)
+        ->assertSee('<label for="clFiles" class="btn btn-primary my-1"><i class="bi bi-images"></i> Fotos &amp; Videos auswählen</label>', false);
 
     $this->postJson(route('band-manager.share.upload', $link), ['file' => UploadedFile::fake()->createWithContent('IMG_0042.HEIC', $heic)])
         ->assertCreated();

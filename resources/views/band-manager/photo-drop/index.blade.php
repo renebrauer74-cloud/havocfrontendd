@@ -1,6 +1,6 @@
 ﻿<x-band-manager.layout title="Photo Drop">
     @push('styles')
-        <link href="{{ asset('assets/band-manager/css/cloud.css') }}?v=4" rel="stylesheet">
+        <link href="{{ asset('assets/band-manager/css/cloud.css') }}?v=5" rel="stylesheet">
     @endpush
 
     <h1 class="h3 mb-1">Photo Drop – Band wählen</h1>

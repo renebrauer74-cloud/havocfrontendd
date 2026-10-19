@@ -8,7 +8,7 @@
 @endphp
 <x-band-manager.layout :title="$title.' – '.$band->name">
     @push('styles')
-        <link href="{{ asset('assets/band-manager/css/cloud.css') }}?v=4" rel="stylesheet">
+        <link href="{{ asset('assets/band-manager/css/cloud.css') }}?v=5" rel="stylesheet">
     @endpush
 
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
@@ -280,7 +280,7 @@
 
     @if ($canEdit || auth('band-manager')->user()->can('cloud.share'))
         @push('scripts')
-            <script src="{{ asset('assets/band-manager/js/cloud.js') }}?v=5"></script>
+            <script src="{{ asset('assets/band-manager/js/cloud.js') }}?v=6"></script>
         @endpush
     @endif
 </x-band-manager.layout>
