@@ -9,13 +9,17 @@
 @endphp
 <x-band-manager.layout :title="$title.' – '.$band->name">
     @push('styles')
-        <link href="{{ asset('assets/band-manager/css/cloud.css') }}?v=3" rel="stylesheet">
+        <link href="{{ asset('assets/band-manager/css/cloud.css') }}?v=4" rel="stylesheet">
     @endpush
 
     <div class="cl-share mx-auto">
         <div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-3">
             <div>
-                <div class="small text-muted"><i class="bi bi-share"></i> Freigabe von <strong>{{ $band->name }}</strong></div>
+                @if ($link->type->allowsUpload())
+                    <div class="small text-muted"><i class="bi bi-camera"></i> Photo Drop von <strong>{{ $band->name }}</strong></div>
+                @else
+                    <div class="small text-muted"><i class="bi bi-share"></i> Freigabe von <strong>{{ $band->name }}</strong></div>
+                @endif
                 <h1 class="h4 mb-0">{{ $title }}</h1>
             </div>
             @if ($folder)
@@ -130,7 +134,7 @@
 
     @if ($canUpload)
         @push('scripts')
-            <script src="{{ asset('assets/band-manager/js/cloud.js') }}?v=3"></script>
+            <script src="{{ asset('assets/band-manager/js/cloud.js') }}?v=4"></script>
         @endpush
     @endif
 </x-band-manager.layout>

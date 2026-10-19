@@ -146,7 +146,7 @@ it('keeps uploaded files when the link is revoked', function () {
     $this->postJson(route('band-manager.share.upload', $link), ['file' => UploadedFile::fake()->image('a.jpg'), 'uploader_name' => 'Lisa']);
 
     actingAsBandManager(uploadLinkBandUser($band))
-        ->get(route('band-manager.cloud.links', $band))
+        ->get(route('band-manager.photo-drops.band', $band))
         ->assertSee('1 Datei hochgeladen');
 
     actingAsBandManager(uploadLinkBandUser($band))->delete(route('band-manager.cloud.links.destroy', $link));

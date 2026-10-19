@@ -21,13 +21,16 @@ use Illuminate\View\View;
  */
 class CloudLinkController extends Controller
 {
+    /**
+     * Nur Links zum Ansehen – Upload-Links stehen unter Cloud → Photo Drop.
+     */
     public function index(Request $request, Band $band): View
     {
         Gate::authorize('access', $band);
 
         return view('band-manager.cloud.links', [
             'band' => $band,
-            'links' => $band->cloudLinks()->with(['folder', 'file.media', 'creator'])->withCount('uploads')->latest()->latest('id')->get(),
+            'links' => $band->cloudLinks()->where('type', CloudLinkTypeEnum::Read)->with(['folder', 'file.media', 'creator'])->latest()->latest('id')->get(),
             'newLinkId' => (int) $request->session()->get('new_link_id'),
         ]);
     }

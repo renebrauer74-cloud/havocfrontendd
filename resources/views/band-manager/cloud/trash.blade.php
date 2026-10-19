@@ -6,7 +6,7 @@
 @endphp
 <x-band-manager.layout :title="'Papierkorb – '.$band->name">
     @push('styles')
-        <link href="{{ asset('assets/band-manager/css/cloud.css') }}?v=3" rel="stylesheet">
+        <link href="{{ asset('assets/band-manager/css/cloud.css') }}?v=4" rel="stylesheet">
     @endpush
 
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">

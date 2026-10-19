@@ -24,6 +24,7 @@ use App\Http\Controllers\BandManager\GigLocationSheetController;
 use App\Http\Controllers\BandManager\HomeController;
 use App\Http\Controllers\BandManager\ImpersonationController;
 use App\Http\Controllers\BandManager\MessageController;
+use App\Http\Controllers\BandManager\PhotoDropController;
 use App\Http\Controllers\BandManager\PresskitController;
 use App\Http\Controllers\BandManager\StagePlotController;
 use App\Http\Controllers\BandManager\StagePlotExportController;
@@ -136,7 +137,16 @@ Route::middleware(['auth:band-manager', EnsureBandManagerUserIsActive::class])->
         });
     });
 
-    // Cloud-Speicher – Band-Zugriff prüfen die Controller, Papierkorb-Routen binden auch gelöschte Einträge
+    // Cloud → Photo Drop: Ordner + Upload-Link für Fans & Fotografen – öffentlich über share.* (s/{token})
+    Route::middleware(['can:cloud.view', 'can:cloud.share'])->prefix('cloud/photo-drop')->name('photo-drops.')->group(function () {
+        Route::get('/', [PhotoDropController::class, 'index'])->name('index');
+        Route::get('band/{band}', [PhotoDropController::class, 'band'])->name('band');
+        Route::post('band/{band}', [PhotoDropController::class, 'store'])->name('store');
+        Route::get('{link}/qr-code', [PhotoDropController::class, 'qrCode'])->name('qr-code');
+        Route::delete('{link}', [PhotoDropController::class, 'destroy'])->name('destroy');
+    });
+
+    // Cloud → Speicher – Band-Zugriff prüfen die Controller, Papierkorb-Routen binden auch gelöschte Einträge
     Route::middleware('can:cloud.view')->prefix('cloud')->name('cloud.')->group(function () {
         Route::get('/', [CloudController::class, 'index'])->name('index');
         Route::get('band/{band}', [CloudController::class, 'band'])->name('band');

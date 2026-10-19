@@ -32,4 +32,8 @@ a.cl-name:hover .cl-file-name, a.cl-name:hover > span:last-child { text-decorati
 .cl-link-new { border-color: var(--hv-accent); box-shadow: 0 0 0 1px var(--hv-accent) !important; }
 .cl-share { max-width: 860px; }
 
+/* Photo Drop: QR-Code immer auf Weiß, damit er auch im dunklen Design scannbar bleibt */
+.pd-qr { flex-shrink: 0; display: block; padding: 4px; border-radius: 8px; background: #fff; border: 1px solid var(--hv-border); }
+.pd-qr img { display: block; width: 88px; height: 88px; image-rendering: pixelated; }
+
 .cl-thumb { flex-shrink: 0; width: 40px; height: 40px; border-radius: 8px; object-fit: cover; background: var(--hv-surface-2); }

@@ -9,7 +9,7 @@ use App\Models\BandManager\User;
 /**
  * Menü der Seitenleiste (Icons: https://icons.getbootstrap.com).
  * Einträge mit section "riders" landen unter der Überschrift "Rider Creator", section "website" unter "Website Builder",
- * darunter steht die farbig hervorgehobene "Cloud" (section "cloud") für sich,
+ * section "cloud" unter "Cloud" (Speicher, Photo Drop),
  * der hervorgehobene Punkt "Export" (section "exports") führt zur Kachel-Seite mit allen Exporten,
  * Einträge mit section "admin" im abgetrennten Bereich "Administration".
  */
@@ -45,7 +45,8 @@ class Navigation
 
             ['route' => 'band-manager.website-creator.index', 'active' => ['band-manager.website-creator.*'], 'label' => 'Website Creator', 'icon' => 'globe2', 'order' => 10, 'section' => 'website', 'visible' => $user->can('website.view')],
 
-            ['route' => 'band-manager.cloud.index', 'active' => ['band-manager.cloud.*'], 'label' => 'Cloud', 'icon' => 'cloud', 'order' => 10, 'section' => 'cloud', 'visible' => $user->can('cloud.view')],
+            ['route' => 'band-manager.cloud.index', 'active' => ['band-manager.cloud.*'], 'label' => 'Speicher', 'icon' => 'hdd-stack', 'order' => 10, 'section' => 'cloud', 'visible' => $user->can('cloud.view')],
+            ['route' => 'band-manager.photo-drops.index', 'active' => ['band-manager.photo-drops.*'], 'label' => 'Photo Drop', 'icon' => 'camera', 'order' => 20, 'section' => 'cloud', 'visible' => $user->can('cloud.view') && $user->can('cloud.share')],
 
             ['route' => 'band-manager.exports.index', 'active' => $exportActive, 'label' => 'Export', 'icon' => 'box-arrow-down', 'order' => 10, 'section' => 'exports', 'visible' => $exports !== []],
 
