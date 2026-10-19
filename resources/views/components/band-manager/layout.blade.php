@@ -40,7 +40,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link href="{{ asset('assets/band-manager/css/app.css') }}" rel="stylesheet">
-    <link href="{{ asset('assets/band-manager/css/havoc.css') }}?v=13" rel="stylesheet">
+    <link href="{{ asset('assets/band-manager/css/havoc.css') }}?v=14" rel="stylesheet">
     @stack('styles')
 </head>
 <body class="hv-body">
@@ -98,8 +98,9 @@
 
                 @if ($cloudNavigation)
                     <div class="hv-side-section">
+                        <div class="hv-side-label"><i class="bi bi-cloud"></i> Cloud</div>
                         @foreach ($cloudNavigation as $item)
-                            <x-band-manager.nav-link :item="$item" class="hv-side-link--cloud" />
+                            <x-band-manager.nav-link :item="$item" />
                         @endforeach
                     </div>
                 @endif

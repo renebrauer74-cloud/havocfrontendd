@@ -4,7 +4,7 @@
 @endphp
 <x-band-manager.layout :title="'Freigaben – '.$band->name">
     @push('styles')
-        <link href="{{ asset('assets/band-manager/css/cloud.css') }}?v=3" rel="stylesheet">
+        <link href="{{ asset('assets/band-manager/css/cloud.css') }}?v=4" rel="stylesheet">
     @endpush
 
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
@@ -15,9 +15,9 @@
     </div>
 
     <p class="text-muted small">
-        <i class="bi bi-info-circle"></i> Über einen Freigabe-Link können Externe ohne Login ansehen und herunterladen, über einen Upload-Link
-        zusätzlich in den Ordner hochladen (z. B. Fotos nach einem Gig) – löschen können sie nie. Links legst du in der Cloud über
-        <i class="bi bi-share"></i> an. Ein widerrufener Link funktioniert sofort nicht mehr; hochgeladene Dateien bleiben erhalten.
+        <i class="bi bi-info-circle"></i> Über einen Freigabe-Link können Externe ohne Login ansehen und herunterladen – hochladen oder löschen
+        können sie nie. Links legst du im Speicher über <i class="bi bi-share"></i> an. Ein widerrufener Link funktioniert sofort nicht mehr.
+        Fotos von Fans &amp; Fotografen sammeln: <a href="{{ route('band-manager.photo-drops.band', $band) }}" class="hv-link"><i class="bi bi-camera"></i> Photo Drop</a>.
     </p>
 
     <div class="d-flex flex-column gap-3">
@@ -63,11 +63,7 @@
                 @endif
 
                 <div class="small text-muted d-flex flex-wrap column-gap-3 row-gap-1">
-                    <span @class(['text-primary fw-semibold' => $link->type->allowsUpload()])><i class="bi bi-{{ $link->type->icon() }}"></i> {{ $link->type->label() }}</span>
-                    @if ($link->type->allowsUpload())
-                        <span><i class="bi bi-filetype-jpg"></i> {{ $link->allow_all_types ? 'alle Dateitypen' : 'nur Fotos & Videos' }}</span>
-                        <span><i class="bi bi-images"></i> {{ $link->uploads_count }} {{ $link->uploads_count === 1 ? 'Datei' : 'Dateien' }} hochgeladen</span>
-                    @endif
+                    <span><i class="bi bi-{{ $link->type->icon() }}"></i> {{ $link->type->label() }}</span>
                     <span><i class="bi bi-hourglass-split"></i> gültig bis {{ $link->expires_at?->format('d.m.Y') ?? 'unbegrenzt' }}</span>
                     <span><i class="bi bi-clock-history"></i> zuletzt geöffnet: {{ $link->last_used_at?->format('d.m.Y H:i') ?? 'noch nie' }}</span>
                     <span>erstellt {{ $link->created_at->format('d.m.Y') }}@if ($link->creator) von {{ $link->creator->name }}@endif</span>

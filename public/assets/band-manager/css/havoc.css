@@ -28,8 +28,6 @@
   --hv-card-shadow:   0 1px 2px rgba(16, 16, 24, .05);
   --hv-fc-bg-opacity: .85;
   --hv-today-ring:    #ffd000;
-  --hv-cloud:         #2f7bdc;
-  --hv-cloud-soft:    rgba(47, 123, 220, .10);
   --hv-backdrop:      .45;
 
   --bs-body-bg-rgb: 244, 244, 246;
@@ -64,8 +62,6 @@
   --hv-card-shadow:   none;
   --hv-fc-bg-opacity: .8;
   --hv-today-ring:    #ffe600;
-  --hv-cloud:         #4a94ec;
-  --hv-cloud-soft:    rgba(74, 148, 236, .14);
   --hv-backdrop:      .7;
 
   --bs-body-bg-rgb: 11, 11, 14;
@@ -219,20 +215,6 @@ code { color: var(--hv-accent-text); }
 .hv-side-link--export i { color: var(--hv-accent); opacity: 1; }
 .hv-side-link--export:hover { border-color: var(--hv-accent); background: var(--hv-surface-2); }
 .hv-side-link--export.active { border-color: var(--hv-accent); }
-
-/* Cloud: wie Export hervorgehoben, aber blau hinterlegt */
-.hv-side-link--cloud {
-  margin-top: .25rem;
-  background: var(--hv-cloud-soft);
-  border: 1px solid var(--hv-cloud);
-  font-weight: 600;
-  color: var(--hv-heading);
-}
-.hv-side-link--cloud i { color: var(--hv-cloud); opacity: 1; }
-.hv-side-link--cloud:hover,
-.hv-side-link--cloud.active { background: var(--hv-cloud-soft); color: var(--hv-heading); box-shadow: inset 0 0 0 1px var(--hv-cloud); }
-.hv-side-link--cloud.active i { color: var(--hv-cloud); }
-.hv-side-link--cloud.active::before { background: var(--hv-cloud); }
 
 /* ---------- Hell/Dunkel-Schalter ---------- */
 .hv-side-theme { padding: .85rem 1rem 0; border-top: 1px solid var(--hv-border); }

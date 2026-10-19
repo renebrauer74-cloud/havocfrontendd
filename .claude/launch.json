@@ -6,6 +6,12 @@
       "runtimeExecutable": "php",
       "runtimeArgs": ["artisan", "serve", "--port=8000"],
       "port": 8000
+    },
+    {
+      "name": "havoc-alt",
+      "runtimeExecutable": "php",
+      "runtimeArgs": ["artisan", "serve", "--port=8010"],
+      "port": 8010
     }
   ]
 }

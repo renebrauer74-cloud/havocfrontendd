@@ -123,26 +123,14 @@
 
     // ---- Teilen (Freigabe-Link anlegen) -----------------------------------------------------------
 
+    // Nur Links zum Ansehen – Upload-Links legt die Band unter Cloud → Photo Drop an
     const shareEl = document.getElementById('clShareModal');
     if (shareEl) {
         const shareModal = bootstrap.Modal.getOrCreateInstance(shareEl);
-        const typeInputs = [...shareEl.querySelectorAll('input[name="type"]')];
-
-        // Upload-Links gibt es nur für Ordner – Hinweise und Optionen passend zum gewählten Typ
-        const showType = () => {
-            const type = typeInputs.find(input => input.checked)?.value ?? 'read';
-            shareEl.querySelectorAll('[data-cl-share-hint]').forEach(el => { el.hidden = el.dataset.clShareHint !== type; });
-        };
-        typeInputs.forEach(input => input.addEventListener('change', showType));
 
         document.querySelectorAll('[data-cl-share]').forEach(button => button.addEventListener('click', () => {
-            const isFolder = button.dataset.clShare === 'folder';
-
             document.getElementById('clShareForm').action = button.dataset.action;
             document.getElementById('clShareName').textContent = button.dataset.name;
-            document.getElementById('clShareTypes').hidden = !isFolder;
-            typeInputs.forEach(input => { input.checked = input.value === 'read'; input.disabled = !isFolder && input.value !== 'read'; });
-            showType();
             shareModal.show();
         }));
     }

@@ -1,6 +1,6 @@
 <x-band-manager.layout title="Cloud">
     @push('styles')
-        <link href="{{ asset('assets/band-manager/css/cloud.css') }}?v=3" rel="stylesheet">
+        <link href="{{ asset('assets/band-manager/css/cloud.css') }}?v=4" rel="stylesheet">
     @endpush
 
     <h1 class="h3 mb-4">Cloud – Band wählen</h1>

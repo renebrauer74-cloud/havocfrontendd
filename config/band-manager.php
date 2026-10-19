@@ -167,6 +167,7 @@ return [
         'link_expiry_days' => [7, 30, 90],  // Auswahl beim Freigabe-Link, dazu „unbegrenzt“; vorgewählt der mittlere Wert
         'link_uploads_per_hour' => 300,     // Uploads pro Stunde und Besucher über einen Upload-Link (Schutz vor Missbrauch)
         'link_upload_types' => ['image/*', 'video/*'],   // Upload-Links ohne „alle Dateitypen“: nur Fotos & Videos
+        'photo_drop_folder' => 'Fotos',     // Photo Drop: neue Ordner landen vorgewählt in diesem Hauptordner (sonst oberste Ebene)
 
         // Ausführbare Dateien – zusätzlich sperrt die Media Library z. B. php, cgi, asp (FileAdder::$defaultDisallowedExtensions)
         'blocked_extensions' => [
