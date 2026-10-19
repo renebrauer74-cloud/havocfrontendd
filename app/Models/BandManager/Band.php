@@ -156,6 +156,16 @@ class Band extends Model
     }
 
     /**
+     * Website (Website Builder → Website Creator).
+     *
+     * @return HasOne<BandWebsite, $this>
+     */
+    public function website(): HasOne
+    {
+        return $this->hasOne(BandWebsite::class)->withDefault();
+    }
+
+    /**
      * Das Hauptbild der Galerie (Titelbild im Pressekit).
      *
      * @return HasOne<GalleryImage, $this>

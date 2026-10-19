@@ -31,6 +31,7 @@ use App\Http\Controllers\BandManager\TeamController;
 use App\Http\Controllers\BandManager\TechRiderController;
 use App\Http\Controllers\BandManager\TechRiderExportController;
 use App\Http\Controllers\BandManager\ThemeController;
+use App\Http\Controllers\BandManager\WebsiteCreatorController;
 use App\Http\Middleware\EnsureBandManagerUserIsActive;
 use Illuminate\Support\Facades\Route;
 
@@ -203,6 +204,19 @@ Route::middleware(['auth:band-manager', EnsureBandManagerUserIsActive::class])->
         Route::get('band/{band}/pdf', [StagePlotController::class, 'pdf'])->name('pdf');
         Route::get('band/{band}/image', [StagePlotController::class, 'image'])->name('image');
         Route::put('band/{band}', [StagePlotController::class, 'update'])->middleware('can:riders.edit')->name('update');
+    });
+
+    // Website Builder → Website Creator – Band-Zugriff prüfen Controller bzw. Form-Request, öffentlich: routes/web.php (sites/…)
+    Route::middleware('can:website.view')->prefix('website-creator')->name('website-creator.')->group(function () {
+        Route::get('/', [WebsiteCreatorController::class, 'index'])->name('index');
+        Route::get('band/{band}', [WebsiteCreatorController::class, 'band'])->name('band');
+        Route::get('band/{band}/preview', [WebsiteCreatorController::class, 'show'])->name('show');
+        Route::get('band/{band}/media/{media}', [WebsiteCreatorController::class, 'media'])->name('media');
+
+        Route::middleware('can:website.edit')->group(function () {
+            Route::post('band/{band}/preview', [WebsiteCreatorController::class, 'preview'])->name('preview');
+            Route::put('band/{band}', [WebsiteCreatorController::class, 'update'])->name('update');
+        });
     });
 
     Route::get('export', [ExportController::class, 'index'])->name('exports.index');

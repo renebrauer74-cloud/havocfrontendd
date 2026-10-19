@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin;
 use App\Http\Controllers\AgencyShowController;
 use App\Http\Controllers\ArtistController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\BandWebsiteController;
 use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\HomeController;
@@ -28,6 +29,10 @@ Route::view('stu', 'pages.stu')->name('stu');
 Route::view('impressum', 'pages.impressum')->name('impressum');
 Route::get('kontakt', [ContactController::class, 'create'])->name('contact');
 Route::post('kontakt', [ContactController::class, 'store'])->middleware('throttle:5,1')->name('contact.store');
+
+// Band-Websites aus dem Website Creator des Band-Managers
+Route::get('sites/{website:slug}', [BandWebsiteController::class, 'show'])->name('band-websites.show');
+Route::get('sites/{website:slug}/media/{media}', [BandWebsiteController::class, 'media'])->name('band-websites.media');
 
 /*
 |--------------------------------------------------------------------------

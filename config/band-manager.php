@@ -49,6 +49,8 @@ return [
             'cloud.view',           // Cloud-Speicher ansehen & Dateien herunterladen
             'cloud.edit',           // hochladen, Ordner anlegen, umbenennen, verschieben, Papierkorb
             'cloud.share',          // Freigabe-Links für Externe anlegen & widerrufen
+            'website.view',         // Website Creator ansehen
+            'website.edit',         // Website gestalten & veröffentlichen
         ],
 
         // Zugänge einer Band: Rechte kommen aus den freigegebenen Bereichen (App\Enums\BandManager\BandAreaEnum)
@@ -319,6 +321,26 @@ return [
                 ['type' => 'wedge', 'x' => 630, 'y' => 530, 'w' => 80, 'h' => 56, 'rotation' => 0, 'label' => 'Mon 3'],
             ],
         ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Website Builder – Website Creator
+    |--------------------------------------------------------------------------
+    |
+    | Jede Band bekommt eine eigene Website unter /sites/{adresse}. Inhalte kommen
+    | live aus dem Band-Manager. Themes, Schriften, Hero-Stile und Abschnitte:
+    | App\Enums\BandManager\WebsiteThemeEnum, WebsiteFontEnum,
+    | WebsiteHeroStyleEnum, WebsiteSectionEnum.
+    |
+    */
+
+    'website' => [
+        'slug_max' => 60,           // Zeichen für die Adresse
+        'tagline_max' => 160,
+        'imprint_max' => 5000,      // Impressum (Pflicht für Websites in Deutschland)
+        'max_shows' => 12,          // kommende bestätigte Gigs auf der Website
+        'accent_presets' => ['#e5383b', '#ff2bd6', '#ffc400', '#ff7a2f', '#22c55e', '#06b6d4', '#2563eb', '#a855f7', '#b08d57', '#f5f5f5'],
     ],
 
     /*
