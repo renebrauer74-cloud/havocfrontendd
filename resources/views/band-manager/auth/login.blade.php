@@ -11,7 +11,10 @@
                         <input type="email" name="email" id="email" class="form-control" value="{{ old('email') }}" required autofocus autocomplete="username">
                     </div>
                     <div class="mb-4">
-                        <label class="form-label" for="password">Passwort</label>
+                        <div class="d-flex justify-content-between align-items-baseline">
+                            <label class="form-label" for="password">Passwort</label>
+                            <a href="{{ route('band-manager.password.request') }}" class="small">Passwort vergessen?</a>
+                        </div>
                         <input type="password" name="password" id="password" class="form-control" required autocomplete="current-password">
                     </div>
                     <button class="btn btn-primary w-100 py-2">Anmelden</button>

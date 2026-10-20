@@ -110,6 +110,14 @@ return [
             'expire' => 60,
             'throttle' => 60,
         ],
+
+        // „Passwort vergessen“ im Band-Manager
+        'band-manager-users' => [
+            'provider' => 'band-manager-users',
+            'table' => 'bm_password_reset_tokens',
+            'expire' => 60,
+            'throttle' => 60,
+        ],
     ],
 
     /*

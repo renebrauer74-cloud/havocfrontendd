@@ -12,6 +12,8 @@
 
 return [
 
+    'confirmed' => 'Die Wiederholung von :attribute stimmt nicht überein.',
+    'current_password' => 'Das Passwort ist nicht korrekt.',
     'email' => 'Bitte eine gültige E-Mail-Adresse angeben.',
     'exists' => 'Bitte eine gültige Auswahl für :attribute treffen.',
     'image' => ':attribute muss ein Bild sein.',
@@ -23,8 +25,12 @@ return [
         'string' => ':attribute darf höchstens :max Zeichen lang sein.',
     ],
     'mimes' => 'Bitte nur Bilder hochladen (JPG, PNG, GIF, WebP).',
+    'min' => [
+        'string' => ':attribute muss mindestens :min Zeichen lang sein.',
+    ],
     'required' => 'Bitte :attribute ausfüllen.',
     'string' => ':attribute muss ein Text sein.',
+    'unique' => ':attribute ist bereits vergeben.',
     'uploaded' => ':attribute konnte nicht hochgeladen werden – vermutlich ist die Datei zu groß.',
 
     'attributes' => [

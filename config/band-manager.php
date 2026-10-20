@@ -19,6 +19,22 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Mein Konto
+    |--------------------------------------------------------------------------
+    |
+    | Name, E-Mail und Passwort ändert jeder Login selbst, den Bandnamen nur
+    | der Haupt-Login der Band. Gültigkeit der „Passwort vergessen“-Links:
+    | config('auth.passwords.band-manager-users.expire').
+    |
+    */
+
+    'account' => [
+        'password_min' => 8,
+        'email_confirmation_hours' => 24,   // so lange gilt der Link, mit dem eine neue E-Mail bestätigt wird
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Rollen & Rechte
     |--------------------------------------------------------------------------
     |
