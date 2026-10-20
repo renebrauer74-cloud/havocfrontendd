@@ -37,6 +37,18 @@ it('shows the calendar of an own band', function () {
         ->assertSee('statusModal', false);
 });
 
+it('explains how to add entries on touch and mouse devices', function () {
+    $artist = User::factory()->create();
+    $band = Band::factory()->hasAttached($artist)->create();
+
+    actingAsBandManager($artist)
+        ->get(route('band-manager.calendar.show', $band))
+        ->assertSee('hv-cal-hint', false)
+        ->assertSee('Tippe auf einen Tag')
+        ->assertSee('Tag gedrückt halten und weiterziehen')
+        ->assertSee('Klicke auf einen Tag');
+});
+
 it('hides calendars of other bands', function () {
     actingAsBandManager(User::factory()->create())
         ->get(route('band-manager.calendar.show', Band::factory()->create()))

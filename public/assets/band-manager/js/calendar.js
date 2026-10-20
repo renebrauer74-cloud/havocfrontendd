@@ -79,10 +79,16 @@ document.addEventListener('DOMContentLoaded', () => {
             if (tip) info.el.title = tip;
         },
 
+        // Mehrere Tage: ziehen (mobil: gedrückt halten und ziehen)
         select: info => {
             const end = new Date(info.end);
             end.setDate(end.getDate() - 1); // FullCalendar-Ende ist exklusiv
             openModal(info.startStr.slice(0, 10), fmt(end));
+        },
+
+        // Ein Tag: einfaches Antippen reicht auch mobil (dort feuert „select“ erst nach langem Drücken)
+        dateClick: info => {
+            if (modal) openModal(info.dateStr.slice(0, 10), info.dateStr.slice(0, 10));
         },
     });
     calendar.render();
@@ -108,7 +114,16 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     form.querySelectorAll('input[name="status"]').forEach(radio => radio.addEventListener('change', syncForm));
 
+    // Klick und Auswahl können beide feuern – das Fenster nur einmal öffnen
+    let isOpen = false;
+    modalEl.addEventListener('hidden.bs.modal', () => {
+        isOpen = false;
+        calendar.unselect();
+    });
+
     function openModal(from, to) {
+        if (isOpen) return;
+        isOpen = true;
         current = { from, to };
         rangeLabel.textContent = from === to ? human(from) : `${human(from)} – ${human(to)}`;
         form.reset();
