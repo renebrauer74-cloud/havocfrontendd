@@ -658,6 +658,24 @@ a.card:hover { border-color: var(--hv-border-strong); transform: translateY(-1px
   .fc .fc-toolbar-title { font-size: 1rem; }
 }
 
+/* Bedien-Hinweis über dem Kalender – rot hinterlegt, Text je nach Gerät (Touch / Maus) */
+.hv-cal-hint {
+  display: flex; align-items: flex-start; gap: .6rem;
+  margin-bottom: 1rem; padding: .75rem 1rem;
+  background: var(--hv-accent-soft);
+  border: 1px solid rgba(var(--hv-accent-rgb), .35);
+  border-left: 4px solid var(--hv-accent);
+  border-radius: 8px;
+  color: var(--hv-heading); font-size: .9rem; line-height: 1.4;
+}
+.hv-cal-hint > i { color: var(--hv-accent); font-size: 1.15rem; line-height: 1.2; }
+.hv-cal-hint strong { color: var(--hv-accent-text); }
+.hv-cal-hint-touch { display: none; }
+@media (hover: none) and (pointer: coarse) {
+  .hv-cal-hint-touch { display: inline; }
+  .hv-cal-hint-mouse { display: none; }
+}
+
 /* =====================================================================
    Formatierungs-Legende (Markdown)
    ===================================================================== */

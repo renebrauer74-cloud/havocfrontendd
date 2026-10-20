@@ -14,7 +14,11 @@
     </div>
 
     @if ($canEdit)
-        <p class="text-muted small">Klicke auf einen Tag oder ziehe über mehrere Tage (mobil: lange tippen), um den Status, eine Probe oder einen anderen Termin einzutragen.</p>
+        <div class="hv-cal-hint">
+            <i class="bi bi-hand-index-thumb"></i>
+            <span class="hv-cal-hint-touch"><strong>Tippe auf einen Tag</strong>, um den Status, eine Probe oder einen anderen Termin einzutragen. Für mehrere Tage: Tag gedrückt halten und weiterziehen.</span>
+            <span class="hv-cal-hint-mouse"><strong>Klicke auf einen Tag</strong> oder ziehe über mehrere Tage, um den Status, eine Probe oder einen anderen Termin einzutragen.</span>
+        </div>
     @else
         <p class="text-muted small">Nur Leseansicht.</p>
     @endif
@@ -96,6 +100,6 @@
         </script>
         <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.15/locales-all.global.min.js"></script>
-        <script src="{{ asset('assets/band-manager/js/calendar.js') }}?v=3"></script>
+        <script src="{{ asset('assets/band-manager/js/calendar.js') }}?v=4"></script>
     @endpush
 </x-band-manager.layout>
