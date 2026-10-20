@@ -1,8 +1,13 @@
 <?php
 
+use App\Http\Controllers\BandManager\AccountController;
+use App\Http\Controllers\BandManager\AccountEmailController;
+use App\Http\Controllers\BandManager\AccountPasswordController;
 use App\Http\Controllers\BandManager\Admin;
 use App\Http\Controllers\BandManager\Api;
+use App\Http\Controllers\BandManager\Auth\ForgotPasswordController;
 use App\Http\Controllers\BandManager\Auth\LoginController;
+use App\Http\Controllers\BandManager\Auth\ResetPasswordController;
 use App\Http\Controllers\BandManager\BandAccessController;
 use App\Http\Controllers\BandManager\BandProfileController;
 use App\Http\Controllers\BandManager\CalendarController;
@@ -49,7 +54,18 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('guest:band-manager')->group(function () {
     Route::get('login', [LoginController::class, 'create'])->name('login');
     Route::post('login', [LoginController::class, 'store'])->name('login.store');
+
+    // Passwort vergessen
+    Route::get('forgot-password', [ForgotPasswordController::class, 'create'])->name('password.request');
+    Route::post('forgot-password', [ForgotPasswordController::class, 'store'])->middleware('throttle:6,1')->name('password.email');
+    Route::get('reset-password/{token}', [ResetPasswordController::class, 'create'])->name('password.reset');
+    Route::post('reset-password', [ResetPasswordController::class, 'store'])->middleware('throttle:6,1')->name('password.update');
 });
+
+// Bestätigungslink für eine neue E-Mail-Adresse – auch ohne Login, die Signatur prüft AccountEmailController
+Route::get('account/email/confirm/{user}', [AccountEmailController::class, 'confirm'])
+    ->middleware('throttle:12,1')
+    ->name('account.email.confirm');
 
 // Freigabe-Links des Cloud-Speichers – ohne Login, Zugriff prüft CloudShareController über den Token
 Route::middleware('throttle:120,1')->prefix('s/{link:token}')->name('share.')->group(function () {
@@ -68,6 +84,14 @@ Route::middleware(['auth:band-manager', EnsureBandManagerUserIsActive::class])->
     Route::post('logout', [LoginController::class, 'destroy'])->name('logout');
     Route::put('theme', ThemeController::class)->name('theme.update');
     Route::delete('impersonation', [ImpersonationController::class, 'destroy'])->name('impersonation.destroy');
+
+    // Mein Konto – jeder Login für sich selbst, den Bandnamen nur der Haupt-Login der Band (AccountRequest)
+    Route::prefix('account')->name('account.')->group(function () {
+        Route::get('/', [AccountController::class, 'edit'])->name('edit');
+        Route::put('/', [AccountController::class, 'update'])->name('update');
+        Route::put('email', [AccountEmailController::class, 'update'])->middleware('throttle:6,1')->name('email.update');
+        Route::put('password', [AccountPasswordController::class, 'update'])->middleware('throttle:6,1')->name('password.update');
+    });
 
     // Ampel-Kalender
     Route::middleware('can:availability.view')->group(function () {
